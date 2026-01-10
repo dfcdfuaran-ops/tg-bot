@@ -148,7 +148,6 @@ configure_caddy() {
     if ! grep -q -E "https://${app_domain}\s*\{" "$caddy_file"; then
         cat >> "$caddy_file" <<EOF
 
-# TG-SELL-BOT (auto-generated)
 https://${app_domain} {
     reverse_proxy * http://remnashop:5000
 }
