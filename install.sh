@@ -211,7 +211,7 @@ configure_caddy() {
     # Проверить, нужно ли перезапустить Caddy
     if docker ps | grep -q "remnawave-caddy"; then
         log_info "Caddy контейнер запущен. Рекомендуется перезапустить его для применения изменений:"
-        log_info "  docker compose -f /opt/remnawave/caddy/docker-compose.yml restart caddy"
+        log_info "  docker compose -f /opt/remnawave/caddy/docker compose.yml restart caddy"
     else
         log_info "При следующем запуске Caddy конфигурация будет применена автоматически"
     fi
@@ -447,7 +447,7 @@ if [ "$REVERSE_PROXY" = "caddy" ]; then
     
     echo
     echo -e "${YELLOW}⚠ Для применения изменений перезапустите Caddy:${NC}"
-    echo -e "  ${WHITE}docker compose -f /opt/remnawave/caddy/docker-compose.yml restart caddy${NC}"
+    echo -e "  ${WHITE}docker compose -f /opt/remnawave/caddy/docker compose.yml restart caddy${NC}"
     echo
     
 elif [ "$REVERSE_PROXY" = "nginx" ]; then
