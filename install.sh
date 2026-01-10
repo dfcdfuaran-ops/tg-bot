@@ -255,29 +255,22 @@ fi
 echo ""
 
 # ============================================================
-# ВЫБОР РЕВЕРС-ПРОКСИ
+# АВТООПРЕДЕЛЕНИЕ РЕВЕРС-ПРОКСИ
 # ============================================================
 
-log_info "Выберите реверс-прокси:"
-echo "  1) Caddy (рекомендуется)"
-echo "  2) Nginx"
-echo "  3) Пропустить (ручная настройка)"
-read -p "  Выбор [1-3]: " proxy_choice
-
-case $proxy_choice in
-    1)
-        REVERSE_PROXY="caddy"
-        log_success "Выбран Caddy"
-        ;;
-    2)
-        REVERSE_PROXY="nginx"
-        log_success "Выбран Nginx"
-        ;;
-    *)
-        REVERSE_PROXY="none"
-        log_info "Конфигурация реверс-прокси пропущена"
-        ;;
-esac
+if [ -d "/opt/remnawave/caddy" ]; then
+  REVERSE_PROXY="caddy"
+  print_success "Обнаружен реверс прокси Caddy"
+  print_success "Применяем вариант установки с Caddy\n"
+elif [ -d "/opt/remnawave/nginx" ]; then
+  REVERSE_PROXY="nginx"
+  print_success "Обнаружен реверс прокси Nginx"
+  print_success "Применяем вариант установки с Nginx\n"
+else
+  REVERSE_PROXY="none"
+  print_success "Реверс-прокси не обнаружен"
+  print_success "Установка будет выполнена без настройки прокси\n"
+fi
 
 echo ""
 
