@@ -177,44 +177,23 @@ configure_caddy() {
     
     if [ ! -f "$caddy_file" ]; then
         log_warning "Файл Caddyfile не найден в /opt/remnawave/caddy/"
-        log_warning "Ручная настройка потребуется для домена: $app_domain"
-        log_info "Добавьте в Caddyfile следующую конфигурацию:"
-        echo
-        echo "https://${app_domain} {"
-        echo "    reverse_proxy * http://remnashop:5000"
-        echo "}"
-        echo
         return
     fi
     
-    # Проверить, есть ли уже конфигурация для этого домена
-    # Более точная проверка с использованием regex
-    if grep -q -E "^\s*(https?://)?${app_domain}\s*\{?" "$caddy_file"; then
-        log_warning "Конфигурация для домена $app_domain уже существует в Caddyfile"
-        return
+    # Проверить, есть ли уже конфигурация для этого домена (учитываем варианты с/без https и пробелов)
+    if grep -E -q "https?://${app_domain}[[:space:]]*\{" "$caddy_file" || grep -q "${app_domain}" "$caddy_file"; then
+      log_warning "Конфигурация для домена $app_domain уже существует в Caddyfile"
+      return
     fi
 
     log_info "Добавляю конфигурацию для $app_domain в $caddy_file"
-    
-    # Добавить конфигурацию в формате: 
-    # https://example.com {
-    #     reverse_proxy * http://remnashop:5000
-    # }
-    echo >> "$caddy_file"
-    echo "# TG-Sell-Bot - автоматически добавлено установщиком" >> "$caddy_file"
-    echo "https://${app_domain} {" >> "$caddy_file"
-    echo "    reverse_proxy * http://remnashop:5000" >> "$caddy_file"
-    echo "}" >> "$caddy_file"
+
+    # Добавить конфигурацию в формате: https://example.com{\n    reverse_proxy * http://remnashop:5000\n}
+    printf "\nhttps://%s{\n    reverse_proxy * http://remnashop:5000\n}\n" "$app_domain" >> "$caddy_file"
 
     log_success "Конфигурация Caddy добавлена для $app_domain"
-    
-    # Проверить, нужно ли перезапустить Caddy
-    if docker ps | grep -q "remnawave-caddy"; then
-        log_info "Caddy контейнер запущен. Рекомендуется перезапустить его для применения изменений:"
-        log_info "  docker compose -f /opt/remnawave/caddy/docker compose.yml restart caddy"
-    else
-        log_info "При следующем запуске Caddy конфигурация будет применена автоматически"
-    fi
+    log_info "Перезапустите Caddy для применения изменений:"
+    log_info "  docker compose -f /opt/remnawave/caddy/docker-compose.yml restart caddy"
 }
 
 configure_nginx() {
@@ -432,36 +411,6 @@ show_spinner "Инициализация базы данных"
 show_spinner "Очистка остаточных файлов"
 
 # ============================================================
-# НАСТРОЙКА РЕВЕРС-ПРОКСИ (ЕСЛИ НУЖНО)
-# ============================================================
-
-if [ "$REVERSE_PROXY" = "caddy" ]; then
-    echo
-    echo -e "${BLUE}========================================${NC}"
-    echo -e "${WHITE}    ⚙️ НАСТРОЙКА РЕВЕРС-ПРОКСИ CADDY${NC}"
-    echo -e "${BLUE}========================================${NC}"
-    echo
-    
-    # Настроить реверс-прокси в Caddy
-    configure_caddy "$APP_DOMAIN"
-    
-    echo
-    echo -e "${YELLOW}⚠ Для применения изменений перезапустите Caddy:${NC}"
-    echo -e "  ${WHITE}docker compose -f /opt/remnawave/caddy/docker compose.yml restart caddy${NC}"
-    echo
-    
-elif [ "$REVERSE_PROXY" = "nginx" ]; then
-    echo
-    echo -e "${BLUE}========================================${NC}"
-    echo -e "${WHITE}    ⚙️ НАСТРОЙКА РЕВЕРС-ПРОКСИ NGINX${NC}"
-    echo -e "${BLUE}========================================${NC}"
-    echo
-    
-    # Показать инструкции для Nginx
-    configure_nginx "$APP_DOMAIN"
-fi
-
-# ============================================================
 # ЗАВЕРШЕНИЕ УСТАНОВКИ
 # ============================================================
 
@@ -470,32 +419,5 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}    🎉 УСТАНОВКА ЗАВЕРШЕНА УСПЕШНО!${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo
-
-echo -e "${WHITE}Информация о боте:${NC}"
-echo -e "  ${BLUE}•${NC} Домен: ${GREEN}https://${APP_DOMAIN}${NC}"
-echo -e "  ${BLUE}•${NC} Директория проекта: ${GREEN}${PROJECT_DIR}${NC}"
-echo -e "  ${BLUE}•${NC} Файл конфигурации: ${GREEN}${ENV_FILE}${NC}"
-
-if [ "$REVERSE_PROXY" = "caddy" ]; then
-    echo -e "  ${BLUE}•${NC} Реверс-прокси: ${GREEN}Caddy (настроен автоматически)${NC}"
-    echo -e "  ${YELLOW}⚠ Не забудьте перезапустить Caddy для применения изменений${NC}"
-elif [ "$REVERSE_PROXY" = "nginx" ]; then
-    echo -e "  ${BLUE}•${NC} Реверс-прокси: ${GREEN}Nginx (требуется ручная настройка)${NC}"
-    echo -e "  ${YELLOW}⚠ Следуйте инструкциям выше для настройки Nginx${NC}"
-else
-    echo -e "  ${BLUE}•${NC} Реверс-прокси: ${YELLOW}Не настроен${NC}"
-    echo -e "  ${YELLOW}⚠ Для работы бота необходимо настроить реверс-прокси на порт 5000${NC}"
-fi
-
-echo
-echo -e "${WHITE}Управление ботом:${NC}"
-echo -e "  ${BLUE}•${NC} Просмотр логов: ${GREEN}cd ${PROJECT_DIR} && docker compose logs -f${NC}"
-echo -e "  ${BLUE}•${NC} Перезапуск: ${GREEN}cd ${PROJECT_DIR} && docker compose restart${NC}"
-echo -e "  ${BLUE}•${NC} Остановка: ${GREEN}cd ${PROJECT_DIR} && docker compose down${NC}"
-echo -e "  ${BLUE}•${NC} Запуск: ${GREEN}cd ${PROJECT_DIR} && docker compose up -d${NC}"
-
-echo
-echo -e "${YELLOW}⚠ Проверьте настройки DNS для домена ${APP_DOMAIN}${NC}"
-echo -e "${YELLOW}⚠ Убедитесь, что домен указывает на IP-адрес этого сервера${NC}"
 
 cd /opt
