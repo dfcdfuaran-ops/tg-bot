@@ -75,7 +75,9 @@ ___
 
 ### ▶️ Полная установка одной командой
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/DFTeams/remna-tg-bot/main/install.sh)
+git clone https://github.com/DFTeams/remna-tg-bot.git tg-sell-bot
+cd tg-sell-bot
+./install.sh
 ```
 
 ### 📦 Что сделает скрипт
