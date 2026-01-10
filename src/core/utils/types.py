@@ -34,9 +34,19 @@ AnyNotification: TypeAlias = Union[SystemNotificationType, UserNotificationType]
 
 RemnaUserDto: TypeAlias = Union[UserWebhookDto, UserResponseDto]  # UserWebhookDto without url
 
+def _parse_string_list(x):
+    if isinstance(x, list):
+        return [s.strip() for s in x]
+    return [s.strip() for s in x.split(",")]
+
+def _parse_locale_list(x):
+    if isinstance(x, list):
+        return [Locale(loc.strip()) if isinstance(loc, str) else loc for loc in x]
+    return [Locale(loc.strip()) for loc in x.split(",")]
+
 StringList: TypeAlias = Annotated[
-    ListStr, PlainValidator(lambda x: [s.strip() for s in x.split(",")])
+    ListStr, PlainValidator(_parse_string_list)
 ]
 LocaleList: TypeAlias = Annotated[
-    ListLocale, PlainValidator(func=lambda x: [Locale(loc.strip()) for loc in x.split(",")])
+    ListLocale, PlainValidator(func=_parse_locale_list)
 ]
