@@ -106,10 +106,12 @@ services:
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./assets:/opt/remnashop/assets
+      - ./backups:/opt/remnashop/backups
+      - ./logs:/opt/remnashop/logs
 
     networks:
       - remnawave-network
-
 
   remnashop-taskiq-scheduler:
     image: remnashop:local
@@ -135,6 +137,9 @@ services:
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./assets:/opt/remnashop/assets
+      - ./backups:/opt/remnashop/backups
+      - ./logs:/opt/remnashop/logs
 
     networks:
       - remnawave-network

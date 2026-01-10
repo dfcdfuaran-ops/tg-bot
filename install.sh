@@ -177,11 +177,9 @@ EOF
 ) &
 show_spinner "Создание конфигурации"
 
-# 3. Создание необходимых папок
+# 3. Создание папок для данных
 (
-  # Папки нужны только для работы контейнеров, но их не нужно видеть пользователю
-  # Они будут созданы автоматически при запуске docker compose
-  :
+  mkdir -p "$INSTALL_DIR"/{assets,backups,logs}
 ) &
 show_spinner "Создание структуры папок"
 
@@ -198,16 +196,22 @@ show_spinner "Запуск сервисов"
 ) &
 show_spinner "Инициализация базы данных"
 
-# 6. Удаление ненужных файлов
+# 6. Удаление ненужных файлов и папок
 (
-  # Удалить исходный код и скрипты (не нужны в production)
-  rm -rf "$INSTALL_DIR"/{src,scripts,docs,assets,backups,logs} 2>/dev/null || true
-  # Удалить временные и конфигурационные файлы
-  rm -f "$INSTALL_DIR"/{.git,.gitignore,.dockerignore,.env.example,.python-version} 2>/dev/null || true
-  rm -f "$INSTALL_DIR"/{Makefile,pyproject.toml,uv.lock,install.sh,uninstall.sh} 2>/dev/null || true
-  rm -f "$INSTALL_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
-  rm -f "$INSTALL_DIR"/__pycache__ 2>/dev/null || true
+  # Оставить только: assets, backups, logs, .env, docker-compose.yml
+  # Удалить исходный код
+  rm -rf "$INSTALL_DIR"/src 2>/dev/null || true
+  # Удалить скрипты и документацию
+  rm -rf "$INSTALL_DIR"/{scripts,docs} 2>/dev/null || true
+  # Удалить гит и посредные файлы
+  rm -rf "$INSTALL_DIR"/.git 2>/dev/null || true
   rm -rf "$INSTALL_DIR"/.venv 2>/dev/null || true
+  rm -rf "$INSTALL_DIR"/__pycache__ 2>/dev/null || true
+  # Удалить конфигурационные и служебные файлы
+  rm -f "$INSTALL_DIR"/{.gitignore,.dockerignore,.env.example,.python-version,.editorconfig} 2>/dev/null || true
+  rm -f "$INSTALL_DIR"/{Makefile,pyproject.toml,uv.lock} 2>/dev/null || true
+  rm -f "$INSTALL_DIR"/{install.sh,uninstall.sh} 2>/dev/null || true
+  rm -f "$INSTALL_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
   rm -f "$LOCK_FILE"
 ) &
 show_spinner "Очистка остаточных файлов"
