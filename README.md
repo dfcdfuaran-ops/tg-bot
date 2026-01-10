@@ -63,6 +63,9 @@ docker compose restart
 ### Полное удаление бота
 
 ```bash
+# Переходим в папку проекта
+cd /opt/tg-sell-bot
+
 # Остановить и удалить контейнеры и volumes этого проекта
 docker compose down -v
 
