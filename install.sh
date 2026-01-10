@@ -54,6 +54,21 @@ read_input() {
     echo "$input"
 }
 
+read_webhook_secret() {
+    local remnawave_env="/opt/remnawave/.env"
+    
+    if [ -f "$remnawave_env" ]; then
+        local secret=$(grep "^WEBHOOK_SECRET_HEADER=" "$remnawave_env" | cut -d'=' -f2)
+        if [ -n "$secret" ]; then
+            echo "$secret"
+            return
+        fi
+    fi
+    
+    # Если не найдено в файле, просим ввести вручную
+    read_input "REMNAWAVE_WEBHOOK_SECRET"
+}
+
 generate_token() {
     openssl rand -hex 64 | tr -d '\n'
 }
@@ -272,12 +287,18 @@ fi
 sed -i "s|^REMNAWAVE_TOKEN=.*|REMNAWAVE_TOKEN=${REMNAWAVE_TOKEN}|" "$ENV_FILE"
 
 # REMNAWAVE_WEBHOOK_SECRET
-REMNAWAVE_WEBHOOK_SECRET=$(read_input "REMNAWAVE_WEBHOOK_SECRET")
+REMNAWAVE_WEBHOOK_SECRET=$(read_webhook_secret)
 if [ -z "$REMNAWAVE_WEBHOOK_SECRET" ]; then
     log_error "REMNAWAVE_WEBHOOK_SECRET не может быть пустым!"
     exit 1
 fi
 sed -i "s|^REMNAWAVE_WEBHOOK_SECRET=.*|REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_WEBHOOK_SECRET}|" "$ENV_FILE"
+
+if [ -f "/opt/remnawave/.env" ] && grep -q "^WEBHOOK_SECRET_HEADER=$REMNAWAVE_WEBHOOK_SECRET" "/opt/remnawave/.env"; then
+    log_success "REMNAWAVE_WEBHOOK_SECRET загружен из /opt/remnawave/.env"
+else
+    log_warning "REMNAWAVE_WEBHOOK_SECRET введен вручную"
+fi
 
 echo ""
 
@@ -349,8 +370,12 @@ if [ "$REVERSE_PROXY" != "none" ]; then
     fi
 fi
 
+log_info "Сборка Docker образа..."
+docker compose -f "$PROJECT_DIR/docker-compose.yml" build --no-cache 2>&1 | tail -20
+
+echo ""
 log_info "Запуск проекта через Docker Compose..."
-docker compose -f "$PROJECT_DIR/docker-compose.yml" up -d --build
+docker compose -f "$PROJECT_DIR/docker-compose.yml" up -d
 
 echo ""
 log_success "Проект запущен!"
