@@ -37,6 +37,8 @@ env/
 .env
 .env.local
 .env.*.local
+.git-credentials
+.git/credentials
 
 # Logs
 logs/
