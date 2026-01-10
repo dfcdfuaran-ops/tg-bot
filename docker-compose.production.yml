@@ -1,3 +1,7 @@
+# Production конфигурация для сервера
+# На сервере используется готовый Docker образ, без монтирования src и scripts
+# Это обеспечивает минимум файлов на сервере
+
 services:
   remnashop-db:
     image: postgres:17
@@ -55,10 +59,10 @@ services:
     
 
   remnashop:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: remnashop:local
+    # На сервере используется готовый образ (локально собранный или из реестра)
+    # Если образ из реестра недоступен, убедитесь что собрали локально:
+    # docker build -t ghcr.io/dfteams/remna-tg-bot:latest .
+    image: ghcr.io/dfteams/remna-tg-bot:latest
     container_name: "remnashop"
     hostname: remnashop
     restart: unless-stopped
@@ -66,7 +70,6 @@ services:
     env_file:
       - .env
     environment:
-      PYTHONPATH: /opt/remnashop
       RESET_ASSETS: "${RESET_ASSETS:-false}"
 
     depends_on:
@@ -75,6 +78,8 @@ services:
         remnashop-redis:
           condition: service_healthy
 
+    # На сервере НЕ монтируем ./src и ./scripts
+    # Они находятся внутри Docker образа
     volumes:
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets
@@ -86,7 +91,7 @@ services:
     
 
   remnashop-taskiq-worker:
-    image: remnashop:local
+    image: ghcr.io/dfteams/remna-tg-bot:latest
     container_name: "remnashop-taskiq-worker"
     hostname: remnashop-taskiq-worker
     restart: unless-stopped
@@ -96,7 +101,6 @@ services:
     env_file:
       - .env
     environment:
-      PYTHONPATH: /opt/remnashop
       RESET_ASSETS: "${RESET_ASSETS:-false}"
 
     depends_on:
@@ -107,6 +111,7 @@ services:
         remnashop-db:
           condition: service_healthy
 
+    # На сервере НЕ монтируем ./src и ./scripts
     volumes:
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets
@@ -118,7 +123,7 @@ services:
 
 
   remnashop-taskiq-scheduler:
-    image: remnashop:local
+    image: ghcr.io/dfteams/remna-tg-bot:latest
     container_name: "remnashop-taskiq-scheduler"
     hostname: remnashop-taskiq-scheduler
     restart: unless-stopped
@@ -128,7 +133,6 @@ services:
     env_file:
       - .env
     environment:
-      PYTHONPATH: /opt/remnashop
       RESET_ASSETS: "${RESET_ASSETS:-false}"
 
     depends_on:
@@ -139,6 +143,7 @@ services:
         remnashop-db:
           condition: service_healthy
 
+    # На сервере НЕ монтируем ./src и ./scripts
     volumes:
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets
