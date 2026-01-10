@@ -17,9 +17,10 @@ DARKGRAY='\033[1;30m'
 # Показать курсор при выходе
 trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXIT
 
-# Путь к .env файлу
+# Путь к проекту (всегда /opt/tg-sell-bot на хосте)
 PROJECT_DIR="/opt/tg-sell-bot"
 ENV_FILE="$PROJECT_DIR/.env"
+ENV_EXAMPLE_FILE="$PROJECT_DIR/.env.example"
 
 # Режим установки: dev или prod
 INSTALL_MODE="dev"
@@ -97,21 +98,6 @@ read_input() {
     echo "$input"
 }
 
-read_webhook_secret() {
-    local remnawave_env="/opt/remnawave/.env"
-    
-    if [ -f "$remnawave_env" ]; then
-        local secret=$(grep "^WEBHOOK_SECRET_HEADER=" "$remnawave_env" | cut -d'=' -f2)
-        if [ -n "$secret" ]; then
-            echo "$secret"
-            return
-        fi
-    fi
-    
-    # Если не найдено в файле, просим ввести вручную
-    read_input "REMNAWAVE_WEBHOOK_SECRET"
-}
-
 generate_token() {
     openssl rand -hex 64 | tr -d '\n'
 }
@@ -171,7 +157,7 @@ configure_nginx() {
     log_info "Создайте файл конфигурации: $nginx_config"
     log_info ""
     log_info "Пример конфигурации:"
-    cat << 'EOF'
+    cat << EOF
     
 upstream remnashop {
     server localhost:5000;
@@ -179,14 +165,14 @@ upstream remnashop {
 
 server {
     listen 80;
-    server_name APP_DOMAIN;
+    server_name ${app_domain};
     
     location / {
         proxy_pass http://remnashop;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
     }
 }
 EOF
@@ -200,6 +186,15 @@ EOF
 # ============================================================
 # ПРОВЕРКИ ПРЕДУСЛОВИЙ И ПОДГОТОВКА
 # ============================================================
+
+# 0. Создание директории проекта, если её нет
+(
+  if [ ! -d "$PROJECT_DIR" ]; then
+      mkdir -p "$PROJECT_DIR"
+      log_info "Создана директория проекта: $PROJECT_DIR"
+  fi
+) &
+show_spinner "Подготовка директории проекта"
 
 # 1. Проверка Docker и OpenSSL
 (
@@ -215,7 +210,7 @@ EOF
 ) &
 show_spinner "Проверка установленных компонентов"
 
-# 2. Подготовка окружения
+# 2. Подготовка структуры каталогов
 (
   mkdir -p "$PROJECT_DIR/logs"
   mkdir -p "$PROJECT_DIR/backups"
@@ -226,31 +221,50 @@ show_spinner "Проверка установленных компонентов
       docker network create remnawave-network 2>/dev/null || true
   fi
 ) &
-show_spinner "Создание окружения"
+show_spinner "Создание структуры каталогов"
 
-# 3. Создание .env файла
+# 3. Проверка наличия .env.example
+(
+  if [ ! -f "$ENV_EXAMPLE_FILE" ]; then
+      print_error "Файл .env.example не найден!"
+      print_error "Пожалуйста, убедитесь что вы скопировали проект в $PROJECT_DIR"
+      print_error "и что файл .env.example существует"
+      exit 1
+  fi
+) &
+show_spinner "Проверка файлов конфигурации"
+
+# 4. Создание .env файла из примера
 (
   if [ ! -f "$ENV_FILE" ]; then
-      if [ ! -f "$PROJECT_DIR/.env.example" ]; then
-          print_error "Файл .env.example не найден!"
-          exit 1
-      fi
-      cp "$PROJECT_DIR/.env.example" "$ENV_FILE"
+      cp "$ENV_EXAMPLE_FILE" "$ENV_FILE"
+      log_success "Создан файл конфигурации: $ENV_FILE"
+  else
+      log_warning "Файл .env уже существует, оставляю без изменений"
   fi
 ) &
 show_spinner "Инициализация конфигурации"
 
-# 4. Автоопределение реверс-прокси
-if [ -d "/opt/remnawave/caddy" ]; then
-  REVERSE_PROXY="caddy"
+# 5. Автоопределение реверс-прокси
+(
+  if [ -d "/opt/remnawave/caddy" ]; then
+    REVERSE_PROXY="caddy"
+  elif [ -d "/opt/remnawave/nginx" ]; then
+    REVERSE_PROXY="nginx"
+  else
+    REVERSE_PROXY="none"
+  fi
+) &
+show_spinner "Определение реверс-прокси"
+
+echo
+if [ "$REVERSE_PROXY" = "caddy" ]; then
   print_success "Обнаружен реверс прокси Caddy"
   print_success "Применяем вариант установки с Caddy"
-elif [ -d "/opt/remnawave/nginx" ]; then
-  REVERSE_PROXY="nginx"
+elif [ "$REVERSE_PROXY" = "nginx" ]; then
   print_success "Обнаружен реверс прокси Nginx"
   print_success "Применяем вариант установки с Nginx"
 else
-  REVERSE_PROXY="none"
   print_success "Реверс-прокси не обнаружен"
   print_success "Установка будет выполнена без настройки прокси"
 fi
@@ -261,6 +275,12 @@ echo -e "${WHITE}    ⚙️ НАСТРОЙКА КОНФИГУРАЦИИ БОТА
 echo -e "${BLUE}========================================${NC}"
 echo
 
+# Проверка существования .env файла перед редактированием
+if [ ! -f "$ENV_FILE" ]; then
+    print_error "Файл .env не существует! Создайте его из .env.example"
+    exit 1
+fi
+
 # APP_DOMAIN
 safe_read "${YELLOW}➜ Введите домен бота (напр. bot.example.com):${NC} " APP_DOMAIN
 if [ -z "$APP_DOMAIN" ]; then
@@ -268,6 +288,7 @@ if [ -z "$APP_DOMAIN" ]; then
     exit 1
 fi
 sed -i "s|^APP_DOMAIN=.*|APP_DOMAIN=${APP_DOMAIN}|" "$ENV_FILE"
+print_success "APP_DOMAIN установлен: $APP_DOMAIN"
 
 # BOT_TOKEN
 echo ""
@@ -277,6 +298,7 @@ if [ -z "$BOT_TOKEN" ]; then
     exit 1
 fi
 sed -i "s|^BOT_TOKEN=.*|BOT_TOKEN=${BOT_TOKEN}|" "$ENV_FILE"
+print_success "BOT_TOKEN установлен"
 
 # BOT_DEV_ID
 safe_read "${YELLOW}➜ Введите телеграм ID разработчика:${NC} " BOT_DEV_ID
@@ -285,19 +307,22 @@ if [ -z "$BOT_DEV_ID" ]; then
     exit 1
 fi
 sed -i "s|^BOT_DEV_ID=.*|BOT_DEV_ID=${BOT_DEV_ID}|" "$ENV_FILE"
+print_success "BOT_DEV_ID установлен: $BOT_DEV_ID"
 
 # BOT_SUPPORT_USERNAME
 safe_read "${YELLOW}➜ Введите username группы поддержки (без @):${NC} " BOT_SUPPORT_USERNAME
-echo
 sed -i "s|^BOT_SUPPORT_USERNAME=.*|BOT_SUPPORT_USERNAME=${BOT_SUPPORT_USERNAME}|" "$ENV_FILE"
+print_success "BOT_SUPPORT_USERNAME установлен: $BOT_SUPPORT_USERNAME"
 
 # REMNAWAVE_TOKEN
+echo ""
 safe_read "${YELLOW}➜ Введите API Токен Remnawave:${NC} " REMNAWAVE_TOKEN
 if [ -z "$REMNAWAVE_TOKEN" ]; then
     print_error "REMNAWAVE_TOKEN не может быть пустым!"
     exit 1
 fi
 sed -i "s|^REMNAWAVE_TOKEN=.*|REMNAWAVE_TOKEN=${REMNAWAVE_TOKEN}|" "$ENV_FILE"
+print_success "REMNAWAVE_TOKEN установлен"
 
 echo ""
 echo -e "${BLUE}========================================${NC}"
@@ -305,77 +330,104 @@ echo -e "${WHITE}         ⚡ ПРОЦЕСС УСТАНОВКИ${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo
 
-# 1. Сборка Docker образа
-(
-    cd "$PROJECT_DIR"
-    docker compose build >/dev/null 2>&1
-) &
-show_spinner "Сборка Docker образа"
-
-# 2. Создание конфигурации
+# 1. Генерация секретов и паролей
 (
   # Автогенерация ключей
-  if grep -q "^APP_CRYPT_KEY=$" "$ENV_FILE"; then
+  if grep -q "^APP_CRYPT_KEY=$" "$ENV_FILE" || grep -q "^APP_CRYPT_KEY=\"\"$" "$ENV_FILE"; then
     APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')
     sed -i "s|^APP_CRYPT_KEY=.*|APP_CRYPT_KEY=${APP_CRYPT_KEY}|" "$ENV_FILE"
   fi
 
-  if grep -q "^BOT_SECRET_TOKEN=$" "$ENV_FILE"; then
+  if grep -q "^BOT_SECRET_TOKEN=$" "$ENV_FILE" || grep -q "^BOT_SECRET_TOKEN=\"\"$" "$ENV_FILE"; then
     BOT_SECRET_TOKEN=$(openssl rand -hex 32)
     sed -i "s|^BOT_SECRET_TOKEN=.*|BOT_SECRET_TOKEN=${BOT_SECRET_TOKEN}|" "$ENV_FILE"
   fi
 
-  if grep -q "^DATABASE_PASSWORD=$" "$ENV_FILE"; then
+  if grep -q "^DATABASE_PASSWORD=$" "$ENV_FILE" || grep -q "^DATABASE_PASSWORD=\"\"$" "$ENV_FILE"; then
     DATABASE_PASSWORD=$(openssl rand -hex 16)
     sed -i "s|^DATABASE_PASSWORD=.*|DATABASE_PASSWORD=${DATABASE_PASSWORD}|" "$ENV_FILE"
   fi
 
-  if grep -q "^REDIS_PASSWORD=$" "$ENV_FILE"; then
+  if grep -q "^REDIS_PASSWORD=$" "$ENV_FILE" || grep -q "^REDIS_PASSWORD=\"\"$" "$ENV_FILE"; then
     REDIS_PASSWORD=$(openssl rand -hex 16)
     sed -i "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=${REDIS_PASSWORD}|" "$ENV_FILE"
   fi
 
-  if grep -q "^REMNAWAVE_WEBHOOK_SECRET=$" "$ENV_FILE"; then
+  if grep -q "^REMNAWAVE_WEBHOOK_SECRET=$" "$ENV_FILE" || grep -q "^REMNAWAVE_WEBHOOK_SECRET=\"\"$" "$ENV_FILE"; then
     REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32)
     sed -i "s|^REMNAWAVE_WEBHOOK_SECRET=.*|REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_WEBHOOK_SECRET}|" "$ENV_FILE"
   fi
 ) &
-show_spinner "Создание конфигурации"
+show_spinner "Генерация секретов и паролей"
 
-# 3. Создание структуры папок
+# 2. Проверка что мы в правильной директории
 (
-  rm -rf "$PROJECT_DIR"/assets
-  mkdir -p "$PROJECT_DIR"/{assets,backups,logs}
+  if [ ! -f "$PROJECT_DIR/docker-compose.yml" ] && [ ! -f "$PROJECT_DIR/docker-compose.yaml" ]; then
+      log_warning "docker-compose.yml не найден в $PROJECT_DIR"
+      log_warning "Убедитесь что все файлы проекта скопированы в $PROJECT_DIR"
+  fi
 ) &
-show_spinner "Создание структуры папок"
+show_spinner "Проверка файлов проекта"
+
+# 3. Сборка Docker образа (если есть docker-compose.yml)
+(
+  if [ -f "$PROJECT_DIR/docker-compose.yml" ] || [ -f "$PROJECT_DIR/docker-compose.yaml" ]; then
+      cd "$PROJECT_DIR"
+      docker compose build >/dev/null 2>&1
+  else
+      log_warning "docker-compose.yml не найден, пропускаю сборку"
+  fi
+) &
+show_spinner "Сборка Docker образа"
 
 # 4. Запуск контейнеров
 (
-    cd "$PROJECT_DIR"
-    docker compose up -d >/dev/null 2>&1
+  if [ -f "$PROJECT_DIR/docker-compose.yml" ] || [ -f "$PROJECT_DIR/docker-compose.yaml" ]; then
+      cd "$PROJECT_DIR"
+      docker compose up -d >/dev/null 2>&1
+  else
+      log_warning "docker-compose.yml не найден, пропускаю запуск контейнеров"
+  fi
 ) &
 show_spinner "Запуск сервисов"
 
-# 5. Инициализация БД
+# 5. Настройка реверс-прокси если требуется
 (
-  sleep 10
+  if [ "$REVERSE_PROXY" != "none" ]; then
+      configure_reverse_proxy "$APP_DOMAIN" "$REVERSE_PROXY"
+  fi
 ) &
-show_spinner "Инициализация базы данных"
+show_spinner "Настройка реверс-прокси"
 
-# 6. Очистка ненужных файлов
+# 6. Очистка ненужных файлов (опционально)
 (
-  rm -rf "$PROJECT_DIR"/src 2>/dev/null || true
-  rm -rf "$PROJECT_DIR"/scripts 2>/dev/null || true
-  rm -rf "$PROJECT_DIR"/docs 2>/dev/null || true
-  rm -rf "$PROJECT_DIR"/.git 2>/dev/null || true
-  rm -rf "$PROJECT_DIR"/.venv 2>/dev/null || true
-  rm -rf "$PROJECT_DIR"/__pycache__ 2>/dev/null || true
-  rm -f "$PROJECT_DIR"/{.gitignore,.dockerignore,.env.example,.python-version,.editorconfig} 2>/dev/null || true
-  rm -f "$PROJECT_DIR"/{Makefile,pyproject.toml,uv.lock} 2>/dev/null || true
-  rm -f "$PROJECT_DIR"/install.sh 2>/dev/null || true
-  rm -f "$PROJECT_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
+  # Удаляем только если файлы существуют
+  [ -d "$PROJECT_DIR/src" ] && rm -rf "$PROJECT_DIR/src" 2>/dev/null || true
+  [ -d "$PROJECT_DIR/scripts" ] && rm -rf "$PROJECT_DIR/scripts" 2>/dev/null || true
+  [ -d "$PROJECT_DIR/docs" ] && rm -rf "$PROJECT_DIR/docs" 2>/dev/null || true
+  [ -d "$PROJECT_DIR/.git" ] && rm -rf "$PROJECT_DIR/.git" 2>/dev/null || true
+  [ -d "$PROJECT_DIR/.venv" ] && rm -rf "$PROJECT_DIR/.venv" 2>/dev/null || true
+  [ -d "$PROJECT_DIR/__pycache__" ] && rm -rf "$PROJECT_DIR/__pycache__" 2>/dev/null || true
+  
+  # Удаляем файлы если они существуют
+  [ -f "$PROJECT_DIR/.env.example" ] && rm -f "$PROJECT_DIR/.env.example" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/.gitignore" ] && rm -f "$PROJECT_DIR/.gitignore" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/.dockerignore" ] && rm -f "$PROJECT_DIR/.dockerignore" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/.python-version" ] && rm -f "$PROJECT_DIR/.python-version" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/.editorconfig" ] && rm -f "$PROJECT_DIR/.editorconfig" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/Makefile" ] && rm -f "$PROJECT_DIR/Makefile" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/pyproject.toml" ] && rm -f "$PROJECT_DIR/pyproject.toml" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/uv.lock" ] && rm -f "$PROJECT_DIR/uv.lock" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/README.md" ] && rm -f "$PROJECT_DIR/README.md" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/INSTALL_RU.md" ] && rm -f "$PROJECT_DIR/INSTALL_RU.md" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/BACKUP_RESTORE_GUIDE.md" ] && rm -f "$PROJECT_DIR/BACKUP_RESTORE_GUIDE.md" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/CHANGES_SUMMARY.md" ] && rm -f "$PROJECT_DIR/CHANGES_SUMMARY.md" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/DETAILED_EXPLANATION.md" ] && rm -f "$PROJECT_DIR/DETAILED_EXPLANATION.md" 2>/dev/null || true
+  [ -f "$PROJECT_DIR/INVITE_FIX.md" ] && rm -f "$PROJECT_DIR/INVITE_FIX.md" 2>/dev/null || true
+  
+  # Не удаляем install.sh - он может понадобиться для обновления
 ) &
-show_spinner "Очистка остаточных файлов"
+show_spinner "Очистка временных файлов"
 
 # ============================================================
 # ЗАВЕРШЕНИЕ УСТАНОВКИ
@@ -387,4 +439,40 @@ echo -e "${GREEN}    🎉 УСТАНОВКА ЗАВЕРШЕНА УСПЕШНО!$
 echo -e "${BLUE}========================================${NC}"
 echo
 
-cd /opt
+echo -e "${WHITE}📋 ИНФОРМАЦИЯ О УСТАНОВКЕ:${NC}"
+echo -e "${DARKGRAY}----------------------------------------${NC}"
+echo -e "${GREEN}•${NC} Проект установлен в: ${YELLOW}$PROJECT_DIR${NC}"
+echo -e "${GREEN}•${NC} Файл конфигурации: ${YELLOW}$ENV_FILE${NC}"
+echo -e "${GREEN}•${NC} Домен приложения: ${YELLOW}$APP_DOMAIN${NC}"
+echo -e "${GREEN}•${NC} Используемый прокси: ${YELLOW}$REVERSE_PROXY${NC}"
+
+if [ -f "$PROJECT_DIR/docker-compose.yml" ] || [ -f "$PROJECT_DIR/docker-compose.yaml" ]; then
+    echo
+    echo -e "${WHITE}🚀 КОМАНДЫ ДЛЯ УПРАВЛЕНИЯ:${NC}"
+    echo -e "${DARKGRAY}----------------------------------------${NC}"
+    echo -e "${GREEN}•${NC} Проверить статус контейнеров:"
+    echo -e "  ${YELLOW}cd $PROJECT_DIR && docker compose ps${NC}"
+    echo -e "${GREEN}•${NC} Просмотреть логи бота:"
+    echo -e "  ${YELLOW}cd $PROJECT_DIR && docker compose logs -f bot${NC}"
+    echo -e "${GREEN}•${NC} Остановить сервисы:"
+    echo -e "  ${YELLOW}cd $PROJECT_DIR && docker compose down${NC}"
+    echo -e "${GREEN}•${NC} Перезапустить сервисы:"
+    echo -e "  ${YELLOW}cd $PROJECT_DIR && docker compose restart${NC}"
+fi
+
+if [ "$REVERSE_PROXY" = "caddy" ]; then
+    echo
+    echo -e "${WHITE}⚠️  ДОПОЛНИТЕЛЬНЫЕ ДЕЙСТВИЯ:${NC}"
+    echo -e "${DARKGRAY}----------------------------------------${NC}"
+    echo -e "${GREEN}•${NC} Для применения конфигурации Caddy выполните:"
+    echo -e "  ${YELLOW}docker compose -f /opt/remnawave/caddy/docker-compose.yml restart caddy${NC}"
+fi
+
+echo
+echo -e "${WHITE}📁 СТРУКТУРА ПРОЕКТА:${NC}"
+echo -e "${DARKGRAY}----------------------------------------${NC}"
+ls -la "$PROJECT_DIR/" | grep -E "^d|^-" | head -20
+
+echo
+echo -e "${GREEN}✅ Установка завершена успешно!${NC}"
+echo -e "${BLUE}========================================${NC}"
