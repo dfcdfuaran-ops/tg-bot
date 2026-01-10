@@ -75,13 +75,10 @@ services:
         remnashop-redis:
           condition: service_healthy
 
-    # Монтируем src для разработки (hot reload)
     volumes:
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets
-      - ./src:/opt/remnashop/src
       - ./backups:/opt/remnashop/backups
-      - ./scripts:/opt/remnashop/scripts
       - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
@@ -113,9 +110,7 @@ services:
     volumes:
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets
-      - ./src:/opt/remnashop/src
       - ./backups:/opt/remnashop/backups
-      - ./scripts:/opt/remnashop/scripts
       - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
@@ -147,9 +142,7 @@ services:
     volumes:
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets
-      - ./src:/opt/remnashop/src
       - ./backups:/opt/remnashop/backups
-      - ./scripts:/opt/remnashop/scripts
       - /var/run/docker.sock:/var/run/docker.sock
 
     networks:
