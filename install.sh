@@ -88,32 +88,22 @@ fi
 print_success "Docker окружение обнаружено\n"
 
 # ============================================================
-# ВЫБОР РЕВЕРС-ПРОКСИ
+# АВТООПРЕДЕЛЕНИЕ РЕВЕРС-ПРОКСИ
 # ============================================================
 
-echo -e "${YELLOW}1:${NC} Caddy (рекомендуется)"
-echo -e "${YELLOW}2:${NC} Nginx (в разработке)"
-echo -e "${YELLOW}3:${NC} Не настраивать реверс прокси"
-safe_read "${YELLOW}➜ Выберите ваш вариант реверс прокси:${NC} " PROXY_CHOICE
-
-case "$PROXY_CHOICE" in
-  1)
-    REVERSE_PROXY="caddy"
-    print_success "Выбран Caddy\n"
-    ;;
-  2)
-    REVERSE_PROXY="nginx"
-    print_success "Выбран Nginx (в разработке)\n"
-    ;;
-  3)
-    REVERSE_PROXY="none"
-    print_success "Реверс-прокси не будет настраиваться\n"
-    ;;
-  *)
-    print_error "Неверный выбор. По умолчанию: Caddy"
-    REVERSE_PROXY="caddy"
-    ;;
-esac
+if [ -d "/opt/remnawave/caddy" ]; then
+  REVERSE_PROXY="caddy"
+  print_success "Обнаружен реверс прокси Caddy"
+  print_success "Применен вариант установки для Caddy\n"
+elif [ -d "/opt/remnawave/nginx" ]; then
+  REVERSE_PROXY="nginx"
+  print_success "Обнаружен реверс прокси Nginx"
+  print_success "Применен вариант установки для Nginx\n"
+else
+  REVERSE_PROXY="none"
+  print_success "Реверс-прокси не обнаружен"
+  print_success "Установка будет выполнена без настройки прокси\n"
+fi
 
 # ============================================================
 # ПОЛУЧЕНИЕ ДАННЫХ ОТ ПОЛЬЗОВАТЕЛЯ
@@ -153,21 +143,24 @@ show_spinner "Сборка Docker образа"
 cat > "$INSTALL_DIR/.env" << EOF
 # Telegram Bot Configuration
 BOT_TOKEN=$BOT_TOKEN
-ADMIN_ID=$ADMIN_ID
-BOT_DOMAIN=$BOT_DOMAIN
-SUPPORT_CHANNEL=$SUPPORT_CHANNEL
+BOT_SECRET_TOKEN=$(openssl rand -hex 32)
+BOT_DEV_ID=$ADMIN_ID
+BOT_SUPPORT_USERNAME=$SUPPORT_CHANNEL
+
+APP_DOMAIN=$BOT_DOMAIN
+APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')
 
 # Database Configuration
 DATABASE_USER=remnashop
 DATABASE_PASSWORD=$(openssl rand -hex 16)
 DATABASE_NAME=remnashop
+DATABASE_HOST=remnashop-db
+DATABASE_PORT=5432
 
 # Redis Configuration
 REDIS_PASSWORD=$(openssl rand -hex 16)
-
-# Bot Configuration
-SECRET_KEY=$(openssl rand -base64 32 | tr -d '\n')
-ALGORITHM=HS256
+REDIS_HOST=remnashop-redis
+REDIS_PORT=6379
 
 # Remnawave Configuration
 REMNAWAVE_TOKEN=$REMNAWAVE_TOKEN
@@ -175,18 +168,20 @@ REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32)
 
 # Application Settings
 APP_ENV=production
-DEBUG=false
-LOG_LEVEL=info
+APP_DEBUG=false
+APP_LOG_LEVEL=info
 
 # Asset Settings
-RESET_ASSETS=false
+APP_RESET_ASSETS=false
 EOF
 ) &
 show_spinner "Создание конфигурации"
 
 # 3. Создание необходимых папок
 (
-  mkdir -p "$INSTALL_DIR"/{logs,assets,backups}
+  # Папки нужны только для работы контейнеров, но их не нужно видеть пользователю
+  # Они будут созданы автоматически при запуске docker compose
+  :
 ) &
 show_spinner "Создание структуры папок"
 
@@ -203,9 +198,16 @@ show_spinner "Запуск сервисов"
 ) &
 show_spinner "Инициализация базы данных"
 
-# 6. Удаление скрипта установки и других временных файлов
+# 6. Удаление ненужных файлов
 (
-  rm -f "$INSTALL_DIR/server-setup.sh" 2>/dev/null || true
+  # Удалить исходный код и скрипты (не нужны в production)
+  rm -rf "$INSTALL_DIR"/{src,scripts,docs,assets,backups,logs} 2>/dev/null || true
+  # Удалить временные и конфигурационные файлы
+  rm -f "$INSTALL_DIR"/{.git,.gitignore,.dockerignore,.env.example,.python-version} 2>/dev/null || true
+  rm -f "$INSTALL_DIR"/{Makefile,pyproject.toml,uv.lock,install.sh,uninstall.sh} 2>/dev/null || true
+  rm -f "$INSTALL_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
+  rm -f "$INSTALL_DIR"/__pycache__ 2>/dev/null || true
+  rm -rf "$INSTALL_DIR"/.venv 2>/dev/null || true
   rm -f "$LOCK_FILE"
 ) &
 show_spinner "Очистка остаточных файлов"
@@ -219,3 +221,17 @@ echo
 echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}             🎉 УСТАНОВКА ЗАВЕРШЕНА УСПЕШНО!${NC}"
 echo -e "${BLUE}========================================${NC}\n"
+
+print_success "Бот успешно установлен и запущен"
+print_success "Домен: $BOT_DOMAIN"
+print_success "Место нахождения: ${YELLOW}$INSTALL_DIR${NC}"
+
+echo
+echo -e "${BLUE}========================================${NC}\n"
+
+print_success "Конфигурация сохранена в: ${YELLOW}$INSTALL_DIR/.env${NC}"
+print_success "Логи доступны через: ${YELLOW}docker compose logs${NC}"
+
+echo
+
+cd /opt
