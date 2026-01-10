@@ -137,31 +137,30 @@ configure_reverse_proxy() {
 
 configure_caddy() {
     local app_domain="$1"
-    local caddy_file="/opt/remnawave/caddy/Caddyfile"
-    
-    if [ ! -f "$caddy_file" ]; then
-        log_warning "Файл Caddyfile не найден в /opt/remnawave/caddy/"
-        return
-    fi
-    
-    # Проверить, есть ли уже конфигурация для этого домена
-    if grep -q "https://${app_domain}" "$caddy_file"; then
-        log_warning "Конфигурация для домена $app_domain уже существует в Caddyfile"
-        return
-    fi
-    
-    log_info "Добавляю конфигурацию в Caddyfile..."
-    
-    # Добавить конфигурацию в Caddyfile
-    echo "" >> "$caddy_file"
-    echo "https://${app_domain} {" >> "$caddy_file"
-    echo "    reverse_proxy * http://remnashop:5000" >> "$caddy_file"
-    echo "}" >> "$caddy_file"
-    
-    log_success "Конфигурация Caddy добавлена"
-    log_info "Перезапустите Caddy для применения изменений:"
-    log_info "  docker compose -f /opt/remnawave/caddy/docker-compose.yml restart caddy"
+    local caddy_dir="/opt/remnawave/caddy"
+    local caddy_file="${caddy_dir}/Caddyfile"
+
+    # Нет Caddy — тихо выходим
+    [ -d "$caddy_dir" ] || return 0
+    [ -f "$caddy_file" ] || return 0
+
+    # Если домен уже есть — просто перезапускаем
+    if ! grep -q -E "https://${app_domain}\s*\{" "$caddy_file"; then
+        cat >> "$caddy_file" <<EOF
+
+# TG-SELL-BOT (auto-generated)
+https://${app_domain} {
+    reverse_proxy * http://remnashop:5000
 }
+EOF
+    fi
+
+    # Реальный перезапуск Caddy
+    cd "$caddy_dir"
+    docker compose down >/dev/null 2>&1
+    docker compose up -d  >/dev/null 2>&1
+}
+
 
 configure_nginx() {
     local app_domain="$1"
