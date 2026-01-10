@@ -198,11 +198,11 @@ show_spinner "Инициализация базы данных"
 
 # 6. Удаление ненужных файлов и папок
 (
-  # Оставить только: assets, backups, logs, .env, docker-compose.yml
+  # Оставить только: assets, backups, logs, .env, docker-compose.yml, uninstall.sh
   # Удалить исходный код
   rm -rf "$INSTALL_DIR"/src 2>/dev/null || true
-  # Удалить скрипты и документацию
-  rm -rf "$INSTALL_DIR"/{scripts,docs} 2>/dev/null || true
+  # Удалить документацию (но НЕ скрипты - они нужны контейнерам!)
+  rm -rf "$INSTALL_DIR"/docs 2>/dev/null || true
   # Удалить гит и посредные файлы
   rm -rf "$INSTALL_DIR"/.git 2>/dev/null || true
   rm -rf "$INSTALL_DIR"/.venv 2>/dev/null || true
