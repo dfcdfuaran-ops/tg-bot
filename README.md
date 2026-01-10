@@ -49,25 +49,28 @@ docker compose logs -f remnashop
 ### Остановка проекта
 
 ```bash
+# Остановка контейнеров только этого проекта (в текущей папке)
 docker compose down
 ```
 
 ### Перезапуск проекта
 
 ```bash
+# Перезапуск контейнеров этого проекта
 docker compose restart
 ```
+
 ### Полное удаление бота
 
 ```bash
-# Остановить и удалить все контейнеры и volumes
+# Остановить и удалить контейнеры и volumes этого проекта
 docker compose down -v
 
-# Удалить Docker образ
+# Удалить Docker образ (только для этого проекта)
 docker rmi tg-sell-bot-remnashop:latest -f
 
-# Удалить папку проекта (если нужно)
-cd ..
+# Удалить папку проекта
+cd /opt
 rm -rf tg-sell-bot
 ```
 ---

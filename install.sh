@@ -358,16 +358,16 @@ echo ""
 
 log_info "Подготовка к запуску проекта..."
 
-# Остановить старые контейнеры
-log_info "Остановка старых контейнеров..."
+# Остановить старые контейнеры этого проекта
+log_info "Остановка контейнеров проекта из $PROJECT_DIR..."
 COMPOSE_FILE="docker-compose.yml"
 if [ "$INSTALL_MODE" = "prod" ]; then
     COMPOSE_FILE="docker-compose.production.yml"
 fi
 docker compose -f "$PROJECT_DIR/$COMPOSE_FILE" down -v 2>/dev/null || true
 
-# Удалить старый образ
-log_info "Удаление старого образа..."
+# Удалить старый локальный образ этого проекта
+log_info "Удаление локального образа: remnashop:local..."
 docker rmi remnashop:local -f 2>/dev/null || true
 
 # Очистить кэш
@@ -475,18 +475,20 @@ else
     echo -e "🐳 Режим: ${YELLOW}DEVELOPMENT (с монтированием src)${NC}"
     echo ""
 fi
-echo -e "🔍 Проверка логов:"
-echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/$COMPOSE_FILE logs -f${NC}"
+echo -e "🔍 Проверка логов (только контейнеры этого проекта):"
+echo -e "   ${YELLOW}cd $PROJECT_DIR${NC}"
+echo -e "   ${YELLOW}docker compose -f $COMPOSE_FILE logs -f${NC}"
 echo ""
 
 if [ "$REVERSE_PROXY" = "caddy" ]; then
-    echo -e "📋 Логи Caddy:"
+    echo -e "📋 Логи Caddy (отдельный проект):"
     echo -e "   ${YELLOW}docker compose -f /opt/remnawave/caddy/docker-compose.yml logs -f${NC}"
     echo ""
 fi
 
-echo -e "🛑 Остановка проекта:"
-echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/$COMPOSE_FILE down${NC}"
+echo -e "🛑 Остановка контейнеров этого проекта:"
+echo -e "   ${YELLOW}cd $PROJECT_DIR${NC}"
+echo -e "   ${YELLOW}docker compose -f $COMPOSE_FILE down${NC}"
 echo ""
 echo -e "ℹ️  Документация: ${YELLOW}$PROJECT_DIR/README.md${NC}"
 echo ""
