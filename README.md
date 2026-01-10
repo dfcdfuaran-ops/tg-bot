@@ -7,8 +7,8 @@ Telegram бот для управления подписками и продаж
 ### Быстрая установка
 
 ```bash
-git clone https://github.com/DFTeams/remna-tg-bot.git
-cd remna-tg-bot
+git clone https://github.com/DFTeams/remna-tg-bot.git tg-sell-bot
+cd tg-sell-bot
 ./install.sh
 ```
 
