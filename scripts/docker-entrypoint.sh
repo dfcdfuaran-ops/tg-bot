@@ -9,8 +9,9 @@ ASSETS_CONTAINER_PATH="/opt/remnashop/assets"
 ASSETS_DEFAULT_PATH="/opt/remnashop/assets.default"
 ASSETS_BACKUP_PATH="${ASSETS_CONTAINER_PATH}/.bak"
 
-RESET_FLAG="${RESET_ASSETS:-false}"
-IS_VOLUME_EMPTY=$(ls -A $ASSETS_CONTAINER_PATH 2>/dev/null)
+RESET_FLAG="${APP_RESET_ASSETS:-false}"
+# Проверяем, есть ли файлы кроме . и .. в папке
+IS_VOLUME_EMPTY=$(find "$ASSETS_CONTAINER_PATH" -mindepth 1 -maxdepth 1 2>/dev/null | wc -l)
 
 UVICORN_RELOAD_ARGS=""
 
@@ -20,7 +21,7 @@ echo "Starting asset initialization, reset flag is '${RESET_FLAG}'"
 if [ "$RESET_FLAG" = 'true' ]; then
     echo "Reset assets flag is set to true, archiving existing data and setting default"
 
-    if [ -n "$IS_VOLUME_EMPTY" ]; then
+    if [ "$IS_VOLUME_EMPTY" -gt 0 ]; then
         echo "Found existing assets, creating backup"
 
         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -45,7 +46,7 @@ if [ "$RESET_FLAG" = 'true' ]; then
     cp -a "$ASSETS_DEFAULT_PATH/." "$ASSETS_CONTAINER_PATH"
     echo "Assets reset complete"
 
-elif [ -z "$IS_VOLUME_EMPTY" ]; then
+elif [ "$IS_VOLUME_EMPTY" -eq 0 ]; then
     echo "Volume mounted to '${ASSETS_CONTAINER_PATH}' is empty, copying default assets for initial setup"
     cp -a "$ASSETS_DEFAULT_PATH/." "$ASSETS_CONTAINER_PATH"
     echo "Default assets successfully copied"
