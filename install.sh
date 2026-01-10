@@ -66,6 +66,79 @@ generate_key() {
     openssl rand -base64 32 | tr -d '\n'
 }
 
+configure_reverse_proxy() {
+    local app_domain="$1"
+    local choice="$2"
+    
+    if [ "$choice" = "caddy" ]; then
+        configure_caddy "$app_domain"
+    elif [ "$choice" = "nginx" ]; then
+        configure_nginx "$app_domain"
+    fi
+}
+
+configure_caddy() {
+    local app_domain="$1"
+    local caddy_file="/opt/remnawave/caddy/Caddyfile"
+    
+    if [ ! -f "$caddy_file" ]; then
+        log_warning "Файл Caddyfile не найден в /opt/remnawave/caddy/"
+        return
+    fi
+    
+    # Проверить, есть ли уже конфигурация для этого домена
+    if grep -q "https://${app_domain}" "$caddy_file"; then
+        log_warning "Конфигурация для домена $app_domain уже существует в Caddyfile"
+        return
+    fi
+    
+    log_info "Добавляю конфигурацию в Caddyfile..."
+    
+    # Добавить конфигурацию в Caddyfile
+    echo "" >> "$caddy_file"
+    echo "https://${app_domain} {" >> "$caddy_file"
+    echo "    reverse_proxy * http://remnashop:5000" >> "$caddy_file"
+    echo "}" >> "$caddy_file"
+    
+    log_success "Конфигурация Caddy добавлена"
+    log_info "Перезапустите Caddy для применения изменений:"
+    log_info "  docker compose -f /opt/remnawave/caddy/docker-compose.yml restart caddy"
+}
+
+configure_nginx() {
+    local app_domain="$1"
+    local nginx_config="/etc/nginx/sites-available/${app_domain}.remnashop"
+    
+    log_warning "Nginx конфигурация требует ручной настройки"
+    log_info "Создайте файл конфигурации: $nginx_config"
+    log_info ""
+    log_info "Пример конфигурации:"
+    cat << 'EOF'
+    
+upstream remnashop {
+    server localhost:5000;
+}
+
+server {
+    listen 80;
+    server_name APP_DOMAIN;
+    
+    location / {
+        proxy_pass http://remnashop;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+EOF
+    log_info ""
+    log_info "После создания файла выполните:"
+    log_info "  sudo ln -s /etc/nginx/sites-available/${app_domain}.remnashop /etc/nginx/sites-enabled/"
+    log_info "  sudo nginx -t"
+    log_info "  sudo systemctl restart nginx"
+}
+
 # ============================================================
 # ПРОВЕРКИ ПРЕДУСЛОВИЙ
 # ============================================================
@@ -121,6 +194,33 @@ if [ ! -f "$ENV_FILE" ]; then
 else
     log_warning "Файл .env уже существует. Обновление параметров..."
 fi
+
+echo ""
+
+# ============================================================
+# ВЫБОР РЕВЕРС-ПРОКСИ
+# ============================================================
+
+log_info "Выберите реверс-прокси:"
+echo "  1) Caddy (рекомендуется)"
+echo "  2) Nginx"
+echo "  3) Пропустить (ручная настройка)"
+read -p "  Выбор [1-3]: " proxy_choice
+
+case $proxy_choice in
+    1)
+        REVERSE_PROXY="caddy"
+        log_success "Выбран Caddy"
+        ;;
+    2)
+        REVERSE_PROXY="nginx"
+        log_success "Выбран Nginx"
+        ;;
+    *)
+        REVERSE_PROXY="none"
+        log_info "Конфигурация реверс-прокси пропущена"
+        ;;
+esac
 
 echo ""
 
@@ -231,6 +331,17 @@ docker rmi remnashop:local -f 2>/dev/null || true
 docker buildx prune -af 2>/dev/null || true
 
 echo ""
+
+# ============================================================
+# КОНФИГУРАЦИЯ РЕВЕРС-ПРОКСИ
+# ============================================================
+
+if [ "$REVERSE_PROXY" != "none" ]; then
+    log_info "Конфигурация реверс-прокси..."
+    configure_reverse_proxy "$APP_DOMAIN" "$REVERSE_PROXY"
+    echo ""
+fi
+
 log_info "Запуск проекта через Docker Compose..."
 docker compose -f "$PROJECT_DIR/docker-compose.yml" up -d --build
 
@@ -248,6 +359,7 @@ echo -e "${BLUE}╚════════════════════�
 echo ""
 echo -e "📁 Проект расположен в: ${YELLOW}$PROJECT_DIR${NC}"
 echo -e "📋 Конфигурация сохранена в: ${YELLOW}$ENV_FILE${NC}"
+echo -e "🌐 Реверс-прокси: ${YELLOW}${REVERSE_PROXY^^}${NC}"
 echo ""
 echo -e "🔍 Проверка логов:"
 echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/docker-compose.yml logs -f${NC}"
