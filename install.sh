@@ -392,10 +392,22 @@ if [ "$REVERSE_PROXY" != "none" ]; then
     fi
 fi
 
-log_info "Сборка Docker образа..."
+log_info "Подготовка Docker образа..."
 if [ "$INSTALL_MODE" = "prod" ]; then
-    log_info "В режиме production образ загружается с GitHub Container Registry"
-    log_warning "Убедитесь, что образ ghcr.io/dfteams/remna-tg-bot:latest опубликован!"
+    log_info "Режим production: используется образ ghcr.io/dfteams/remna-tg-bot:latest"
+    echo ""
+    log_warning "ВАЖНО: Образ должен быть предварительно собран и опубликован!"
+    echo ""
+    echo "  Если образ отсутствует, выполните на машине разработки:"
+    echo "    docker build -t ghcr.io/dfteams/remna-tg-bot:latest ."
+    echo "    docker push ghcr.io/dfteams/remna-tg-bot:latest"
+    echo ""
+    echo "  ИЛИ используйте локально собранный образ:"
+    echo "    docker build -t remnashop:local ."
+    echo "    Отредактируйте docker-compose.production.yml:"
+    echo "    Измените: image: ghcr.io/dfteams/remna-tg-bot:latest"
+    echo "    На:       image: remnashop:local"
+    echo ""
 else
     docker compose -f "$PROJECT_DIR/docker-compose.yml" build --no-cache 2>&1 | tail -20
 fi
