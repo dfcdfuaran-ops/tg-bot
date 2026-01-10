@@ -180,21 +180,18 @@ configure_caddy() {
         return
     fi
     
-    # Проверить, есть ли уже конфигурация для этого домена
-    if grep -q "https://${app_domain}" "$caddy_file"; then
-        log_warning "Конфигурация для домена $app_domain уже существует в Caddyfile"
-        return
+    # Проверить, есть ли уже конфигурация для этого домена (учитываем варианты с/без https и пробелов)
+    if grep -E -q "https?://${app_domain}[[:space:]]*\{" "$caddy_file" || grep -q "${app_domain}" "$caddy_file"; then
+      log_warning "Конфигурация для домена $app_domain уже существует в Caddyfile"
+      return
     fi
-    
-    log_info "Добавляю конфигурацию в Caddyfile..."
-    
-    # Добавить конфигурацию в Caddyfile
-    echo "" >> "$caddy_file"
-    echo "https://${app_domain} {" >> "$caddy_file"
-    echo "    reverse_proxy * http://remnashop:5000" >> "$caddy_file"
-    echo "}" >> "$caddy_file"
-    
-    log_success "Конфигурация Caddy добавлена"
+
+    log_info "Добавляю конфигурацию для $app_domain в $caddy_file"
+
+    # Добавить конфигурацию в формате: https://example.com{\n    reverse_proxy * http://remnashop:5000\n}
+    printf "\nhttps://%s{\n    reverse_proxy * http://remnashop:5000\n}\n" "$app_domain" >> "$caddy_file"
+
+    log_success "Конфигурация Caddy добавлена для $app_domain"
     log_info "Перезапустите Caddy для применения изменений:"
     log_info "  docker compose -f /opt/remnawave/caddy/docker-compose.yml restart caddy"
 }
