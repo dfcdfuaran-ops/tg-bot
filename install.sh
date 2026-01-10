@@ -340,6 +340,13 @@ if [ "$REVERSE_PROXY" != "none" ]; then
     log_info "Конфигурация реверс-прокси..."
     configure_reverse_proxy "$APP_DOMAIN" "$REVERSE_PROXY"
     echo ""
+    
+    if [ "$REVERSE_PROXY" = "caddy" ]; then
+        log_info "Перезапуск Caddy для применения изменений..."
+        docker compose -f "/opt/remnawave/caddy/docker-compose.yml" restart caddy 2>/dev/null || log_warning "Не удалось перезапустить Caddy (проверьте, запущен ли он)"
+        log_success "Caddy перезапущен"
+        echo ""
+    fi
 fi
 
 log_info "Запуск проекта через Docker Compose..."
@@ -364,6 +371,13 @@ echo ""
 echo -e "🔍 Проверка логов:"
 echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/docker-compose.yml logs -f${NC}"
 echo ""
+
+if [ "$REVERSE_PROXY" = "caddy" ]; then
+    echo -e "📋 Логи Caddy:"
+    echo -e "   ${YELLOW}docker compose -f /opt/remnawave/caddy/docker-compose.yml logs -f${NC}"
+    echo ""
+fi
+
 echo -e "🛑 Остановка проекта:"
 echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/docker-compose.yml down${NC}"
 echo ""
