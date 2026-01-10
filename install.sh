@@ -170,6 +170,8 @@ REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32)
 APP_ENV=production
 APP_DEBUG=false
 APP_LOG_LEVEL=info
+APP_HOST=0.0.0.0
+APP_PORT=5000
 
 # Asset Settings
 APP_RESET_ASSETS=false
