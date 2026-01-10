@@ -18,8 +18,8 @@ DARKGRAY='\033[1;30m'
 trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXIT
 
 # Путь к .env файлу
-ENV_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.env"
-PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="/opt/tg-sell-bot"
+ENV_FILE="$PROJECT_DIR/.env"
 
 # Режим установки: dev или prod
 INSTALL_MODE="dev"
