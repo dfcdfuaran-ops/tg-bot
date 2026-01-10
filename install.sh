@@ -17,8 +17,10 @@ DARKGRAY='\033[1;30m'
 # Показать курсор при выходе
 trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXIT
 
-PROJECT_DIR="/opt"
+# Всегда устанавливаем в /opt/tg-sell-bot
+PROJECT_DIR="/opt/tg-sell-bot"
 ENV_FILE="$PROJECT_DIR/.env"
+ENV_EXAMPLE_FILE="$PROJECT_DIR/.env.example"
 
 # Фактическое расположение запущенного скрипта
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,25 +29,32 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Поддерживаем запуск через process substitution (bash <(curl ...)) — в этом случае
 # `SCRIPT_DIR` будет указывать в /dev/fd, и копирование каталога работать не будет.
 if [ "$SCRIPT_DIR" != "$PROJECT_DIR" ] && [ -z "$TG_SELL_BOT_REEXEC" ]; then
-  mkdir -p "$PROJECT_DIR"
+  # Гарантируем наличие родительской директории
+  mkdir -p "$(dirname "$PROJECT_DIR")"
 
-  # Если скрипт запущен из /dev/fd или путь не является реальной директорией,
-  # загрузим архив репозитория с GitHub в целевую директорию.
-  if [[ "$SCRIPT_DIR" == /dev/fd/* ]] || [ ! -d "$SCRIPT_DIR" ]; then
-    log_info "Скрипт запущен из потокового ввода — загружаю репозиторий в $PROJECT_DIR"
-    if command -v curl >/dev/null 2>&1 && command -v tar >/dev/null 2>&1; then
-      curl -sL https://github.com/DFTeams/remna-tg-bot/archive/refs/heads/main.tar.gz | tar -xz -C "$PROJECT_DIR" --strip-components=1
-    elif command -v git >/dev/null 2>&1; then
-      git clone --depth 1 https://github.com/DFTeams/remna-tg-bot.git "$PROJECT_DIR"
+  # Клонируем репозиторий в /opt/tg-sell-bot и запускаем install.sh оттуда.
+  # Это соответствует вашему желанию:
+  # git clone https://github.com/DFTeams/remna-tg-bot.git tg-sell-bot
+  # cd tg-sell-bot
+  # ./install.sh
+
+  cd "$(dirname "$PROJECT_DIR")"
+  if [ -d "$PROJECT_DIR" ]; then
+    log_info "Директория $PROJECT_DIR уже существует — обновляю репозиторий"
+    if command -v git >/dev/null 2>&1; then
+      cd "$PROJECT_DIR" && git pull --rebase origin main || true
+    fi
+  else
+    if command -v git >/dev/null 2>&1; then
+      git clone https://github.com/DFTeams/remna-tg-bot.git "$(basename "$PROJECT_DIR")"
     else
-      print_error "Не удалось загрузить репозиторий: необходимы curl+tar или git"
+      print_error "git не найден — не могу клонировать репозиторий в $PROJECT_DIR"
       exit 1
     fi
-    TG_SELL_BOT_REEXEC=1 exec "$PROJECT_DIR/install.sh" "$@"
-  else
-    cp -a "$SCRIPT_DIR"/. "$PROJECT_DIR"/
-    TG_SELL_BOT_REEXEC=1 exec "$PROJECT_DIR/install.sh" "$@"
   fi
+
+  cd "$PROJECT_DIR"
+  TG_SELL_BOT_REEXEC=1 exec ./install.sh "$@"
 fi
 
 # Режим установки: dev или prod
