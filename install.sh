@@ -210,7 +210,7 @@ show_spinner "Инициализация базы данных"
   # Удалить конфигурационные и служебные файлы
   rm -f "$INSTALL_DIR"/{.gitignore,.dockerignore,.env.example,.python-version,.editorconfig} 2>/dev/null || true
   rm -f "$INSTALL_DIR"/{Makefile,pyproject.toml,uv.lock} 2>/dev/null || true
-  rm -f "$INSTALL_DIR"/{install.sh,uninstall.sh} 2>/dev/null || true
+  rm -f "$INSTALL_DIR"/install.sh 2>/dev/null || true
   rm -f "$INSTALL_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
   rm -f "$LOCK_FILE"
 ) &
