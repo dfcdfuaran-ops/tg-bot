@@ -74,6 +74,7 @@ services:
         remnashop-redis:
           condition: service_healthy
 
+    # Монтируем src для разработки (hot reload)
     volumes:
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets

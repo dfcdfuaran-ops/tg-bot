@@ -59,7 +59,9 @@ services:
     
 
   remnashop:
-    # На сервере используется готовый образ вместо build
+    # На сервере используется готовый образ (локально собранный или из реестра)
+    # Если образ из реестра недоступен, убедитесь что собрали локально:
+    # docker build -t ghcr.io/dfteams/remna-tg-bot:latest .
     image: ghcr.io/dfteams/remna-tg-bot:latest
     container_name: "remnashop"
     hostname: remnashop
