@@ -7,6 +7,7 @@ Telegram бот для управления подписками и продаж
 ### Быстрая установка
 
 ```bash
+cd /opt
 git clone https://github.com/DFTeams/remna-tg-bot.git tg-sell-bot
 cd tg-sell-bot
 ./install.sh
@@ -62,15 +63,29 @@ docker compose restart
 
 ### Полное удаление бота
 
-```bash
-# Переходим в папку проекта
-cd /opt/tg-sell-bot
+#### Вариант 1: Автоматическое удаление (рекомендуется)
 
-# Остановить и удалить контейнеры и volumes этого проекта
+```bash
+cd /opt/tg-sell-bot
+bash uninstall.sh
+```
+
+Скрипт автоматически удалит:
+- ✅ Все Docker контейнеры
+- ✅ Все Docker volumes (базы данных, кэш)
+- ✅ Docker образы
+- ✅ Docker сети
+- ✅ Все файлы проекта
+
+#### Вариант 2: Ручное удаление
+
+```bash
+# Остановить и удалить контейнеры и volumes
+cd /opt/tg-sell-bot
 docker compose down -v
 
-# Удалить Docker образ (только для этого проекта)
-docker rmi tg-sell-bot-remnashop:latest -f
+# Удалить Docker образ
+docker rmi remnashop:local -f
 
 # Удалить папку проекта
 cd /opt
