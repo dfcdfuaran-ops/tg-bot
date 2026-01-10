@@ -17,10 +17,20 @@ DARKGRAY='\033[1;30m'
 # Показать курсор при выходе
 trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXIT
 
-# Путь к проекту (всегда /opt/tg-sell-bot на хосте)
+# Базовый каталог установки (всегда /opt/tg-sell-bot)
 PROJECT_DIR="/opt/tg-sell-bot"
 ENV_FILE="$PROJECT_DIR/.env"
 ENV_EXAMPLE_FILE="$PROJECT_DIR/.env.example"
+
+# Фактическое расположение запущенного скрипта
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Если скрипт запущен не из /opt/tg-sell-bot, скопировать и перезапустить из целевой директории
+if [ "$SCRIPT_DIR" != "$PROJECT_DIR" ] && [ -z "$TG_SELL_BOT_REEXEC" ]; then
+  mkdir -p "$PROJECT_DIR"
+  cp -a "$SCRIPT_DIR"/. "$PROJECT_DIR"/
+  TG_SELL_BOT_REEXEC=1 exec "$PROJECT_DIR/install.sh" "$@"
+fi
 
 # Режим установки: dev или prod
 INSTALL_MODE="dev"
