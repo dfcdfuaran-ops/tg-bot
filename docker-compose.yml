@@ -67,7 +67,8 @@ services:
       - .env
     environment:
       PYTHONPATH: /opt/remnashop
-      RESET_ASSETS: "${RESET_ASSETS:-false}"
+      APP_RESET_ASSETS: "${APP_RESET_ASSETS:-false}"
+      UVICORN_RELOAD_ENABLED: "false"
 
     depends_on:
         remnashop-db:
@@ -77,6 +78,9 @@ services:
 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./assets:/opt/remnashop/assets
+      - ./backups:/opt/remnashop/backups
+      - ./logs:/opt/remnashop/logs
 
     networks:
       - remnawave-network
