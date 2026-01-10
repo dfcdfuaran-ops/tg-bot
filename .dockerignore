@@ -55,8 +55,6 @@ dist/
 
 # Development configs
 Makefile
-pyproject.toml
-uv.lock
 install.sh
 # Development
 Makefile
