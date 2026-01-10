@@ -240,8 +240,6 @@ show_spinner "Создание окружения"
 ) &
 show_spinner "Инициализация конфигурации"
 
-echo
-
 # 4. Автоопределение реверс-прокси
 if [ -d "/opt/remnawave/caddy" ]; then
   REVERSE_PROXY="caddy"
@@ -256,8 +254,6 @@ else
   print_success "Реверс-прокси не обнаружен"
   print_success "Установка будет выполнена без настройки прокси"
 fi
-
-echo
 
 echo
 echo -e "${BLUE}========================================${NC}"
@@ -292,10 +288,11 @@ sed -i "s|^BOT_DEV_ID=.*|BOT_DEV_ID=${BOT_DEV_ID}|" "$ENV_FILE"
 
 # BOT_SUPPORT_USERNAME
 safe_read "${YELLOW}➜ Введите username группы поддержки (без @):${NC} " BOT_SUPPORT_USERNAME
+echo
 sed -i "s|^BOT_SUPPORT_USERNAME=.*|BOT_SUPPORT_USERNAME=${BOT_SUPPORT_USERNAME}|" "$ENV_FILE"
 
 # REMNAWAVE_TOKEN
-safe_read "${YELLOW}➜ Введите Токен Remnawave:${NC} " REMNAWAVE_TOKEN
+safe_read "${YELLOW}➜ Введите API Токен Remnawave:${NC} " REMNAWAVE_TOKEN
 if [ -z "$REMNAWAVE_TOKEN" ]; then
     print_error "REMNAWAVE_TOKEN не может быть пустым!"
     exit 1
@@ -303,7 +300,6 @@ fi
 sed -i "s|^REMNAWAVE_TOKEN=.*|REMNAWAVE_TOKEN=${REMNAWAVE_TOKEN}|" "$ENV_FILE"
 
 echo ""
-echo
 echo -e "${BLUE}========================================${NC}"
 echo -e "${WHITE}         ⚡ ПРОЦЕСС УСТАНОВКИ${NC}"
 echo -e "${BLUE}========================================${NC}"
@@ -380,8 +376,6 @@ show_spinner "Инициализация базы данных"
   rm -f "$PROJECT_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
 ) &
 show_spinner "Очистка остаточных файлов"
-
-echo
 
 # ============================================================
 # ЗАВЕРШЕНИЕ УСТАНОВКИ
