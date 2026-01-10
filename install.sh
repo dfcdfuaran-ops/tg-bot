@@ -197,80 +197,66 @@ EOF
 }
 
 # ============================================================
-# ПРОВЕРКИ ПРЕДУСЛОВИЙ
+# ПРОВЕРКИ ПРЕДУСЛОВИЙ И ПОДГОТОВКА
 # ============================================================
 
-log_info "Проверка предусловий..."
+# 1. Проверка Docker и OpenSSL
+(
+  if ! command -v docker &> /dev/null; then
+      print_error "Docker не установлен!"
+      exit 1
+  fi
 
-if ! command -v docker &> /dev/null; then
-    log_error "Docker не установлен!"
-    exit 1
-fi
+  if ! command -v openssl &> /dev/null; then
+      print_error "OpenSSL не установлен!"
+      exit 1
+  fi
+) &
+show_spinner "Проверка установленных компонентов"
 
-if ! command -v openssl &> /dev/null; then
-    log_error "OpenSSL не установлен!"
-    exit 1
-fi
+# 2. Подготовка окружения
+(
+  mkdir -p "$PROJECT_DIR/logs"
+  mkdir -p "$PROJECT_DIR/backups"
+  mkdir -p "$PROJECT_DIR/assets"
+  chmod 755 "$PROJECT_DIR/logs" "$PROJECT_DIR/backups" "$PROJECT_DIR/assets"
 
-log_success "Docker и OpenSSL доступны"
-echo ""
+  if ! docker network ls | grep -q "remnawave-network"; then
+      docker network create remnawave-network 2>/dev/null || true
+  fi
+) &
+show_spinner "Создание окружения"
 
-# ============================================================
-# ПОДГОТОВКА ОКРУЖЕНИЯ
-# ============================================================
+# 3. Создание .env файла
+(
+  if [ ! -f "$ENV_FILE" ]; then
+      if [ ! -f "$PROJECT_DIR/.env.example" ]; then
+          print_error "Файл .env.example не найден!"
+          exit 1
+      fi
+      cp "$PROJECT_DIR/.env.example" "$ENV_FILE"
+  fi
+) &
+show_spinner "Инициализация конфигурации"
 
-log_info "Подготовка окружения..."
+echo
 
-mkdir -p "$PROJECT_DIR/logs"
-mkdir -p "$PROJECT_DIR/backups"
-mkdir -p "$PROJECT_DIR/assets"
-chmod 755 "$PROJECT_DIR/logs" "$PROJECT_DIR/backups" "$PROJECT_DIR/assets"
-
-if ! docker network ls | grep -q "remnawave-network"; then
-    log_info "Создание Docker сети remnawave-network..."
-    docker network create remnawave-network 2>/dev/null || true
-fi
-
-log_success "Окружение подготовлено"
-echo ""
-
-# ============================================================
-# СОЗДАНИЕ .env ФАЙЛА
-# ============================================================
-
-if [ ! -f "$ENV_FILE" ]; then
-    log_info "Файл .env не найден. Создание на основе .env.example..."
-    
-    if [ ! -f "$PROJECT_DIR/.env.example" ]; then
-        log_error "Файл .env.example не найден!"
-        exit 1
-    fi
-    
-    cp "$PROJECT_DIR/.env.example" "$ENV_FILE"
-    log_success "Файл .env создан"
-else
-    log_warning "Файл .env уже существует. Обновление параметров..."
-fi
-
-echo ""
-
-# ============================================================
-# АВТООПРЕДЕЛЕНИЕ РЕВЕРС-ПРОКСИ
-# ============================================================
-
+# 4. Автоопределение реверс-прокси
 if [ -d "/opt/remnawave/caddy" ]; then
   REVERSE_PROXY="caddy"
   print_success "Обнаружен реверс прокси Caddy"
-  print_success "Применяем вариант установки с Caddy\n"
+  print_success "Применяем вариант установки с Caddy"
 elif [ -d "/opt/remnawave/nginx" ]; then
   REVERSE_PROXY="nginx"
   print_success "Обнаружен реверс прокси Nginx"
-  print_success "Применяем вариант установки с Nginx\n"
+  print_success "Применяем вариант установки с Nginx"
 else
   REVERSE_PROXY="none"
   print_success "Реверс-прокси не обнаружен"
-  print_success "Установка будет выполнена без настройки прокси\n"
+  print_success "Установка будет выполнена без настройки прокси"
 fi
+
+echo
 
 echo ""
 
@@ -407,30 +393,4 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${GREEN}             🎉 УСТАНОВКА ЗАВЕРШЕНА УСПЕШНО!${NC}"
 echo -e "${BLUE}========================================${NC}\n"
 
-print_success "Бот успешно установлен и запущен"
-print_success "Домен: $APP_DOMAIN"
-print_success "Место нахождения: ${YELLOW}$PROJECT_DIR${NC}"
-
-echo
-echo -e "${BLUE}========================================${NC}\n"
-
-print_success "Конфигурация сохранена в: ${YELLOW}$ENV_FILE${NC}"
-print_success "Логи доступны через: ${YELLOW}docker compose logs${NC}"
-
-echo
-
 cd /opt
-echo ""
-
-if [ "$REVERSE_PROXY" = "caddy" ]; then
-    echo -e "📋 Логи Caddy (отдельный проект):"
-    echo -e "   ${YELLOW}docker compose -f /opt/remnawave/caddy/docker-compose.yml logs -f${NC}"
-    echo ""
-fi
-
-echo -e "🛑 Остановка контейнеров этого проекта:"
-echo -e "   ${YELLOW}cd $PROJECT_DIR${NC}"
-echo -e "   ${YELLOW}docker compose -f $COMPOSE_FILE down${NC}"
-echo ""
-echo -e "ℹ️  Документация: ${YELLOW}$PROJECT_DIR/README.md${NC}"
-echo ""
