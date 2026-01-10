@@ -12,11 +12,29 @@ NC='\033[0m' # No Color
 ENV_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.env"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║        Быстрая установка Remnashop Bot (v1.0)             ║${NC}"
-echo -e "${BLUE}║                                                            ║${NC}"
-echo -e "${BLUE}║  Скрипт автоматически создаст .env и запустит проект     ║${NC}"
-echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+# Режим установки: dev или prod
+INSTALL_MODE="dev"
+if [ "$1" = "--prod" ] || [ "$1" = "-p" ]; then
+    INSTALL_MODE="prod"
+fi
+
+if [ "$INSTALL_MODE" = "prod" ]; then
+    echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║      Быстрая установка Remnashop Bot - PRODUCTION (v1.0)   ║${NC}"
+    echo -e "${BLUE}║                                                            ║${NC}"
+    echo -e "${BLUE}║  Режим: Установка на сервер (готовый Docker образ)       ║${NC}"
+    echo -e "${BLUE}║  Используется: docker-compose.production.yml              ║${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+else
+    echo -e "${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║      Быстрая установка Remnashop Bot - DEVELOPMENT (v1.0) ║${NC}"
+    echo -e "${BLUE}║                                                            ║${NC}"
+    echo -e "${BLUE}║  Режим: Локальная разработка (с монтированием src)        ║${NC}"
+    echo -e "${BLUE}║  Используется: docker-compose.yml                         ║${NC}"
+    echo -e "${BLUE}║                                                            ║${NC}"
+    echo -e "${BLUE}║  Для установки на сервер: ./install.sh --prod             ║${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
+fi
 echo ""
 
 # ============================================================
@@ -342,7 +360,11 @@ log_info "Подготовка к запуску проекта..."
 
 # Остановить старые контейнеры
 log_info "Остановка старых контейнеров..."
-docker compose -f "$PROJECT_DIR/docker-compose.yml" down -v 2>/dev/null || true
+COMPOSE_FILE="docker-compose.yml"
+if [ "$INSTALL_MODE" = "prod" ]; then
+    COMPOSE_FILE="docker-compose.production.yml"
+fi
+docker compose -f "$PROJECT_DIR/$COMPOSE_FILE" down -v 2>/dev/null || true
 
 # Удалить старый образ
 log_info "Удаление старого образа..."
@@ -371,14 +393,58 @@ if [ "$REVERSE_PROXY" != "none" ]; then
 fi
 
 log_info "Сборка Docker образа..."
-docker compose -f "$PROJECT_DIR/docker-compose.yml" build --no-cache 2>&1 | tail -20
+if [ "$INSTALL_MODE" = "prod" ]; then
+    log_info "В режиме production образ загружается с GitHub Container Registry"
+    log_warning "Убедитесь, что образ ghcr.io/dfteams/remna-tg-bot:latest опубликован!"
+else
+    docker compose -f "$PROJECT_DIR/docker-compose.yml" build --no-cache 2>&1 | tail -20
+fi
 
 echo ""
 log_info "Запуск проекта через Docker Compose..."
-docker compose -f "$PROJECT_DIR/docker-compose.yml" up -d
+docker compose -f "$PROJECT_DIR/$COMPOSE_FILE" up -d
 
 echo ""
 log_success "Проект запущен!"
+echo ""
+
+# ============================================================
+# ОЧИСТКА НЕНУЖНЫХ ФАЙЛОВ НА СЕРВЕРЕ
+# ============================================================
+
+log_info "Очистка сервера от ненужных файлов..."
+
+# Список файлов и папок для удаления
+FILES_TO_REMOVE=(
+    "BACKUP_RESTORE_GUIDE.md"
+    "CHANGES_SUMMARY.md"
+    "DETAILED_EXPLANATION.md"
+    "INSTALL_RU.md"
+    "INVITE_FIX.md"
+    "README.md"
+    "Makefile"
+    "Dockerfile"
+    "pyproject.toml"
+    "uv.lock"
+    "install.sh"
+    "src/"
+    "scripts/"
+    "docs/"
+    ".env.example"
+    ".gitignore"
+    ".dockerignore"
+    ".git/"
+)
+
+for file in "${FILES_TO_REMOVE[@]}"; do
+    if [ -e "$PROJECT_DIR/$file" ]; then
+        rm -rf "$PROJECT_DIR/$file"
+        log_success "Удален: $file"
+    fi
+done
+
+echo ""
+log_success "Сервер очищен от ненужных файлов"
 echo ""
 
 # ============================================================
@@ -389,12 +455,28 @@ echo -e "${BLUE}╔════════════════════�
 echo -e "${BLUE}║                  УСТАНОВКА ЗАВЕРШЕНА ✓                    ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "📁 Проект расположен в: ${YELLOW}$PROJECT_DIR${NC}"
-echo -e "📋 Конфигурация сохранена в: ${YELLOW}$ENV_FILE${NC}"
-echo -e "🌐 Реверс-прокси: ${YELLOW}${REVERSE_PROXY^^}${NC}"
-echo ""
+if [ "$INSTALL_MODE" = "prod" ]; then
+    echo -e "📁 Проект расположен в: ${YELLOW}$PROJECT_DIR${NC}"
+    echo -e "📋 Конфигурация сохранена в: ${YELLOW}$ENV_FILE${NC}"
+    echo -e "🌐 Реверс-прокси: ${YELLOW}${REVERSE_PROXY^^}${NC}"
+    echo -e "🐳 Режим: ${YELLOW}PRODUCTION (готовый образ)${NC}"
+    echo ""
+    echo -e "📁 В папке проекта остались только необходимые файлы:"
+    echo -e "   ${YELLOW}.env${NC} - конфигурация"
+    echo -e "   ${YELLOW}docker-compose.production.yml${NC} - конфиг Docker"
+    echo -e "   ${YELLOW}assets/${NC} - ассеты бота"
+    echo -e "   ${YELLOW}logs/${NC} - логи"
+    echo -e "   ${YELLOW}backups/${NC} - бэкапы БД"
+    echo ""
+else
+    echo -e "📁 Проект расположен в: ${YELLOW}$PROJECT_DIR${NC}"
+    echo -e "📋 Конфигурация сохранена в: ${YELLOW}$ENV_FILE${NC}"
+    echo -e "🌐 Реверс-прокси: ${YELLOW}${REVERSE_PROXY^^}${NC}"
+    echo -e "🐳 Режим: ${YELLOW}DEVELOPMENT (с монтированием src)${NC}"
+    echo ""
+fi
 echo -e "🔍 Проверка логов:"
-echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/docker-compose.yml logs -f${NC}"
+echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/$COMPOSE_FILE logs -f${NC}"
 echo ""
 
 if [ "$REVERSE_PROXY" = "caddy" ]; then
@@ -404,7 +486,7 @@ if [ "$REVERSE_PROXY" = "caddy" ]; then
 fi
 
 echo -e "🛑 Остановка проекта:"
-echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/docker-compose.yml down${NC}"
+echo -e "   ${YELLOW}docker compose -f $PROJECT_DIR/$COMPOSE_FILE down${NC}"
 echo ""
 echo -e "ℹ️  Документация: ${YELLOW}$PROJECT_DIR/README.md${NC}"
 echo ""

@@ -1,0 +1,71 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment (will be mounted)
+.env
+.env.*
+
+# Logs (will be mounted)
+logs/
+*.log
+
+# Backups (will be mounted)
+backups/
+
+# Test files
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Build files
+build/
+dist/
+*.egg-info/
+
+# Development configs
+Makefile
+pyproject.toml
+uv.lock
+install.sh
+# Development
+Makefile
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+src_*/
+assets/.bak/
