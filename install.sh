@@ -232,7 +232,7 @@ docker buildx prune -af 2>/dev/null || true
 
 echo ""
 log_info "Запуск проекта через Docker Compose..."
-docker compose -f "$PROJECT_DIR/docker-compose.yml" up -d
+docker compose -f "$PROJECT_DIR/docker-compose.yml" up -d --build
 
 echo ""
 log_success "Проект запущен!"
