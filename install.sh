@@ -362,7 +362,15 @@ show_spinner "Запуск сервисов"
 ) &
 show_spinner "Инициализация базы данных"
 
-# 6. Очистка ненужных файлов
+# 6. Настройка и перезапуск Caddy
+(
+  if [ -d "/opt/remnawave/caddy" ]; then
+      configure_caddy "$APP_DOMAIN"
+  fi
+) &
+show_spinner "Настройка и перезапуск Caddy"
+
+# 7. Очистка ненужных файлов
 (
   rm -rf "$PROJECT_DIR"/src 2>/dev/null || true
   rm -rf "$PROJECT_DIR"/scripts 2>/dev/null || true
