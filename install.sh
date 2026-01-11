@@ -234,19 +234,23 @@ show_full_menu() {
                         fi
                         # Возвращаемся в raw mode
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     1)  # Проверить обновления
                         manage_update_bot
                         # Возвращаемся в raw mode
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     2)  # Изменить настройки
                         manage_change_settings
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     3)  # Очистить данные
                         manage_cleanup_database
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     4)  # Удалить бота
                         manage_uninstall_bot
