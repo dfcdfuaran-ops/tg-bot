@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-exec < /dev/tty
 
 # Переменные для отслеживания состояния установки
 INSTALL_STARTED=false
@@ -135,16 +134,17 @@ show_simple_menu() {
 
 # Полное меню при установленном боте
 show_full_menu() {
+    set +e  # Отключаем exit on error для функции меню
     local selected=0
     local options=("🔄  Переустановить" "📦  Проверить обновления" "⚙️   Изменить настройки" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
     local num_options=${#options[@]}
     
     # Сохраняем текущие настройки терминала
     local original_stty=$(stty -g 2>/dev/null)
-    trap "stty '$original_stty' 2>/dev/null || true" RETURN
+    trap "stty '$original_stty' 2>/dev/null || true; set -e" EXIT
     
-    # Отключаем canonical mode, echo и выключаем обработку сигналов
-    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
+    # Отключаем canonical mode и echo
+    stty -echo -icanon time 0 min 0 2>/dev/null || true
     
     while true; do
         clear
@@ -170,76 +170,73 @@ show_full_menu() {
         echo
         echo -e "${GRAY}Используйте ↑ ↓ для навигации, Enter для выбора${NC}"
         
-        # Читаем нажатие клавиши напрямую из /dev/tty
+        # Читаем нажатие клавиши с помощью read -t (non-blocking)
         local key
-        key=$(dd if=/dev/tty bs=1 count=1 2>/dev/null)
-        
-        # Проверяем является ли это началом escape-последовательности
-        if [ "$key" = $'\x1b' ]; then
-            # Читаем следующий символ (должен быть [)
-            key=$(dd if=/dev/tty bs=1 count=1 2>/dev/null)
-            if [ "$key" = '[' ]; then
-                # Читаем код стрелки
-                key=$(dd if=/dev/tty bs=1 count=1 2>/dev/null)
+        if read -rsn1 -t 0.1 key 2>/dev/null || true; then
+            # Проверяем является ли это началом escape-последовательности
+            if [[ "$key" == $'\e' ]]; then
+                # Читаем остаток escape-последовательности
+                local seq=""
+                if read -rsn2 -t 0.1 seq 2>/dev/null || true; then
+                    case "$seq" in
+                        '[A')  # Стрелка вверх
+                            ((selected--))
+                            if [ $selected -lt 0 ]; then
+                                selected=$((num_options - 1))
+                            fi
+                            ;;
+                        '[B')  # Стрелка вниз
+                            ((selected++))
+                            if [ $selected -ge $num_options ]; then
+                                selected=0
+                            fi
+                            ;;
+                    esac
+                fi
+            elif [[ "$key" == $'\n' ]] || [[ "$key" == $'\r' ]]; then
+                # Enter нажата - восстанавливаем нормальный режим и выполняем действие
+                stty "$original_stty" 2>/dev/null || true
                 
-                case "$key" in
-                    'A')  # Стрелка вверх
-                        ((selected--))
-                        if [ $selected -lt 0 ]; then
-                            selected=$((num_options - 1))
+                case $selected in
+                    0)  # Переустановить
+                        echo
+                        echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
+                        read -p "Продолжить? (Y/n): " confirm
+                        confirm=${confirm:-y}
+                        confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
+                        if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
+                            exec "$0" --install
+                        else
+                            echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                            sleep 2
                         fi
+                        # Восстанавливаем raw mode для следующей итерации
+                        stty -echo -icanon time 0 min 0 2>/dev/null || true
                         ;;
-                    'B')  # Стрелка вниз
-                        ((selected++))
-                        if [ $selected -ge $num_options ]; then
-                            selected=0
-                        fi
+                    1)  # Проверить обновления
+                        manage_update_bot
+                        # Восстанавливаем raw mode
+                        stty -echo -icanon time 0 min 0 2>/dev/null || true
+                        ;;
+                    2)  # Изменить настройки
+                        manage_change_settings
+                        stty -echo -icanon time 0 min 0 2>/dev/null || true
+                        ;;
+                    3)  # Очистить данные
+                        manage_cleanup_database
+                        stty -echo -icanon time 0 min 0 2>/dev/null || true
+                        ;;
+                    4)  # Удалить бота
+                        manage_uninstall_bot
+                        exit 0
+                        ;;
+                    5)  # Выход
+                        echo
+                        echo -e "${YELLOW}ℹ️  До свидания!${NC}"
+                        exit 0
                         ;;
                 esac
             fi
-        elif [ "$key" = '' ] || [ "$key" = $'\x0a' ] || [ "$key" = $'\x0d' ]; then
-            # Enter нажата - восстанавливаем нормальный режим и выполняем действие
-            stty "$original_stty" 2>/dev/null || true
-            
-            case $selected in
-                0)  # Переустановить
-                    echo
-                    echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
-                    read -p "Продолжить? (Y/n): " confirm
-                    confirm=${confirm:-y}
-                    confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
-                    if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
-                        exec "$0" --install
-                    else
-                        echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                        sleep 2
-                    fi
-                    # Восстанавливаем raw mode для следующей итерации
-                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
-                    ;;
-                1)  # Проверить обновления
-                    manage_update_bot
-                    # Восстанавливаем raw mode
-                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
-                    ;;
-                2)  # Изменить настройки
-                    manage_change_settings
-                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
-                    ;;
-                3)  # Очистить данные
-                    manage_cleanup_database
-                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
-                    ;;
-                4)  # Удалить бота
-                    manage_uninstall_bot
-                    exit 0
-                    ;;
-                5)  # Выход
-                    echo
-                    echo -e "${YELLOW}ℹ️  До свидания!${NC}"
-                    exit 0
-                    ;;
-            esac
         fi
     done
 }
