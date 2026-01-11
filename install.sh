@@ -1027,8 +1027,8 @@ if [ "$COPY_FILES" = true ]; then
           fi
       done
       
-      # Копируем директории (src и scripts)
-      for dir in "src" "scripts"; do
+      # Копируем директории (src, scripts и assets)
+      for dir in "src" "scripts" "assets"; do
           if [ -d "$SOURCE_DIR/$dir" ]; then
               rm -rf "$PROJECT_DIR/$dir" 2>/dev/null || true
               cp -r "$SOURCE_DIR/$dir" "$PROJECT_DIR/"
@@ -1222,7 +1222,6 @@ echo -e "${GREEN}✅${NC} Remnawave синхронизирована"
 
 # 3. Создание структуры папок
 echo -ne "${GREEN}⏳${NC}  Создание структуры папок... "
-rm -rf "$PROJECT_DIR"/assets
 mkdir -p "$PROJECT_DIR"/{assets,backups,logs}
 echo -e "${GREEN}✅${NC} Структура создана"
 
