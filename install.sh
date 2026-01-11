@@ -6,6 +6,7 @@ INSTALL_STARTED=false
 SOURCE_DIR=""
 CLEANUP_DIRS=()
 TEMP_REPO=""
+SCRIPT_CWD="$(cd "$(dirname "$0")" && pwd)"
 
 # Переменные путей
 PROJECT_DIR="/opt/tg-sell-bot"
@@ -135,9 +136,21 @@ show_simple_menu() {
     
     # Функция для очистки скачанных файлов при выходе из меню установки
     cleanup_menu_temp() {
-        if [ -n "$TEMP_REPO" ] && [ -d "$TEMP_REPO" ] && [ "$INSTALL_STARTED" = false ]; then
-            cd /opt 2>/dev/null || true
-            rm -rf "$TEMP_REPO" 2>/dev/null || true
+        if [ "$INSTALL_STARTED" = false ]; then
+            # Удаляем временную папку репозитория для проверки обновлений
+            if [ -n "$TEMP_REPO" ] && [ -d "$TEMP_REPO" ]; then
+                cd /opt 2>/dev/null || true
+                rm -rf "$TEMP_REPO" 2>/dev/null || true
+            fi
+            
+            # Удаляем исходную папку клона если это была временная установка
+            # (не целевая /opt/tg-sell-bot и не основной каталог /opt/tg-bot)
+            if [ -n "$SCRIPT_CWD" ] && [ "$SCRIPT_CWD" != "/opt/tg-sell-bot" ] && [ "$SCRIPT_CWD" != "/opt/tg-bot" ] && [ "$SCRIPT_CWD" != "/" ]; then
+                if [ -d "$SCRIPT_CWD" ]; then
+                    cd /opt 2>/dev/null || true
+                    rm -rf "$SCRIPT_CWD" 2>/dev/null || true
+                fi
+            fi
         fi
     }
     
