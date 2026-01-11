@@ -87,7 +87,7 @@ show_full_menu() {
         echo -e "${GREEN}✅ Статус: Установлен в $PROJECT_DIR${NC}"
         echo
         echo "Доступные действия:"
-        echo "1) Установить/Переустановить"
+        echo "1) Переустановить"
         echo "2) Проверить обновления"
         echo "3) Изменить настройки"
         echo "4) Очистить данные"
@@ -136,28 +136,50 @@ manage_update_bot() {
     echo
     echo -e "${WHITE}🔄 Проверка обновлений...${NC}"
     
-    cd "$PROJECT_DIR" || return
+    # Создаём временную папку для клонирования репозитория
+    TEMP_REPO=$(mktemp -d)
+    trap "rm -rf '$TEMP_REPO'" RETURN
     
-    # Проверяем если есть обновления в GitHub
-    if [ ! -d ".git" ]; then
-        echo -e "${YELLOW}⚠️ Git репозиторий не найден${NC}"
+    echo -e "${WHITE}📥 Загружаю информацию из репозитория...${NC}"
+    
+    # Клонируем репозиторий в временную папку для проверки версий
+    if ! git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_REPO" >/dev/null 2>&1; then
+        echo -e "${RED}✖ Не удалось подключиться к репозиторию${NC}"
         read -p "Нажмите Enter для продолжения..."
         return
     fi
     
-    git fetch origin "$REPO_BRANCH" >/dev/null 2>&1 || true
+    # Получаем хеш из временного репозитория
+    REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD)
     
-    LOCAL=$(git rev-parse HEAD)
-    REMOTE=$(git rev-parse origin/"$REPO_BRANCH" 2>/dev/null || echo "$LOCAL")
+    # Проверяем если .git существует в проекте (может быть если пользователь клонировал вручную)
+    LOCAL_HASH=""
+    if [ -d "$PROJECT_DIR/.git" ]; then
+        LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
+    fi
     
-    if [ "$LOCAL" = "$REMOTE" ]; then
+    # Если мы не можем получить локальный хеш, всегда показываем опцию обновления
+    if [ -n "$LOCAL_HASH" ] && [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
         echo -e "${GREEN}✅ Бот уже на последней версии${NC}"
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
         read -p "Обновить? (да/нет): " update_choice
         if [ "$update_choice" = "да" ]; then
             echo -e "${WHITE}📥 Загружаю обновления...${NC}"
-            git pull origin "$REPO_BRANCH" || true
+            
+            # Копируем новые файлы из временного репозитория
+            cd "$TEMP_REPO" || return
+            
+            # Копируем только необходимые файлы (исключаем .git, .env, logs и т.д.)
+            for file in $(find . -maxdepth 2 -type f ! -path "./.git/*" ! -path "./.github/*" ! -name ".gitignore" ! -name ".env*"); do
+                dir=$(dirname "$file" | sed 's|^\./||')
+                mkdir -p "$PROJECT_DIR/$dir" 2>/dev/null || true
+                cp "$file" "$PROJECT_DIR/$dir/" 2>/dev/null || true
+            done
+            
+            cd "$PROJECT_DIR" || return
+            
+            # Перестраиваем контейнеры
             docker compose down >/dev/null 2>&1
             docker compose build --no-cache >/dev/null 2>&1
             docker compose up -d >/dev/null 2>&1
