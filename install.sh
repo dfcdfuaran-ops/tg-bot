@@ -1226,33 +1226,43 @@ rm -rf "$PROJECT_DIR"/assets
 mkdir -p "$PROJECT_DIR"/{assets,backups,logs}
 echo -e "${GREEN}✅${NC} Структура создана"
 
-# 4. Сборка Docker образа (теперь ПОСЛЕ конфигурации)
+# 4. Удаление старых томов БД для свежей установки
+echo -ne "${GREEN}⏳${NC}  Очистка старых данных БД... "
+(
+  cd "$PROJECT_DIR"
+  # Останавливаем контейнеры если они есть
+  docker compose down >/dev/null 2>&1 || true
+  # Удаляем том БД чтобы PostgreSQL переинициализировалась с правильными паролями
+  docker volume rm remnashop-db-data >/dev/null 2>&1 || true
+) && echo -e "${GREEN}✅${NC} Старые данные очищены" || echo -e "${YELLOW}⚠${NC}  Очистка пропущена"
+
+# 5. Сборка Docker образа (теперь ПОСЛЕ конфигурации)
 echo -ne "${GREEN}⏳${NC}  Сборка Docker образа... "
 (
   cd "$PROJECT_DIR"
   docker compose build >/dev/null 2>&1
 ) && echo -e "${GREEN}✅${NC} Образ собран" || echo -e "${RED}❌${NC} Ошибка сборки"
 
-# 5. Запуск контейнеров (после build)
+# 6. Запуск контейнеров (после build)
 echo -ne "${GREEN}⏳${NC}  Запуск сервисов... "
 (
   cd "$PROJECT_DIR"
   docker compose up -d >/dev/null 2>&1
 ) && echo -e "${GREEN}✅${NC} Сервисы запущены" || echo -e "${RED}❌${NC} Ошибка запуска"
 
-# 6. Инициализация БД
+# 7. Инициализация БД
 echo -ne "${GREEN}⏳${NC}  Инициализация базы данных... "
-sleep 15
+sleep 20
 echo -e "${GREEN}✅${NC} БД инициализирована"
 
-# 7. Настройка и перезапуск Caddy
+# 8. Настройка и перезапуск Caddy
 if [ -d "/opt/remnawave/caddy" ]; then
   echo -ne "${GREEN}⏳${NC}  Настройка и перезапуск Caddy... "
   configure_caddy "$APP_DOMAIN"
   echo -e "${GREEN}✅${NC} Caddy перезапущен"
 fi
 
-# 8. Очистка ненужных файлов в целевой директории
+# 9. Очистка ненужных файлов в целевой директории
 echo -ne "${GREEN}⏳${NC}  Очистка остаточных файлов... "
 rm -rf "$PROJECT_DIR"/src 2>/dev/null || true
 rm -rf "$PROJECT_DIR"/scripts 2>/dev/null || true
