@@ -44,6 +44,19 @@ show_spinner() {
   tput cnorm 2>/dev/null || true
 }
 
+# Спинер без сообщения (просто ждём процесс)
+show_spinner_silent() {
+  local pid=$!
+  local delay=0.08
+  local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local i=0
+  while kill -0 $pid 2>/dev/null; do
+    i=$(( (i+1) % 10 ))
+    sleep $delay
+  done
+  wait $pid 2>/dev/null || true
+}
+
 # Красивый вывод
 print_action() { printf "${BLUE}➜${NC}  %b\n" "$1"; }
 print_error()  { printf "${RED}✖ %b${NC}\n" "$1"; }
@@ -317,10 +330,21 @@ manage_update_bot() {
         echo -e "${GREEN}✅ Обновление не требуется${NC}"
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
-        read -p "Запустить обновление: (Y/n): " update_choice
-        update_choice=${update_choice:-y}
-        update_choice=$(echo "$update_choice" | tr '[:upper:]' '[:lower:]')
-        if [ "$update_choice" = "y" ] || [ "$update_choice" = "да" ]; then
+        echo -e "${DARKGRAY}Нажмите Enter для начала обновления или Esc для отмены${NC}"
+        
+        # Ожидаем нажатия Enter или Esc
+        local original_stty=$(stty -g)
+        stty -icanon -echo min 1 time 0
+        local update_key=""
+        read -rsn1 update_key 2>/dev/null || update_key=""
+        stty "$original_stty"
+        
+        # Проверяем нажал ли пользователь Enter (ASCII 13 или 10) или Esc (ASCII 27)
+        if [ "$update_key" = $'\033' ] || [ "$update_key" = $'\x1b' ]; then
+            # Esc - отмена
+            return
+        elif [ -z "$update_key" ] || [ "$(printf '%d' "'$update_key")" -eq 13 ] || [ "$(printf '%d' "'$update_key")" -eq 10 ]; then
+            # Enter - начало обновления
             echo
             
             # Копируем новые файлы, исключая развёрнутые файлы
@@ -370,12 +394,16 @@ manage_update_bot() {
             } &
             show_spinner "Загрузка файлов обновления"
             
+            echo -e "${GREEN}✅ Остановка сервисов${NC}"
+            
             # Остановка контейнеров
             {
                 cd "$PROJECT_DIR" || return
                 docker compose down >/dev/null 2>&1
             } &
-            show_spinner "Остановка сервисов"
+            show_spinner_silent
+            
+            echo -e "${GREEN}✅ Пересборка и запуск сервисов${NC}"
             
             # Перестроение и запуск
             {
@@ -383,7 +411,7 @@ manage_update_bot() {
                 docker compose build --no-cache >/dev/null 2>&1
                 docker compose up -d >/dev/null 2>&1
             } &
-            show_spinner "Пересборка и запуск сервисов"
+            show_spinner_silent
             
             echo
             echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
