@@ -7,6 +7,282 @@ INSTALL_STARTED=false
 SOURCE_DIR=""
 CLEANUP_DIRS=()
 
+# Переменные путей
+PROJECT_DIR="/opt/tg-sell-bot"
+ENV_FILE="$PROJECT_DIR/.env"
+REPO_DIR="/opt/tg-bot"
+REMNAWAVE_DIR="/opt/remnawave"
+REPO_URL="https://github.com/dfcdfuaran-ops/tg-bot.git"
+REPO_BRANCH="dev"
+
+# Цвета для вывода
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[1;34m'
+WHITE='\033[1;37m'
+NC='\033[0m'
+DARKGRAY='\033[1;30m'
+
+# Функция для проверки режима (установка или меню)
+check_mode() {
+    # Если передан аргумент --install, пропускаем меню
+    if [ "$1" = "--install" ]; then
+        return 0
+    fi
+    
+    # Если бот установлен и скрипт вызван без аргументов, показываем полное меню
+    if [ -d "$PROJECT_DIR" ] && [ -z "$1" ]; then
+        show_full_menu
+    fi
+    
+    # Если бот не установлен и скрипт вызван без аргументов, показываем меню с одним пунктом
+    if [ ! -d "$PROJECT_DIR" ] && [ -z "$1" ]; then
+        show_simple_menu
+    fi
+}
+
+# Простое меню при отсутствии бота
+show_simple_menu() {
+    clear
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${GREEN}       🚀 TG-SELL-BOT INSTALLER${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo
+    echo -e "${RED}❌ Статус: Не установлен${NC}"
+    echo
+    echo "Доступное действие:"
+    echo "1) Установить"
+    echo "0) Выход"
+    echo
+    read -p "Введите номер (0-1): " choice
+    
+    case $choice in
+        1)
+            # Продолжаем с установкой с флагом --install
+            exec "$0" --install
+            ;;
+        0)
+            echo
+            echo -e "${YELLOW}ℹ До свидания!${NC}"
+            exit 0
+            ;;
+        *)
+            echo
+            echo -e "${RED}✖ Неверный выбор${NC}"
+            sleep 2
+            exec "$0"
+            ;;
+    esac
+}
+
+# Полное меню при установленном боте
+show_full_menu() {
+    while true; do
+        clear
+        echo -e "${BLUE}========================================${NC}"
+        echo -e "${GREEN}       🚀 TG-SELL-BOT MANAGEMENT${NC}"
+        echo -e "${BLUE}========================================${NC}"
+        echo
+        echo -e "${GREEN}✅ Статус: Установлен в $PROJECT_DIR${NC}"
+        echo
+        echo "Доступные действия:"
+        echo "1) Установить/Переустановить"
+        echo "2) Проверить обновления"
+        echo "3) Изменить настройки"
+        echo "4) Очистить данные"
+        echo "5) Удалить бот"
+        echo "0) Выход"
+        echo
+        read -p "Введите номер (0-5): " choice
+        
+        case $choice in
+            1)
+                echo
+                echo -e "${YELLOW}⚠️ Это переустановит бот с потерей данных!${NC}"
+                read -p "Вы уверены? (да/нет): " confirm
+                if [ "$confirm" = "да" ]; then
+                    exec "$0" --install
+                fi
+                ;;
+            2)
+                manage_update_bot
+                ;;
+            3)
+                manage_change_settings
+                ;;
+            4)
+                manage_cleanup_database
+                ;;
+            5)
+                manage_uninstall_bot
+                ;;
+            0)
+                echo
+                echo -e "${YELLOW}ℹ До свидания!${NC}"
+                exit 0
+                ;;
+            *)
+                echo
+                echo -e "${RED}✖ Неверный выбор${NC}"
+                sleep 2
+                ;;
+        esac
+    done
+}
+
+# Функция обновления бота
+manage_update_bot() {
+    echo
+    echo -e "${WHITE}🔄 Проверка обновлений...${NC}"
+    
+    cd "$PROJECT_DIR" || return
+    
+    # Проверяем если есть обновления в GitHub
+    if [ ! -d ".git" ]; then
+        echo -e "${YELLOW}⚠️ Git репозиторий не найден${NC}"
+        read -p "Нажмите Enter для продолжения..."
+        return
+    fi
+    
+    git fetch origin "$REPO_BRANCH" >/dev/null 2>&1 || true
+    
+    LOCAL=$(git rev-parse HEAD)
+    REMOTE=$(git rev-parse origin/"$REPO_BRANCH" 2>/dev/null || echo "$LOCAL")
+    
+    if [ "$LOCAL" = "$REMOTE" ]; then
+        echo -e "${GREEN}✅ Бот уже на последней версии${NC}"
+    else
+        echo -e "${YELLOW}📦 Доступно обновление!${NC}"
+        read -p "Обновить? (да/нет): " update_choice
+        if [ "$update_choice" = "да" ]; then
+            echo -e "${WHITE}📥 Загружаю обновления...${NC}"
+            git pull origin "$REPO_BRANCH" || true
+            docker compose down >/dev/null 2>&1
+            docker compose build --no-cache >/dev/null 2>&1
+            docker compose up -d >/dev/null 2>&1
+            echo -e "${GREEN}✅ Бот обновлен${NC}"
+        fi
+    fi
+    
+    read -p "Нажмите Enter для продолжения..."
+}
+
+# Функция изменения настроек
+manage_change_settings() {
+    echo
+    echo -e "${WHITE}⚙️ Изменение настроек${NC}"
+    echo
+    echo "1) Изменить APP_DOMAIN"
+    echo "2) Изменить BOT_TOKEN"
+    echo "3) Изменить BOT_DEV_ID"
+    echo "0) Вернуться"
+    echo
+    read -p "Выберите: " setting_choice
+    
+    case $setting_choice in
+        1)
+            read -p "Введите новый APP_DOMAIN: " new_domain
+            if [ -n "$new_domain" ]; then
+                update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain"
+                echo -e "${GREEN}✅ APP_DOMAIN обновлен${NC}"
+            fi
+            ;;
+        2)
+            read -p "Введите новый BOT_TOKEN: " new_token
+            if [ -n "$new_token" ]; then
+                update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token"
+                echo -e "${GREEN}✅ BOT_TOKEN обновлен${NC}"
+                docker compose down >/dev/null 2>&1
+                docker compose up -d >/dev/null 2>&1
+                echo -e "${GREEN}✅ Сервисы перезагружены${NC}"
+            fi
+            ;;
+        3)
+            read -p "Введите новый BOT_DEV_ID: " new_dev_id
+            if [ -n "$new_dev_id" ]; then
+                update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id"
+                echo -e "${GREEN}✅ BOT_DEV_ID обновлен${NC}"
+            fi
+            ;;
+        0)
+            return
+            ;;
+        *)
+            echo -e "${RED}✖ Неверный выбор${NC}"
+            ;;
+    esac
+    
+    read -p "Нажмите Enter для продолжения..."
+}
+
+# Функция очистки базы данных
+manage_cleanup_database() {
+    echo
+    echo -e "${RED}⚠️ Это удалит всех пользователей и данные!${NC}"
+    read -p "Вы уверены? (введите 'да' для подтверждения): " confirm
+    
+    if [ "$confirm" != "да" ]; then
+        echo -e "${YELLOW}Отменено${NC}"
+        read -p "Нажмите Enter для продолжения..."
+        return
+    fi
+    
+    echo -e "${WHITE}🧹 Очищаю данные...${NC}"
+    
+    # PostgreSQL
+    if command -v psql &> /dev/null; then
+        psql -h 127.0.0.1 -U "$(grep "^DB_USER=" "$ENV_FILE" | cut -d= -f2 | tr -d '\"')" \
+            -d "$(grep "^DB_NAME=" "$ENV_FILE" | cut -d= -f2 | tr -d '\"')" \
+            -c "DELETE FROM users;" >/dev/null 2>&1 || true
+    fi
+    
+    # Redis
+    if command -v redis-cli &> /dev/null; then
+        redis-cli FLUSHALL >/dev/null 2>&1 || true
+    fi
+    
+    echo -e "${GREEN}✅ Данные очищены${NC}"
+    read -p "Нажмите Enter для продолжения..."
+}
+
+# Функция удаления бота
+manage_uninstall_bot() {
+    echo
+    echo -e "${RED}⚠️ Это удалит весь бот и все данные!${NC}"
+    read -p "Вы уверены? (введите 'да' для подтверждения): " confirm1
+    
+    if [ "$confirm1" != "да" ]; then
+        echo -e "${YELLOW}Отменено${NC}"
+        read -p "Нажмите Enter для продолжения..."
+        return
+    fi
+    
+    echo -e "${RED}Это последнее предупреждение!${NC}"
+    read -p "Введите еще раз 'да' для удаления: " confirm2
+    
+    if [ "$confirm2" != "да" ]; then
+        echo -e "${YELLOW}Отменено${NC}"
+        read -p "Нажмите Enter для продолжения..."
+        return
+    fi
+    
+    echo -e "${WHITE}🗑️ Удаляю бот...${NC}"
+    
+    cd "$PROJECT_DIR" || return
+    docker compose down >/dev/null 2>&1 || true
+    cd /opt
+    rm -rf "$PROJECT_DIR"
+    
+    # Удаляем глобальную команду
+    sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
+    
+    echo -e "${GREEN}✅ Бот удален${NC}"
+    echo
+    echo -e "${YELLOW}ℹ До свидания!${NC}"
+    exit 0
+}
+
 # Функция очистки при ошибке или отмене
 cleanup_on_error() {
     local exit_code=$?
@@ -63,27 +339,20 @@ trap 'INSTALL_STARTED=false; exit 130' INT TERM
 # Автоматически даем права на выполнение самому себе
 chmod +x "$0" 2>/dev/null || true
 
-# Скрыть курсор
+# Показать курсор
 tput civis >/dev/null 2>&1 || true
-
-# Цвета для вывода
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[1;34m'
-WHITE='\033[1;37m'
-NC='\033[0m'
-DARKGRAY='\033[1;30m'
 
 # Показать курсор при выходе
 trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXIT
 
-# Путь к .env файлу
-PROJECT_DIR="/opt/tg-sell-bot"
-ENV_FILE="$PROJECT_DIR/.env"
-
 # Режим установки: dev или prod
 INSTALL_MODE="dev"
+
+# Проверяем режим если скрипт вызван без аргументов --install
+if [ "$1" != "--install" ] && [ "$1" != "--prod" ] && [ "$1" != "-p" ]; then
+    check_mode "$1"
+fi
+
 if [ "$1" = "--prod" ] || [ "$1" = "-p" ]; then
     INSTALL_MODE="prod"
 fi
@@ -513,5 +782,18 @@ echo
 
 # Отмечаем успешное завершение установки
 INSTALL_STARTED=false
+
+# Создание глобальной команды tg-sell-bot
+echo
+echo -e "${WHITE}📋 Создание глобальной команды tg-sell-bot...${NC}"
+(
+    sudo tee /usr/local/bin/tg-sell-bot > /dev/null << 'EOF'
+#!/bin/bash
+exec /opt/tg-bot/install.sh
+EOF
+    sudo chmod +x /usr/local/bin/tg-sell-bot
+) >/dev/null 2>&1 && echo -e "${GREEN}✅ Команда tg-sell-bot создана${NC}" || echo -e "${YELLOW}⚠️ Не удалось создать глобальную команду${NC}"
+
+echo -e "${WHITE}Использование:${NC} ${YELLOW}tg-sell-bot${NC}"
 
 cd /opt
