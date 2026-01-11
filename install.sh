@@ -729,7 +729,7 @@ manage_change_settings() {
                         {
                             update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
                         } &
-                        show_spinner "✅ Обновление домена"
+                        show_spinner "Обновление домена"
                         echo -e "${GREEN}✅ Домен обновлён${NC}"
                         echo
                         echo -e "${BLUE}========================================${NC}"
@@ -747,9 +747,10 @@ manage_change_settings() {
                     echo -e "${BLUE}========================================${NC}"
                     echo -e "${GREEN}       🤖 ИЗМЕНИТЬ ТОКЕН ТЕЛЕГРАМ БОТА${NC}"
                     echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены${NC}"
+                    echo -e "${DARKGRAY}--------------------------------------------------------------------${NC}"
                     echo
                     echo "Текущее значение: (скрыто)"
-                    echo
                     
                     # Используем read -e для редактирования с поддержкой Backspace
                     echo -n -e "${YELLOW}Введите новый токен:${NC} "
@@ -757,9 +758,6 @@ manage_change_settings() {
                     read -e new_token
                     
                     tput civis 2>/dev/null || true
-                    echo
-                    echo -e "${BLUE}========================================${NC}"
-                    echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены${NC}"
                     echo
                     
                     if [ -z "$new_token" ]; then
@@ -770,6 +768,7 @@ manage_change_settings() {
                         read -p ""
                         break
                     else
+                        echo -e "${DARKGRAY}--------------------------------------------------------------------${NC}"
                         echo
                         {
                             update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
@@ -782,7 +781,6 @@ manage_change_settings() {
                             docker compose up -d >/dev/null 2>&1
                         } &
                         show_spinner "Перезагрузка сервисов"
-                        echo
                         echo -e "${GREEN}✅ Токен обновлён и сервисы перезагружены${NC}"
                         echo
                         echo -e "${BLUE}========================================${NC}"
@@ -800,9 +798,10 @@ manage_change_settings() {
                     echo -e "${BLUE}========================================${NC}"
                     echo -e "${GREEN}       👤 ИЗМЕНИТЬ ТЕЛЕГРАМ ID РАЗРАБОТЧИКА${NC}"
                     echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены${NC}"
+                    echo -e "${DARKGRAY}--------------------------------------------------------------------${NC}"
                     echo
                     echo "Текущее значение: $(grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2)"
-                    echo
                     
                     # Используем read -e для редактирования с поддержкой Backspace
                     echo -n -e "${YELLOW}Введите новый ID:${NC} "
@@ -810,9 +809,6 @@ manage_change_settings() {
                     read -e new_dev_id
                     
                     tput civis 2>/dev/null || true
-                    echo
-                    echo -e "${BLUE}========================================${NC}"
-                    echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены${NC}"
                     echo
                     
                     if [ -z "$new_dev_id" ]; then
@@ -823,12 +819,12 @@ manage_change_settings() {
                         read -p ""
                         break
                     else
+                        echo -e "${DARKGRAY}--------------------------------------------------------------------${NC}"
                         echo
                         {
                             update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
                         } &
                         show_spinner "Обновление ID разработчика"
-                        echo
                         echo -e "${GREEN}✅ ID обновлён${NC}"
                         echo
                         echo -e "${BLUE}========================================${NC}"
