@@ -141,7 +141,10 @@ show_full_menu() {
     
     # Сохраняем текущие настройки терминала
     local original_stty=$(stty -g 2>/dev/null)
-    trap "stty '$original_stty' 2>/dev/null || true; set -e" EXIT
+    trap "stty '$original_stty' 2>/dev/null || true; tput cnorm 2>/dev/null || true; set -e" EXIT
+    
+    # Скрываем курсор
+    tput civis 2>/dev/null || true
     
     # Отключаем canonical mode и echo, включаем чтение отдельных символов
     stty -icanon -echo min 1 time 0 2>/dev/null || true
