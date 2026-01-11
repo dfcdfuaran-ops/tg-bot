@@ -136,6 +136,7 @@ show_simple_menu() {
     # Функция для очистки скачанных файлов при выходе из меню установки
     cleanup_menu_temp() {
         if [ -n "$TEMP_REPO" ] && [ -d "$TEMP_REPO" ] && [ "$INSTALL_STARTED" = false ]; then
+            cd /opt 2>/dev/null || true
             rm -rf "$TEMP_REPO" 2>/dev/null || true
         fi
     }
