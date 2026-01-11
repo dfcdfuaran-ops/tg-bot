@@ -28,14 +28,21 @@ if [ "$1" = "--prod" ] || [ "$1" = "-p" ]; then
 fi
 
 # Определяем исходную директорию скрипта
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_PATH="$(realpath "$0")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 SOURCE_DIR="$SCRIPT_DIR"
 
 # Функция для очистки исходной папки
 cleanup_source_dir() {
-    # Удаляем исходную папку только если она не /opt/tg-sell-bot
+    # Удаляем исходную папку только если она не /opt/tg-sell-bot и не корневая
     if [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ] && [ -d "$SOURCE_DIR" ]; then
-        rm -rf "$SOURCE_DIR" 2>/dev/null || true
+        # Сохраняем путь к родительской директории
+        PARENT_DIR="$(dirname "$SOURCE_DIR")"
+        
+        # Удаляем папку из родительской директории
+        if [ -d "$SOURCE_DIR" ]; then
+            rm -rf "$SOURCE_DIR" 2>/dev/null || true
+        fi
     fi
 }
 
@@ -465,7 +472,6 @@ show_spinner "Настройка и перезапуск Caddy"
   rm -rf "$PROJECT_DIR"/__pycache__ 2>/dev/null || true
   rm -f "$PROJECT_DIR"/{.gitignore,.dockerignore,.env.example,.python-version,.editorconfig} 2>/dev/null || true
   rm -f "$PROJECT_DIR"/{Makefile,pyproject.toml,uv.lock} 2>/dev/null || true
-  rm -f "$PROJECT_DIR"/install.sh 2>/dev/null || true
   rm -f "$PROJECT_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
 ) &
 show_spinner "Очистка остаточных файлов"
