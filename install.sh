@@ -348,7 +348,14 @@ show_spinner "Создание конфигурации"
   REMNAWAVE_ENV="/opt/remnawave/.env"
 
   if [ -f "$REMNAWAVE_ENV" ]; then
-      # 1. Копируем WEBHOOK_SECRET_HEADER → REMNAWAVE_WEBHOOK_SECRET
+      # 1. Включаем webhook
+      if grep -q "^WEBHOOK_ENABLED=" "$REMNAWAVE_ENV"; then
+          sed -i "s|^WEBHOOK_ENABLED=.*|WEBHOOK_ENABLED=true|" "$REMNAWAVE_ENV"
+      else
+          echo "WEBHOOK_ENABLED=true" >> "$REMNAWAVE_ENV"
+      fi
+
+      # 2. Копируем WEBHOOK_SECRET_HEADER → REMNAWAVE_WEBHOOK_SECRET
       REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
 
       if [ -n "$REMNAWAVE_SECRET" ]; then
@@ -359,7 +366,7 @@ show_spinner "Создание конфигурации"
           fi
       fi
 
-      # 2. Подставляем домен пользователя в WEBHOOK_URL
+      # 3. Подставляем домен пользователя в WEBHOOK_URL
       if [ -n "$APP_DOMAIN" ]; then
           if grep -q "^WEBHOOK_URL=" "$REMNAWAVE_ENV"; then
               sed -i "s|^WEBHOOK_URL=.*|WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave|" "$REMNAWAVE_ENV"
