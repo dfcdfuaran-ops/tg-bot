@@ -394,16 +394,16 @@ show_full_menu() {
                 
                 case $selected in
                     0)  # Переустановить
+                        clear
+                        echo -e "${BLUE}========================================${NC}"
+                        echo -e "${GREEN}       🔄 ПЕРЕУСТАНОВКА TG-SELL-BOT${NC}"
+                        echo -e "${BLUE}========================================${NC}"
                         echo
-                        echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
-                        read -p "Продолжить? (Y/n): " confirm
-                        confirm=${confirm:-y}
-                        confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
-                        if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
+                        echo -e "${RED}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
+                        echo
+                        
+                        if confirm_action; then
                             exec "$0" --install
-                        else
-                            echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                            sleep 2
                         fi
                         # Возвращаемся в raw mode
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
@@ -615,23 +615,86 @@ manage_update_bot() {
 
 # Функция изменения настроек
 manage_change_settings() {
+    local settings=(
+        "🌐 APP_DOMAIN"
+        "🤖 BOT_TOKEN"
+        "👤 BOT_DEV_ID"
+    )
+    
     while true; do
         clear
         echo -e "${BLUE}========================================${NC}"
         echo -e "${GREEN}       ⚙️  ИЗМЕНЕНИЕ НАСТРОЕК${NC}"
         echo -e "${BLUE}========================================${NC}"
         echo
-        echo
-        echo -e "  ${BLUE}1)${NC} APP_DOMAIN"
-        echo -e "  ${BLUE}2)${NC} BOT_TOKEN"
-        echo -e "  ${BLUE}3)${NC} BOT_DEV_ID"
-        echo -e "  ${BLUE}0)${NC} Вернуться"
-        echo
-        read -p "Выберите: " setting_choice
         
-        case $setting_choice in
-            1)
+        # Отображаем меню с интерактивной навигацией
+        local selected_setting=0
+        while true; do
+            # Очищаем строку перед меню
+            tput rc 2>/dev/null || true
+            tput ed 2>/dev/null || true
+            
+            # Отображаем элементы меню
+            for i in "${!settings[@]}"; do
+                if [ $i -eq $selected_setting ]; then
+                    echo -e "  ${GREEN}▶${NC} ${settings[$i]}"
+                else
+                    echo -e "    ${settings[$i]}"
+                fi
+            done
+            echo
+            echo -e "  ${DARKGRAY}Использует ↑↓ для навигации, Enter для выбора${NC}"
+            
+            # Сохраняем позицию курсора
+            tput sc 2>/dev/null || true
+            
+            # Ожидаем нажатия клавиши
+            local original_stty=$(stty -g)
+            stty -icanon -echo min 1 time 0
+            local key=""
+            read -rsn1 key 2>/dev/null || key=""
+            stty "$original_stty"
+            
+            # Обработка навигации
+            case "$key" in
+                $'\033')  # Esc
+                    read -rsn1 -t 0.1 && read -rsn1 arrow 2>/dev/null || arrow=""
+                    case "$arrow" in
+                        'A')  # Стрелка вверх
+                            selected_setting=$(( (selected_setting - 1 + ${#settings[@]}) % ${#settings[@]} ))
+                            ;;
+                        'B')  # Стрелка вниз
+                            selected_setting=$(( (selected_setting + 1) % ${#settings[@]} ))
+                            ;;
+                        *)  # Просто Esc - выход
+                            echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                            sleep 1
+                            return
+                            ;;
+                    esac
+                    ;;
+                '')  # Enter
+                    break
+                    ;;
+            esac
+        done
+        
+        # Очищаем меню
+        clear
+        
+        # Обработка выбранного пункта
+        case $selected_setting in
+            0)  # APP_DOMAIN
+                echo -e "${BLUE}========================================${NC}"
+                echo -e "${GREEN}       🌐 APP_DOMAIN${NC}"
+                echo -e "${BLUE}========================================${NC}"
+                echo
+                echo "Текущее значение:"
+                grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2 | sed 's/^/  /'
+                echo
                 read -p "Введите новый APP_DOMAIN: " new_domain
+                
                 if [ -n "$new_domain" ]; then
                     echo
                     {
@@ -639,12 +702,23 @@ manage_change_settings() {
                     } &
                     show_spinner "Обновление APP_DOMAIN"
                     echo
+                    echo -e "${GREEN}✅ APP_DOMAIN обновлён${NC}"
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
+                echo
+                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                read -p ""
                 ;;
-            2)
+            1)  # BOT_TOKEN
+                echo -e "${BLUE}========================================${NC}"
+                echo -e "${GREEN}       🤖 BOT_TOKEN${NC}"
+                echo -e "${BLUE}========================================${NC}"
+                echo
+                echo "Текущее значение: (скрыто)"
+                echo
                 read -p "Введите новый BOT_TOKEN: " new_token
+                
                 if [ -n "$new_token" ]; then
                     echo
                     {
@@ -659,12 +733,24 @@ manage_change_settings() {
                     } &
                     show_spinner "Перезагрузка сервисов"
                     echo
+                    echo -e "${GREEN}✅ BOT_TOKEN обновлён и сервисы перезагружены${NC}"
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
+                echo
+                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                read -p ""
                 ;;
-            3)
+            2)  # BOT_DEV_ID
+                echo -e "${BLUE}========================================${NC}"
+                echo -e "${GREEN}       👤 BOT_DEV_ID${NC}"
+                echo -e "${BLUE}========================================${NC}"
+                echo
+                echo "Текущее значение:"
+                grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2 | sed 's/^/  /'
+                echo
                 read -p "Введите новый BOT_DEV_ID: " new_dev_id
+                
                 if [ -n "$new_dev_id" ]; then
                     echo
                     {
@@ -672,19 +758,15 @@ manage_change_settings() {
                     } &
                     show_spinner "Обновление BOT_DEV_ID"
                     echo
+                    echo -e "${GREEN}✅ BOT_DEV_ID обновлён${NC}"
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
-                ;;
-            0)
-                return
-                ;;
-            *)
-                echo -e "${RED}✖ Неверный выбор${NC}"
+                echo
+                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                read -p ""
                 ;;
         esac
-        
-        sleep 1
     done
 }
 
