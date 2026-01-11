@@ -705,12 +705,15 @@ manage_change_settings() {
                 echo
                 echo "Текущее значение: $(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2)"
                 echo
+                echo -e "${YELLOW}Введите новый домен:${NC}    "
+                echo
+                echo -e "${BLUE}========================================${NC}"
+                echo -e "${DARKGRAY}Нажмите Esc для отмены${NC}"
+                echo
                 
                 # Включаем raw mode для обработки Esc
                 stty -icanon -echo 2>/dev/null || true
                 tput cnorm 2>/dev/null || true
-                
-                echo -n -e "${YELLOW}Введите новый домен:${NC}    "
                 
                 # Позиция для возврата при Esc
                 new_domain=""
@@ -724,6 +727,8 @@ manage_change_settings() {
                     elif [ "$(printf '%d' "'$char")" = "13" ]; then
                         break
                     else
+                        # Выводим символ на экран и добавляем в переменную
+                        echo -n "$char"
                         new_domain="${new_domain}${char}"
                     fi
                 done
@@ -765,12 +770,15 @@ manage_change_settings() {
                 echo
                 echo "Текущее значение: (скрыто)"
                 echo
+                echo -e "${YELLOW}Введите новый токен:${NC}    "
+                echo
+                echo -e "${BLUE}========================================${NC}"
+                echo -e "${DARKGRAY}Нажмите Esc для отмены${NC}"
+                echo
                 
                 # Включаем raw mode для обработки Esc
                 stty -icanon -echo 2>/dev/null || true
                 tput cnorm 2>/dev/null || true
-                
-                echo -n -e "${YELLOW}Введите новый токен:${NC}    "
                 
                 # Позиция для возврата при Esc
                 new_token=""
@@ -784,6 +792,8 @@ manage_change_settings() {
                     elif [ "$(printf '%d' "'$char")" = "13" ]; then
                         break
                     else
+                        # Выводим символ на экран и добавляем в переменную
+                        echo -n "$char"
                         new_token="${new_token}${char}"
                     fi
                 done
@@ -832,12 +842,15 @@ manage_change_settings() {
                 echo
                 echo "Текущее значение: $(grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2)"
                 echo
+                echo -e "${YELLOW}Введите новый ID:${NC}    "
+                echo
+                echo -e "${BLUE}========================================${NC}"
+                echo -e "${DARKGRAY}Нажмите Esc для отмены${NC}"
+                echo
                 
                 # Включаем raw mode для обработки Esc
                 stty -icanon -echo 2>/dev/null || true
                 tput cnorm 2>/dev/null || true
-                
-                echo -n -e "${YELLOW}Введите новый ID:${NC}    "
                 
                 # Позиция для возврата при Esc
                 new_dev_id=""
@@ -851,6 +864,8 @@ manage_change_settings() {
                     elif [ "$(printf '%d' "'$char")" = "13" ]; then
                         break
                     else
+                        # Выводим символ на экран и добавляем в переменную
+                        echo -n "$char"
                         new_dev_id="${new_dev_id}${char}"
                     fi
                 done
