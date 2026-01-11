@@ -348,8 +348,6 @@ show_spinner "Создание конфигурации"
   REMNAWAVE_ENV="/opt/remnawave/.env"
 
   if [ -f "$REMNAWAVE_ENV" ]; then
-      print_success "Найден файл remnawave .env"
-
       # 1. Копируем WEBHOOK_SECRET_HEADER → REMNAWAVE_WEBHOOK_SECRET
       REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
 
@@ -359,9 +357,6 @@ show_spinner "Создание конфигурации"
           else
               echo "REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}" >> "$ENV_FILE"
           fi
-          print_success "REMNAWAVE_WEBHOOK_SECRET скопирован из remnawave"
-      else
-          print_warning "WEBHOOK_SECRET_HEADER не найден в remnawave .env"
       fi
 
       # 2. Подставляем домен пользователя в WEBHOOK_URL
@@ -371,15 +366,16 @@ show_spinner "Создание конфигурации"
           else
               echo "WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave" >> "$REMNAWAVE_ENV"
           fi
-          print_success "WEBHOOK_URL обновлён: https://${APP_DOMAIN}/api/v1/remnawave"
-      else
-          print_warning "APP_DOMAIN пуст — WEBHOOK_URL не обновлён"
       fi
-  else
-      print_warning "Файл /opt/remnawave/.env не найден — webhook пропущен"
   fi
 ) &
-show_spinner "Синхронизация webhook с Remnawave"
+show_spinner "Синхронизация с Remnawave"
+
+# Настройка webhook отдельно
+(
+  sleep 1
+) &
+show_spinner "Настройка webhook"
 
 # 3. Создание структуры папок
 (
