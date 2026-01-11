@@ -338,7 +338,7 @@ manage_update_bot() {
             return
         elif [ -z "$update_key" ] || [ "$(printf '%d' "'$update_key")" -eq 13 ] || [ "$(printf '%d' "'$update_key")" -eq 10 ]; then
             # Enter - начало обновления
-            clear
+            echo
             
             # Копируем новые файлы, исключая развёрнутые файлы
             {
@@ -387,7 +387,7 @@ manage_update_bot() {
             } &
             show_spinner "Загрузка файлов обновления"
             
-            echo -e "${WHITE}✅ Остановка сервисов${NC}"
+            echo -e "✅ Остановка сервисов"
             
             # Остановка контейнеров
             {
@@ -396,7 +396,7 @@ manage_update_bot() {
             } &
             show_spinner_silent
             
-            echo -e "${WHITE}✅ Пересборка и запуск сервисов${NC}"
+            echo -e "✅ Пересборка и запуск сервисов"
             
             # Перестроение и запуск
             {
@@ -415,7 +415,8 @@ manage_update_bot() {
     fi
     
     echo
-    echo -e "${DARKGRAY}Нажмите Enter для продолжения...${NC}"
+    tput civis 2>/dev/null || true
+    echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
     read -p ""
 }
 
