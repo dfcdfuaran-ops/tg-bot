@@ -1132,12 +1132,15 @@ show_spinner "Сборка Docker образа"
   fi
 
   # Генерация пароля БД (убедиться что используется одинаковая длина)
-  if grep -q "^DATABASE_PASSWORD=$" "$ENV_FILE"; then
-    DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
-    update_env_var "$ENV_FILE" "DATABASE_PASSWORD" "$DATABASE_PASSWORD"
-    # Синхронизируем с POSTGRES_PASSWORD если переменная существует
-    if grep -q "^POSTGRES_PASSWORD=" "$ENV_FILE"; then
-      update_env_var "$ENV_FILE" "POSTGRES_PASSWORD" "$DATABASE_PASSWORD"
+  if grep -q "^DATABASE_PASSWORD=" "$ENV_FILE"; then
+    CURRENT_DB_PASS=$(grep "^DATABASE_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -z "$CURRENT_DB_PASS" ]; then
+      DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
+      update_env_var "$ENV_FILE" "DATABASE_PASSWORD" "$DATABASE_PASSWORD"
+      # Синхронизируем с POSTGRES_PASSWORD если переменная существует
+      if grep -q "^POSTGRES_PASSWORD=" "$ENV_FILE"; then
+        update_env_var "$ENV_FILE" "POSTGRES_PASSWORD" "$DATABASE_PASSWORD"
+      fi
     fi
   fi
 
@@ -1145,7 +1148,10 @@ show_spinner "Сборка Docker образа"
   if [ -f "$ENV_FILE" ]; then
     DATABASE_USER=$(grep "^DATABASE_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
     if [ -n "$DATABASE_USER" ] && grep -q "^POSTGRES_USER=" "$ENV_FILE"; then
-      update_env_var "$ENV_FILE" "POSTGRES_USER" "$DATABASE_USER"
+      CURRENT_PG_USER=$(grep "^POSTGRES_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+      if [ -z "$CURRENT_PG_USER" ]; then
+        update_env_var "$ENV_FILE" "POSTGRES_USER" "$DATABASE_USER"
+      fi
     fi
   fi
 
@@ -1153,19 +1159,28 @@ show_spinner "Сборка Docker образа"
   if [ -f "$ENV_FILE" ]; then
     DATABASE_NAME=$(grep "^DATABASE_NAME=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
     if [ -n "$DATABASE_NAME" ] && grep -q "^POSTGRES_DB=" "$ENV_FILE"; then
-      update_env_var "$ENV_FILE" "POSTGRES_DB" "$DATABASE_NAME"
+      CURRENT_PG_DB=$(grep "^POSTGRES_DB=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+      if [ -z "$CURRENT_PG_DB" ]; then
+        update_env_var "$ENV_FILE" "POSTGRES_DB" "$DATABASE_NAME"
+      fi
     fi
   fi
 
   # Генерация пароля Redis
   if grep -q "^REDIS_PASSWORD=$" "$ENV_FILE"; then
-    REDIS_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
-    update_env_var "$ENV_FILE" "REDIS_PASSWORD" "$REDIS_PASSWORD"
+    CURRENT_REDIS_PASS=$(grep "^REDIS_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -z "$CURRENT_REDIS_PASS" ]; then
+      REDIS_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
+      update_env_var "$ENV_FILE" "REDIS_PASSWORD" "$REDIS_PASSWORD"
+    fi
   fi
 
-  if grep -q "^REMNAWAVE_WEBHOOK_SECRET=$" "$ENV_FILE"; then
-    REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32 | tr -d '\n')
-    update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_WEBHOOK_SECRET"
+  if grep -q "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE"; then
+    CURRENT_WEBHOOK_SECRET=$(grep "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -z "$CURRENT_WEBHOOK_SECRET" ]; then
+      REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32 | tr -d '\n')
+      update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_WEBHOOK_SECRET"
+    fi
   fi
 ) &
 show_spinner "Создание конфигурации"
