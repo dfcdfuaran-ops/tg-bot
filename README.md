@@ -61,14 +61,16 @@ ___
 
 ### ▶️ Полная установка в один шаг
 ```bash
-git clone -b dev --depth 1 https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot > /dev/null 2>&1 && cd tg-sell-bot && ./install.sh && cd /opt && rm -rf tg-sell-bot/.git
+cd /tmp && git clone -b dev --depth 1 https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot > /dev/null 2>&1 && cd tg-sell-bot && ./install.sh; cd /opt && rm -rf /tmp/tg-sell-bot
 ```
 
 ### ▶️ Пошаговая установка
 ```bash
+cd /tmp
 git clone -b dev https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot
 cd tg-sell-bot
 ./install.sh
+cd /opt && rm -rf /tmp/tg-sell-bot
 ```
 
 ### 📦 Что делает скрипт установки
