@@ -86,23 +86,28 @@ show_full_menu() {
         echo
         echo -e "${GREEN}✅ Статус: Установлен в $PROJECT_DIR${NC}"
         echo
-        echo "Доступные действия:"
-        echo "1) Переустановить"
-        echo "2) Проверить обновления"
-        echo "3) Изменить настройки"
-        echo "4) Очистить данные"
-        echo "5) Удалить бот"
-        echo "0) Выход"
+        echo -e "${WHITE}Доступные действия:${NC}"
+        echo -e "  ${BLUE}1)${NC} 🔄 Переустановить"
+        echo -e "  ${BLUE}2)${NC} 📦 Проверить обновления"
+        echo -e "  ${BLUE}3)${NC} ⚙️  Изменить настройки"
+        echo -e "  ${BLUE}4)${NC} 🧹 Очистить данные"
+        echo -e "  ${BLUE}5)${NC} 🗑️  Удалить бот"
+        echo -e "  ${BLUE}0)${NC} ❌ Выход"
         echo
         read -p "Введите номер (0-5): " choice
         
         case $choice in
             1)
                 echo
-                echo -e "${YELLOW}⚠️ Это переустановит бот с потерей данных!${NC}"
-                read -p "Вы уверены? (да/нет): " confirm
-                if [ "$confirm" = "да" ]; then
+                echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
+                read -p "Продолжить? (Y/n): " confirm
+                confirm=${confirm:-y}
+                confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
+                if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
                     exec "$0" --install
+                else
+                    echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                    sleep 2
                 fi
                 ;;
             2)
@@ -119,7 +124,7 @@ show_full_menu() {
                 ;;
             0)
                 echo
-                echo -e "${YELLOW}ℹ До свидания!${NC}"
+                echo -e "${YELLOW}ℹ️  До свидания!${NC}"
                 exit 0
                 ;;
             *)
@@ -201,65 +206,79 @@ manage_update_bot() {
 
 # Функция изменения настроек
 manage_change_settings() {
-    echo
-    echo -e "${WHITE}⚙️ Изменение настроек${NC}"
-    echo
-    echo "1) Изменить APP_DOMAIN"
-    echo "2) Изменить BOT_TOKEN"
-    echo "3) Изменить BOT_DEV_ID"
-    echo "0) Вернуться"
-    echo
-    read -p "Выберите: " setting_choice
-    
-    case $setting_choice in
-        1)
-            read -p "Введите новый APP_DOMAIN: " new_domain
-            if [ -n "$new_domain" ]; then
-                update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain"
-                echo -e "${GREEN}✅ APP_DOMAIN обновлен${NC}"
-            fi
-            ;;
-        2)
-            read -p "Введите новый BOT_TOKEN: " new_token
-            if [ -n "$new_token" ]; then
-                update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token"
-                echo -e "${GREEN}✅ BOT_TOKEN обновлен${NC}"
-                docker compose down >/dev/null 2>&1
-                docker compose up -d >/dev/null 2>&1
-                echo -e "${GREEN}✅ Сервисы перезагружены${NC}"
-            fi
-            ;;
-        3)
-            read -p "Введите новый BOT_DEV_ID: " new_dev_id
-            if [ -n "$new_dev_id" ]; then
-                update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id"
-                echo -e "${GREEN}✅ BOT_DEV_ID обновлен${NC}"
-            fi
-            ;;
-        0)
-            return
-            ;;
-        *)
-            echo -e "${RED}✖ Неверный выбор${NC}"
-            ;;
-    esac
-    
-    read -p "Нажмите Enter для продолжения..."
+    while true; do
+        echo
+        echo -e "${WHITE}⚙️  Изменение настроек${NC}"
+        echo
+        echo -e "  ${BLUE}1)${NC} APP_DOMAIN"
+        echo -e "  ${BLUE}2)${NC} BOT_TOKEN"
+        echo -e "  ${BLUE}3)${NC} BOT_DEV_ID"
+        echo -e "  ${BLUE}0)${NC} Вернуться"
+        echo
+        read -p "Выберите: " setting_choice
+        
+        case $setting_choice in
+            1)
+                read -p "Введите новый APP_DOMAIN: " new_domain
+                if [ -n "$new_domain" ]; then
+                    echo -n -e "${GREEN}🔄${NC} Обновляю APP_DOMAIN "
+                    update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
+                    echo -e "${GREEN}✅${NC}"
+                else
+                    echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
+                fi
+                ;;
+            2)
+                read -p "Введите новый BOT_TOKEN: " new_token
+                if [ -n "$new_token" ]; then
+                    echo -n -e "${GREEN}🔄${NC} Обновляю BOT_TOKEN "
+                    update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
+                    echo -e "${GREEN}✅${NC}"
+                    echo -n -e "${GREEN}🔧${NC} Перезагружаю сервисы "
+                    docker compose down >/dev/null 2>&1
+                    docker compose up -d >/dev/null 2>&1
+                    echo -e "${GREEN}✅${NC}"
+                else
+                    echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
+                fi
+                ;;
+            3)
+                read -p "Введите новый BOT_DEV_ID: " new_dev_id
+                if [ -n "$new_dev_id" ]; then
+                    echo -n -e "${GREEN}🔄${NC} Обновляю BOT_DEV_ID "
+                    update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
+                    echo -e "${GREEN}✅${NC}"
+                else
+                    echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
+                fi
+                ;;
+            0)
+                return
+                ;;
+            *)
+                echo -e "${RED}✖ Неверный выбор${NC}"
+                ;;
+        esac
+        
+        sleep 1
+    done
 }
 
 # Функция очистки базы данных
 manage_cleanup_database() {
     echo
-    echo -e "${RED}⚠️ Это удалит всех пользователей и данные!${NC}"
-    read -p "Вы уверены? (введите 'да' для подтверждения): " confirm
+    echo -e "${RED}⚠️  Внимание!${NC} Это удалит всех пользователей и данные!"
+    read -p "Вы уверены? (Y/n): " confirm
+    confirm=${confirm:-y}
+    confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
     
-    if [ "$confirm" != "да" ]; then
-        echo -e "${YELLOW}Отменено${NC}"
-        read -p "Нажмите Enter для продолжения..."
+    if [ "$confirm" != "y" ] && [ "$confirm" != "да" ]; then
+        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+        sleep 1
         return
     fi
     
-    echo -e "${WHITE}🧹 Очищаю данные...${NC}"
+    echo -n -e "${GREEN}🧹${NC} Очищаю данные "
     
     # PostgreSQL
     if command -v psql &> /dev/null; then
@@ -273,32 +292,37 @@ manage_cleanup_database() {
         redis-cli FLUSHALL >/dev/null 2>&1 || true
     fi
     
-    echo -e "${GREEN}✅ Данные очищены${NC}"
-    read -p "Нажмите Enter для продолжения..."
+    echo -e "${GREEN}✅${NC}"
+    sleep 1
 }
 
 # Функция удаления бота
 manage_uninstall_bot() {
     echo
-    echo -e "${RED}⚠️ Это удалит весь бот и все данные!${NC}"
-    read -p "Вы уверены? (введите 'да' для подтверждения): " confirm1
+    echo -e "${RED}⚠️  Внимание!${NC} Это удалит весь бот и все данные!"
+    read -p "Продолжить? (Y/n): " confirm1
+    confirm1=${confirm1:-y}
+    confirm1=$(echo "$confirm1" | tr '[:upper:]' '[:lower:]')
     
-    if [ "$confirm1" != "да" ]; then
-        echo -e "${YELLOW}Отменено${NC}"
-        read -p "Нажмите Enter для продолжения..."
+    if [ "$confirm1" != "y" ] && [ "$confirm1" != "да" ]; then
+        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+        sleep 1
         return
     fi
     
-    echo -e "${RED}Это последнее предупреждение!${NC}"
-    read -p "Введите еще раз 'да' для удаления: " confirm2
+    echo
+    echo -e "${RED}⚠️  ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!${NC} Введите еще раз для подтверждения:"
+    read -p "Удалить? (Y/n): " confirm2
+    confirm2=${confirm2:-y}
+    confirm2=$(echo "$confirm2" | tr '[:upper:]' '[:lower:]')
     
-    if [ "$confirm2" != "да" ]; then
-        echo -e "${YELLOW}Отменено${NC}"
-        read -p "Нажмите Enter для продолжения..."
+    if [ "$confirm2" != "y" ] && [ "$confirm2" != "да" ]; then
+        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+        sleep 1
         return
     fi
     
-    echo -e "${WHITE}🗑️ Удаляю бот...${NC}"
+    echo -n -e "${GREEN}🗑️ ${NC} Удаляю бот "
     
     cd "$PROJECT_DIR" || return
     docker compose down >/dev/null 2>&1 || true
@@ -308,9 +332,10 @@ manage_uninstall_bot() {
     # Удаляем глобальную команду
     sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
     
-    echo -e "${GREEN}✅ Бот удален${NC}"
+    echo -e "${GREEN}✅${NC}"
     echo
-    echo -e "${YELLOW}ℹ До свидания!${NC}"
+    echo -e "${YELLOW}ℹ️  До свидания!${NC}"
+    sleep 2
     exit 0
 }
 
