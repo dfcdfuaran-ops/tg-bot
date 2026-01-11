@@ -168,7 +168,7 @@ manage_update_bot() {
         update_choice=$(echo "$update_choice" | tr '[:upper:]' '[:lower:]')
         if [ "$update_choice" = "y" ] || [ "$update_choice" = "да" ]; then
             # Копируем новые файлы из временного репозитория
-            (
+            {
                 cd "$TEMP_REPO" || return
                 find . -type f ! -path "./.git/*" ! -path "./.github/*" ! -name ".gitignore" ! -name ".env*" -print0 | while IFS= read -r -d '' file; do
                     # Получаем имя файла относительно текущей папки
@@ -180,21 +180,20 @@ manage_update_bot() {
                     # Копируем файл
                     cp -f "$file" "$target_dir/" 2>/dev/null || true
                 done
-                wait
-            ) &
+            } >/dev/null 2>&1 &
             show_spinner "Загрузка обновления"
             
-            (
+            {
                 cd "$PROJECT_DIR" || return
                 docker compose down >/dev/null 2>&1
-            ) &
+            } >/dev/null 2>&1 &
             show_spinner "Настройка обновлений"
             
-            (
+            {
                 cd "$PROJECT_DIR" || return
                 docker compose build --no-cache >/dev/null 2>&1
                 docker compose up -d >/dev/null 2>&1
-            ) &
+            } >/dev/null 2>&1 &
             show_spinner "Перегрузка бота"
             
             echo -e "${GREEN}✅ Бот обновлен${NC}"
