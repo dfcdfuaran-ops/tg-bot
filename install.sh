@@ -201,12 +201,17 @@ manage_update_bot() {
     trap "rm -rf '$TEMP_REPO'" RETURN
     
     # Проверка обновлений с спинером
-    {
-        git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_REPO" >/dev/null 2>&1
-    } &
-    show_spinner "Загрузка информации из репозитория"
+    show_spinner "Загрузка информации из репозитория" &
+    SPINNER_PID=$!
     
-    # Получаем хеш HEAD из удалённого репо (для важных файлов)
+    git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_REPO" >/dev/null 2>&1
+    
+    # Убиваем спинер после завершения клонирования
+    kill $SPINNER_PID 2>/dev/null || true
+    wait $SPINNER_PID 2>/dev/null || true
+    tput cnorm >/dev/null 2>&1 || true  # Показываем курсор
+    
+    # Получаем хеш HEAD из удалённого репо
     REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD 2>/dev/null)
     
     # Проверяем, есть ли .git в проекте и получаем его хеш
@@ -221,8 +226,7 @@ manage_update_bot() {
             UPDATE_NEEDED=0
         fi
     else
-        # Если нет .git, проверим файлы (более сложный процесс)
-        # Создаём временный индекс для сравнения важных файлов
+        # Если нет .git, проверим файлы (простое сравнение)
         cd "$TEMP_REPO" || return
         
         # Список файлов которые будут скопированы (исключаем то что в .deployignore)
@@ -247,7 +251,7 @@ manage_update_bot() {
             "docs"
         )
         
-        # Проверяем каждый файл в PROJECT_DIR
+        # Проверяем наличие изменений в развёрнутых файлах
         UPDATE_NEEDED=0
         while IFS= read -r remote_file; do
             # Пропускаем исключённые файлы
