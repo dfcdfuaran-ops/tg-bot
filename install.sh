@@ -1009,6 +1009,11 @@ else
         "docker-compose.yml"
         "Dockerfile"
         ".env.example"
+        "Makefile"
+        "pyproject.toml"
+        "uv.lock"
+        ".deployignore"
+        "README.md"
     )
 fi
 
@@ -1022,14 +1027,13 @@ if [ "$COPY_FILES" = true ]; then
           fi
       done
       
-      # Копируем директории
-      if [ -d "$SOURCE_DIR/src" ]; then
-          cp -r "$SOURCE_DIR/src" "$PROJECT_DIR/"
-      fi
-      
-      if [ -d "$SOURCE_DIR/scripts" ]; then
-          cp -r "$SOURCE_DIR/scripts" "$PROJECT_DIR/"
-      fi
+      # Копируем директории (src и scripts)
+      for dir in "src" "scripts"; do
+          if [ -d "$SOURCE_DIR/$dir" ]; then
+              rm -rf "$PROJECT_DIR/$dir" 2>/dev/null || true
+              cp -r "$SOURCE_DIR/$dir" "$PROJECT_DIR/"
+          fi
+      done
     ) &
     show_spinner "Копирование файлов установки"
 fi
