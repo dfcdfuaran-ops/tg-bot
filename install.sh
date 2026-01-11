@@ -80,21 +80,21 @@ show_simple_menu() {
 show_full_menu() {
     while true; do
         clear
-        echo -e "${BLUE}========================================${NC}"
-        echo -e "${GREEN}       🚀 TG-SELL-BOT MANAGEMENT${NC}"
-        echo -e "${BLUE}========================================${NC}"
+        echo -e "${BLUE}════════════════════════════════════════${NC}"
+        echo -e "${GREEN}   🚀 TG-SELL-BOT MANAGEMENT PANEL${NC}"
+        echo -e "${BLUE}════════════════════════════════════════${NC}"
         echo
-        echo -e "${GREEN}✅ Статус: Установлен в $PROJECT_DIR${NC}"
+        echo -e "${GREEN}✅ Статус:${NC} Установлен в ${WHITE}$PROJECT_DIR${NC}"
         echo
         echo -e "${WHITE}Доступные действия:${NC}"
-        echo -e "  ${BLUE}1)${NC} 🔄 Переустановить"
-        echo -e "  ${BLUE}2)${NC} 📦 Проверить обновления"
-        echo -e "  ${BLUE}3)${NC} ⚙️  Изменить настройки"
-        echo -e "  ${BLUE}4)${NC} 🧹 Очистить данные"
-        echo -e "  ${BLUE}5)${NC} 🗑️  Удалить бот"
-        echo -e "  ${BLUE}0)${NC} ❌ Выход"
+        echo -e "  ${BLUE}1)${NC} ${GREEN}🔄${NC}  Переустановить"
+        echo -e "  ${BLUE}2)${NC} ${GREEN}📦${NC}  Проверить обновления"
+        echo -e "  ${BLUE}3)${NC} ${GREEN}⚙️ ${NC}  Изменить настройки"
+        echo -e "  ${BLUE}4)${NC} ${GREEN}🧹${NC}  Очистить данные"
+        echo -e "  ${BLUE}5)${NC} ${GREEN}🗑️ ${NC}  Удалить бот"
+        echo -e "  ${BLUE}0)${NC} ${RED}❌${NC}  Выход"
         echo
-        read -p "Введите номер (0-5): " choice
+        read -p "Выберите действие (0-5): " choice
         
         case $choice in
             1)
@@ -139,25 +139,21 @@ show_full_menu() {
 # Функция обновления бота
 manage_update_bot() {
     echo
-    echo -e "${WHITE}🔄 Проверка обновлений...${NC}"
     
     # Создаём временную папку для клонирования репозитория
     TEMP_REPO=$(mktemp -d)
     trap "rm -rf '$TEMP_REPO'" RETURN
     
-    echo -e "${WHITE}📥 Загружаю информацию из репозитория...${NC}"
-    
-    # Клонируем репозиторий в временную папку для проверки версий
-    if ! git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_REPO" >/dev/null 2>&1; then
-        echo -e "${RED}✖ Не удалось подключиться к репозиторию${NC}"
-        read -p "Нажмите Enter для продолжения..."
-        return
-    fi
+    # Проверка обновлений с спинером
+    {
+        git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_REPO" >/dev/null 2>&1
+    } &
+    show_spinner "Загрузка информации из репозитория"
     
     # Получаем хеш из временного репозитория
     REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD)
     
-    # Проверяем если .git существует в проекте (может быть если пользователь клонировал вручную)
+    # Проверяем если .git существует в проекте
     LOCAL_HASH=""
     if [ -d "$PROJECT_DIR/.git" ]; then
         LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
@@ -169,11 +165,12 @@ manage_update_bot() {
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
         read -p "Запустить обновление: (Y/n): " update_choice
-        update_choice=${update_choice:-y}  # По умолчанию Y если Enter нажали
+        update_choice=${update_choice:-y}
         update_choice=$(echo "$update_choice" | tr '[:upper:]' '[:lower:]')
         if [ "$update_choice" = "y" ] || [ "$update_choice" = "да" ]; then
-            # Копируем новые файлы из временного репозитория
-            echo -n -e "${GREEN}🔄${NC} Загрузка обновления "
+            echo
+            
+            # Копируем новые файлы
             {
                 cd "$TEMP_REPO" || return
                 find . -type f ! -path "./.git/*" ! -path "./.github/*" ! -name ".gitignore" ! -name ".env*" -print0 | while IFS= read -r -d '' file; do
@@ -182,25 +179,30 @@ manage_update_bot() {
                     mkdir -p "$target_dir" 2>/dev/null || true
                     cp -f "$file" "$target_dir/" 2>/dev/null || true
                 done
-            } >/dev/null 2>&1 && echo -e "${GREEN}✅${NC}"
+            } &
+            show_spinner "Загрузка файлов обновления"
             
-            echo -n -e "${GREEN}🔧${NC} Настройка обновлений "
+            # Остановка контейнеров
             {
                 cd "$PROJECT_DIR" || return
                 docker compose down >/dev/null 2>&1
-            } >/dev/null 2>&1 && echo -e "${GREEN}✅${NC}"
+            } &
+            show_spinner "Остановка сервисов"
             
-            echo -n -e "${GREEN}🚀${NC} Перегрузка бота "
+            # Перестроение и запуск
             {
                 cd "$PROJECT_DIR" || return
                 docker compose build --no-cache >/dev/null 2>&1
                 docker compose up -d >/dev/null 2>&1
-            } >/dev/null 2>&1 && echo -e "${GREEN}✅${NC}"
+            } &
+            show_spinner "Пересборка и запуск сервисов"
             
-            echo -e "${GREEN}✅ Бот обновлен${NC}"
+            echo
+            echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
         fi
     fi
     
+    echo
     read -p "Нажмите Enter для продолжения..."
 }
 
@@ -221,9 +223,12 @@ manage_change_settings() {
             1)
                 read -p "Введите новый APP_DOMAIN: " new_domain
                 if [ -n "$new_domain" ]; then
-                    echo -n -e "${GREEN}🔄${NC} Обновляю APP_DOMAIN "
-                    update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
-                    echo -e "${GREEN}✅${NC}"
+                    echo
+                    {
+                        update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
+                    } &
+                    show_spinner "Обновление APP_DOMAIN"
+                    echo
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
@@ -231,13 +236,19 @@ manage_change_settings() {
             2)
                 read -p "Введите новый BOT_TOKEN: " new_token
                 if [ -n "$new_token" ]; then
-                    echo -n -e "${GREEN}🔄${NC} Обновляю BOT_TOKEN "
-                    update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
-                    echo -e "${GREEN}✅${NC}"
-                    echo -n -e "${GREEN}🔧${NC} Перезагружаю сервисы "
-                    docker compose down >/dev/null 2>&1
-                    docker compose up -d >/dev/null 2>&1
-                    echo -e "${GREEN}✅${NC}"
+                    echo
+                    {
+                        update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
+                    } &
+                    show_spinner "Обновление BOT_TOKEN"
+                    
+                    {
+                        cd "$PROJECT_DIR" || return
+                        docker compose down >/dev/null 2>&1
+                        docker compose up -d >/dev/null 2>&1
+                    } &
+                    show_spinner "Перезагрузка сервисов"
+                    echo
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
@@ -245,9 +256,12 @@ manage_change_settings() {
             3)
                 read -p "Введите новый BOT_DEV_ID: " new_dev_id
                 if [ -n "$new_dev_id" ]; then
-                    echo -n -e "${GREEN}🔄${NC} Обновляю BOT_DEV_ID "
-                    update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
-                    echo -e "${GREEN}✅${NC}"
+                    echo
+                    {
+                        update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
+                    } &
+                    show_spinner "Обновление BOT_DEV_ID"
+                    echo
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
@@ -278,21 +292,28 @@ manage_cleanup_database() {
         return
     fi
     
-    echo -n -e "${GREEN}🧹${NC} Очищаю данные "
+    echo
     
     # PostgreSQL
-    if command -v psql &> /dev/null; then
-        psql -h 127.0.0.1 -U "$(grep "^DB_USER=" "$ENV_FILE" | cut -d= -f2 | tr -d '\"')" \
-            -d "$(grep "^DB_NAME=" "$ENV_FILE" | cut -d= -f2 | tr -d '\"')" \
-            -c "DELETE FROM users;" >/dev/null 2>&1 || true
-    fi
+    {
+        if command -v psql &> /dev/null; then
+            psql -h 127.0.0.1 -U "$(grep "^DB_USER=" "$ENV_FILE" | cut -d= -f2 | tr -d '\"')" \
+                -d "$(grep "^DB_NAME=" "$ENV_FILE" | cut -d= -f2 | tr -d '\"')" \
+                -c "DELETE FROM users;" >/dev/null 2>&1 || true
+        fi
+    } &
+    show_spinner "Очистка базы данных"
     
     # Redis
-    if command -v redis-cli &> /dev/null; then
-        redis-cli FLUSHALL >/dev/null 2>&1 || true
-    fi
+    {
+        if command -v redis-cli &> /dev/null; then
+            redis-cli FLUSHALL >/dev/null 2>&1 || true
+        fi
+    } &
+    show_spinner "Очистка кэша"
     
-    echo -e "${GREEN}✅${NC}"
+    echo
+    echo -e "${GREEN}✅ Данные успешно очищены${NC}"
     sleep 1
 }
 
@@ -322,17 +343,25 @@ manage_uninstall_bot() {
         return
     fi
     
-    echo -n -e "${GREEN}🗑️ ${NC} Удаляю бот "
+    echo
     
-    cd "$PROJECT_DIR" || return
-    docker compose down >/dev/null 2>&1 || true
-    cd /opt
-    rm -rf "$PROJECT_DIR"
+    # Остановка контейнеров и удаление
+    {
+        cd "$PROJECT_DIR" || return
+        docker compose down >/dev/null 2>&1 || true
+        cd /opt
+        rm -rf "$PROJECT_DIR"
+    } &
+    show_spinner "Удаление бота и контейнеров"
     
     # Удаляем глобальную команду
-    sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
+    {
+        sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
+    } &
+    show_spinner "Удаление ярлыка команды"
     
-    echo -e "${GREEN}✅${NC}"
+    echo
+    echo -e "${GREEN}✅ Бот успешно удален${NC}"
     echo
     echo -e "${YELLOW}ℹ️  До свидания!${NC}"
     sleep 2
@@ -349,9 +378,9 @@ cleanup_on_error() {
     
     if [ $exit_code -ne 0 ] || [ "$INSTALL_STARTED" = true ]; then
         echo
-        echo -e "${RED}========================================${NC}"
-        echo -e "${RED}    ⚠️ УСТАНОВКА ПРЕРВАНА ИЛИ ОШИБКА${NC}"
-        echo -e "${RED}========================================${NC}"
+        echo -e "${RED}════════════════════════════════════════${NC}"
+        echo -e "${RED}  ⚠️ УСТАНОВКА ПРЕРВАНА ИЛИ ОШИБКА${NC}"
+        echo -e "${RED}════════════════════════════════════════${NC}"
         echo
         echo -e "${WHITE}🧹 Выполняю очистку...${NC}"
         
