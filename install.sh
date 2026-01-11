@@ -170,6 +170,7 @@ show_full_menu() {
             fi
         done
         
+        echo
         echo -e "${BLUE}════════════════════════════════════════${NC}"
         echo -e "${DARKGRAY}Используйте ↑↓ для навигации, Enter для выбора${NC}"
         
