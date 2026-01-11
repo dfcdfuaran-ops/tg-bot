@@ -696,51 +696,45 @@ manage_cleanup_database() {
 manage_uninstall_bot() {
     echo
     echo -e "${RED}⚠️  Внимание!${NC} Это удалит весь бот и все данные!"
-    read -p "Продолжить? (Y/n): " confirm1
-    confirm1=${confirm1:-y}
-    confirm1=$(echo "$confirm1" | tr '[:upper:]' '[:lower:]')
+    echo -e "${DARKGRAY}Нажмите Enter для удаления или Esc для отмены${NC}"
     
-    if [ "$confirm1" != "y" ] && [ "$confirm1" != "да" ]; then
+    # Ожидаем нажатия Enter или Esc
+    local original_stty=$(stty -g)
+    stty -icanon -echo min 1 time 0
+    local delete_key=""
+    read -rsn1 delete_key 2>/dev/null || delete_key=""
+    stty "$original_stty"
+    
+    # Проверяем нажал ли пользователь Enter (ASCII 13 или 10) или Esc (ASCII 27)
+    if [ "$delete_key" = $'\033' ] || [ "$delete_key" = $'\x1b' ]; then
+        # Esc - отмена
         echo -e "${YELLOW}ℹ️  Отменено${NC}"
-        sleep 1
         return
-    fi
-    
-    echo
-    echo -e "${RED}⚠️  ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!${NC} Введите еще раз для подтверждения:"
-    read -p "Удалить? (Y/n): " confirm2
-    confirm2=${confirm2:-y}
-    confirm2=$(echo "$confirm2" | tr '[:upper:]' '[:lower:]')
-    
-    if [ "$confirm2" != "y" ] && [ "$confirm2" != "да" ]; then
-        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+    elif [ -z "$delete_key" ] || [ "$(printf '%d' "'$delete_key")" -eq 13 ] || [ "$(printf '%d' "'$delete_key")" -eq 10 ]; then
+        # Enter - начало удаления
+        echo
+        
+        # Остановка контейнеров и удаление
+        {
+            cd "$PROJECT_DIR" || return
+            docker compose down >/dev/null 2>&1 || true
+            cd /opt
+            rm -rf "$PROJECT_DIR"
+        } &
+        show_spinner "Удаление бота и контейнеров"
+        
+        # Удаляем глобальную команду
+        {
+            sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
+        } &
+        show_spinner "Удаление ярлыка команды"
+        
+        echo
+        echo -e "${GREEN}✅ Бот успешно удален${NC}"
+        echo
         sleep 1
-        return
+        exit 0
     fi
-    
-    echo
-    
-    # Остановка контейнеров и удаление
-    {
-        cd "$PROJECT_DIR" || return
-        docker compose down >/dev/null 2>&1 || true
-        cd /opt
-        rm -rf "$PROJECT_DIR"
-    } &
-    show_spinner "Удаление бота и контейнеров"
-    
-    # Удаляем глобальную команду
-    {
-        sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
-    } &
-    show_spinner "Удаление ярлыка команды"
-    
-    echo
-    echo -e "${GREEN}✅ Бот успешно удален${NC}"
-    echo
-    echo -e "${YELLOW}ℹ️  До свидания!${NC}"
-    sleep 2
-    exit 0
 }
 
 # Функция очистки при ошибке или отмене
