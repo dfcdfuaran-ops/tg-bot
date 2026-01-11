@@ -154,7 +154,10 @@ show_full_menu() {
     
     # Сохраняем текущие настройки терминала
     local original_stty=$(stty -g 2>/dev/null)
-    trap "stty '$original_stty' 2>/dev/null || true; set -e" EXIT
+    trap "stty '$original_stty' 2>/dev/null || true; tput cnorm 2>/dev/null || true; set -e" EXIT
+    
+    # Скрываем курсор
+    tput civis 2>/dev/null || true
     
     # Отключаем canonical mode и echo, включаем чтение отдельных символов
     stty -icanon -echo min 1 time 0 2>/dev/null || true
@@ -245,19 +248,23 @@ show_full_menu() {
                         fi
                         # Возвращаемся в raw mode
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     1)  # Проверить обновления
                         manage_update_bot
                         # Возвращаемся в raw mode
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     2)  # Изменить настройки
                         manage_change_settings
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     3)  # Очистить данные
                         manage_cleanup_database
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     4)  # Удалить бота
                         manage_uninstall_bot
@@ -338,7 +345,7 @@ manage_update_bot() {
             return
         elif [ -z "$update_key" ] || [ "$(printf '%d' "'$update_key")" -eq 13 ] || [ "$(printf '%d' "'$update_key")" -eq 10 ]; then
             # Enter - начало обновления
-            echo
+            clear
             
             # Копируем новые файлы, исключая развёрнутые файлы
             {
