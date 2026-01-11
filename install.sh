@@ -636,7 +636,7 @@ manage_change_settings() {
             # Отображаем элементы меню
             for i in "${!settings[@]}"; do
                 if [ $i -eq $selected_setting ]; then
-                    echo -e "${GREEN}▶${NC} ${settings[$i]}"
+                    echo -e "${BLUE}▶${NC} ${GREEN}${settings[$i]}${NC}"
                 else
                     echo -e "  ${settings[$i]}"
                 fi
@@ -645,9 +645,9 @@ manage_change_settings() {
             # Разделитель и кнопка "Назад"
             echo -e "${BLUE}-----------------------------------------------${NC}"
             if [ $selected_setting -eq ${#settings[@]} ]; then
-                echo -e "${GREEN}▶${NC} 🔙 Назад"
+                echo -e "${BLUE}▶${NC} ${GREEN}⬅️  Назад${NC}"
             else
-                echo -e "  🔙 Назад"
+                echo -e "  ⬅️  Назад"
             fi
             echo
             echo -e "${BLUE}========================================${NC}"
@@ -727,7 +727,12 @@ manage_change_settings() {
                         echo -e "${DARKGRAY}--------------------------------------------------------------------${NC}"
                         echo
                         {
+                            old_domain=$(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2)
                             update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
+                            # Обновляем Caddyfile в /opt/remnawave/caddy/
+                            if [ -f "/opt/remnawave/caddy/Caddyfile" ]; then
+                                sed -i "s|https://$old_domain|https://$new_domain|g" /opt/remnawave/caddy/Caddyfile 2>/dev/null || true
+                            fi
                         } &
                         show_spinner "Обновление домена"
                         echo -e "${GREEN}✅ Домен обновлён${NC}"
