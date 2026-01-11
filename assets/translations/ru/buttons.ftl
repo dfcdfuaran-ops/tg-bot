@@ -299,7 +299,7 @@ btn-role-choice = { $selected ->
 
 # Menu
 btn-menu-connect = 🚀 Подключиться
-btn-menu-connect-open = 🔗 Подключиться в Happ
+btn-menu-connect-open = 🔗 Подключиться
 btn-menu-connect-subscribe = 📄 Страница подписки
 btn-menu-download = 📥 Скачать приложение
 btn-menu-download-android = 📱 Android

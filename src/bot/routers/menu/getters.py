@@ -203,13 +203,8 @@ async def connect_getter(
     download_url = f"https://{domain}/api/v1/download"
     
     # URL страницы подписки пользователя в Remnawave
-    subscription_page_url = ""
-    if subscription and subscription.user_remna_id:
-        remnawave_host = config.remnawave.host.get_secret_value()
-        if remnawave_host == "remnawave":
-            # Docker контейнер
-            remnawave_host = config.domain.get_secret_value()
-        subscription_page_url = f"https://{remnawave_host}/subscription-page?user_id={subscription.user_remna_id}"
+    # Берём напрямую из подписки, которая уже содержит полный URL от Remnawave API
+    subscription_page_url = subscription_url
     
     return {
         "url": config.bot.mini_app_url or subscription_url,

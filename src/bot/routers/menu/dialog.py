@@ -182,10 +182,12 @@ menu = Window(
 connect = Window(
     Banner(BannerName.MENU),
     I18nFormat("msg-menu-connect"),
-    Url(
-        text=I18nFormat("btn-menu-download"),
-        url=Format("{download_url}"),
-        id="download",
+    Row(
+        Url(
+            text=I18nFormat("btn-menu-download"),
+            url=Format("{download_url}"),
+            id="download",
+        ),
     ),
     Row(
         Url(
@@ -193,6 +195,8 @@ connect = Window(
             url=Format("{happ_url}"),
             id="connect_happ",
         ),
+    ),
+    Row(
         Url(
             text=I18nFormat("btn-menu-connect-subscribe"),
             url=Format("{subscription_url}"),
