@@ -284,6 +284,9 @@ show_full_menu() {
 manage_update_bot() {
     echo
     
+    # Сохраняем позицию курсора перед выводом информации о проверке
+    tput sc 2>/dev/null || true
+    
     # Скрываем курсор во время проверки
     tput civis 2>/dev/null || true
     
@@ -347,6 +350,9 @@ manage_update_bot() {
             return
         elif [ -z "$update_key" ] || [ "$(printf '%d' "'$update_key")" -eq 13 ] || [ "$(printf '%d' "'$update_key")" -eq 10 ]; then
             # Enter - начало обновления
+            # Восстанавливаем позицию курсора (очищаем информацию о проверке)
+            tput rc 2>/dev/null || true
+            tput ed 2>/dev/null || true  # Очищаем от курсора до конца экрана
             tput cnorm 2>/dev/null || true  # Показываем курсор перед началом
             echo
             
