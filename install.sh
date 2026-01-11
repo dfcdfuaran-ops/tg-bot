@@ -96,6 +96,37 @@ is_installed() {
     return 1  # not installed
 }
 
+# Функция для сохранения критических переменных из .env перед обновлением
+preserve_env_vars() {
+    local env_file="$1"
+    local temp_storage="/tmp/env_backup_$$"
+    
+    # Сохраняем критические переменные в временный файл
+    if [ -f "$env_file" ]; then
+        # Сохраняем пароли и токены
+        grep -E "^(DB_PASSWORD|DB_USER|DB_NAME|BOT_TOKEN|BOT_DEV_ID|APP_DOMAIN|POSTGRES_PASSWORD|POSTGRES_USER|POSTGRES_DB)=" "$env_file" > "$temp_storage" 2>/dev/null || true
+    fi
+    echo "$temp_storage"
+}
+
+# Функция для восстановления критических переменных в .env
+restore_env_vars() {
+    local env_file="$1"
+    local temp_storage="$2"
+    
+    if [ -f "$temp_storage" ]; then
+        # Читаем сохранённые переменные и обновляем их в .env
+        while IFS='=' read -r var_name var_value; do
+            if [ -n "$var_name" ] && [ -n "$var_value" ]; then
+                update_env_var "$env_file" "$var_name" "$var_value"
+            fi
+        done < "$temp_storage"
+        
+        # Удаляем временный файл
+        rm -f "$temp_storage" 2>/dev/null || true
+    fi
+}
+
 # Функция для проверки режима (установка или меню)
 check_mode() {
     # Если передан аргумент --install, пропускаем меню
@@ -454,6 +485,9 @@ manage_update_bot() {
             tput ed 2>/dev/null || true  # Очищаем от курсора до конца экрана
             tput cnorm 2>/dev/null || true  # Показываем курсор перед началом
             
+            # Сохраняем критические переменные перед обновлением
+            ENV_BACKUP_FILE=$(preserve_env_vars "$ENV_FILE")
+            
             # Копируем новые файлы, исключая развёрнутые файлы
             {
                 cd "$TEMP_REPO" || return
@@ -519,6 +553,19 @@ manage_update_bot() {
                 docker compose up -d >/dev/null 2>&1
             } &
             show_spinner_silent
+            
+            # Восстанавливаем сохранённые переменные в .env после обновления
+            if [ -n "$ENV_BACKUP_FILE" ] && [ -f "$ENV_BACKUP_FILE" ]; then
+                restore_env_vars "$ENV_FILE" "$ENV_BACKUP_FILE"
+                
+                # Перезагружаем контейнеры чтобы применить восстановленные переменные
+                {
+                    cd "$PROJECT_DIR" || return
+                    docker compose down >/dev/null 2>&1
+                    docker compose up -d >/dev/null 2>&1
+                } &
+                show_spinner "Применение сохранённых параметров"
+            fi
             
             echo
             echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
