@@ -140,11 +140,11 @@ show_full_menu() {
     local num_options=${#options[@]}
     
     # Сохраняем текущие настройки терминала
-    local original_stty=$(stty -g)
-    trap "stty '$original_stty'" RETURN
+    local original_stty=$(stty -g 2>/dev/null)
+    trap "stty '$original_stty' 2>/dev/null || true" RETURN
     
-    # Отключаем canonical mode и echo
-    stty -echo -icanon time 0 min 0 2>/dev/null || true
+    # Отключаем canonical mode, echo и выключаем обработку сигналов
+    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
     
     while true; do
         clear
@@ -170,18 +170,19 @@ show_full_menu() {
         echo
         echo -e "${GRAY}Используйте ↑ ↓ для навигации, Enter для выбора${NC}"
         
-        # Читаем нажатие клавиши напрямую с терминала
+        # Читаем нажатие клавиши напрямую из /dev/tty
         local key
-        IFS= read -rn1 key 2>/dev/null || key=''
+        key=$(dd if=/dev/tty bs=1 count=1 2>/dev/null)
         
         # Проверяем является ли это началом escape-последовательности
         if [ "$key" = $'\x1b' ]; then
-            # Читаем следующие два символа
-            IFS= read -rn1 key_bracket 2>/dev/null || key_bracket=''
-            if [ "$key_bracket" = '[' ]; then
-                IFS= read -rn1 key_code 2>/dev/null || key_code=''
+            # Читаем следующий символ (должен быть [)
+            key=$(dd if=/dev/tty bs=1 count=1 2>/dev/null)
+            if [ "$key" = '[' ]; then
+                # Читаем код стрелки
+                key=$(dd if=/dev/tty bs=1 count=1 2>/dev/null)
                 
-                case "$key_code" in
+                case "$key" in
                     'A')  # Стрелка вверх
                         ((selected--))
                         if [ $selected -lt 0 ]; then
@@ -197,8 +198,8 @@ show_full_menu() {
                 esac
             fi
         elif [ "$key" = '' ] || [ "$key" = $'\x0a' ] || [ "$key" = $'\x0d' ]; then
-            # Enter нажата
-            stty "$original_stty"  # Восстанавливаем терминал перед выполнением действия
+            # Enter нажата - восстанавливаем нормальный режим и выполняем действие
+            stty "$original_stty" 2>/dev/null || true
             
             case $selected in
                 0)  # Переустановить
@@ -213,26 +214,23 @@ show_full_menu() {
                         echo -e "${YELLOW}ℹ️  Отменено${NC}"
                         sleep 2
                     fi
-                    # Восстанавливаем raw mode
-                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    # Восстанавливаем raw mode для следующей итерации
+                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
                     ;;
                 1)  # Проверить обновления
-                    stty "$original_stty"
                     manage_update_bot
-                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    # Восстанавливаем raw mode
+                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
                     ;;
                 2)  # Изменить настройки
-                    stty "$original_stty"
                     manage_change_settings
-                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
                     ;;
                 3)  # Очистить данные
-                    stty "$original_stty"
                     manage_cleanup_database
-                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    stty -echo -icanon intr undef quit undef susp undef erase undef kill undef eof undef eol undef 2>/dev/null || true
                     ;;
                 4)  # Удалить бота
-                    stty "$original_stty"
                     manage_uninstall_bot
                     exit 0
                     ;;
