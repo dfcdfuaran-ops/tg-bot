@@ -645,9 +645,9 @@ manage_change_settings() {
             # Разделитель и кнопка "Назад"
             echo -e "${BLUE}-----------------------------------------------${NC}"
             if [ $selected_setting -eq ${#settings[@]} ]; then
-                echo -e "${GREEN}▶${NC} Назад"
+                echo -e "${GREEN}▶${NC} 🔙 Назад"
             else
-                echo -e "  Назад"
+                echo -e "  🔙 Назад"
             fi
             echo
             echo -e "${BLUE}========================================${NC}"
