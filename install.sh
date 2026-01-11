@@ -101,10 +101,10 @@ preserve_env_vars() {
     local env_file="$1"
     local temp_storage="/tmp/env_backup_$$"
     
-    # Сохраняем критические переменные в временный файл
+    # Сохраняем ВСЕ переменные окружения из .env файла
+    # Исключаем только комментарии и пустые строки
     if [ -f "$env_file" ]; then
-        # Сохраняем пароли и токены
-        grep -E "^(DB_PASSWORD|DB_USER|DB_NAME|BOT_TOKEN|BOT_DEV_ID|APP_DOMAIN|POSTGRES_PASSWORD|POSTGRES_USER|POSTGRES_DB)=" "$env_file" > "$temp_storage" 2>/dev/null || true
+        grep -v "^#" "$env_file" | grep -v "^$" > "$temp_storage" 2>/dev/null || true
     fi
     echo "$temp_storage"
 }
@@ -118,7 +118,11 @@ restore_env_vars() {
         # Читаем сохранённые переменные и обновляем их в .env
         while IFS='=' read -r var_name var_value; do
             if [ -n "$var_name" ] && [ -n "$var_value" ]; then
-                update_env_var "$env_file" "$var_name" "$var_value"
+                # Пропускаем пустые строки
+                var_name=$(echo "$var_name" | xargs)
+                if [ -n "$var_name" ]; then
+                    update_env_var "$env_file" "$var_name" "$var_value"
+                fi
             fi
         done < "$temp_storage"
         
