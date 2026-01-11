@@ -1,0 +1,52 @@
+# Files to exclude when deploying to production
+# Syntax: same as .gitignore
+
+# Development tools
+Makefile
+pyproject.toml
+uv.lock
+uv.lock.backup*
+
+# Source code (only needed during build)
+src/
+scripts/
+
+# Development files
+.env.example
+.git/
+.github/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+docs/
+
+# Build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
