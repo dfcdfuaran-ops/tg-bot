@@ -354,7 +354,6 @@ manage_update_bot() {
             tput rc 2>/dev/null || true
             tput ed 2>/dev/null || true  # Очищаем от курсора до конца экрана
             tput cnorm 2>/dev/null || true  # Показываем курсор перед началом
-            echo
             
             # Копируем новые файлы, исключая развёрнутые файлы
             {
