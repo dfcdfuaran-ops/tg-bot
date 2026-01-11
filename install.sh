@@ -616,9 +616,9 @@ manage_update_bot() {
 # Функция изменения настроек
 manage_change_settings() {
     local settings=(
-        "🌐 APP_DOMAIN"
-        "🤖 BOT_TOKEN"
-        "👤 BOT_DEV_ID"
+        "🌐 Изменить домен"
+        "🤖 Изменить Токен телеграм бота"
+        "👤 Изменить Телеграм ID разработчика"
     )
     
     while true; do
@@ -636,13 +636,22 @@ manage_change_settings() {
             # Отображаем элементы меню
             for i in "${!settings[@]}"; do
                 if [ $i -eq $selected_setting ]; then
-                    echo -e "  ${GREEN}▶${NC} ${settings[$i]}"
+                    echo -e "${GREEN}▶${NC} ${settings[$i]}"
                 else
-                    echo -e "    ${settings[$i]}"
+                    echo -e "  ${settings[$i]}"
                 fi
             done
+            
+            # Разделитель и кнопка "Назад"
+            echo -e "${BLUE}-----------------------------------------------${NC}"
+            if [ $selected_setting -eq ${#settings[@]} ]; then
+                echo -e "${GREEN}▶${NC} Назад"
+            else
+                echo -e "  Назад"
+            fi
             echo
-            echo -e "  ${DARKGRAY}Использует ↑↓ для навигации, Enter для выбора${NC}"
+            echo -e "${BLUE}========================================${NC}"
+            echo -e "${DARKGRAY}Используйте ↑↓ для навигации, Enter для выбора${NC}"
             
             # Ожидаем нажатия клавиши
             local original_stty=$(stty -g)
@@ -657,10 +666,10 @@ manage_change_settings() {
                     read -rsn1 -t 0.1 && read -rsn1 arrow 2>/dev/null || arrow=""
                     case "$arrow" in
                         'A')  # Стрелка вверх
-                            selected_setting=$(( (selected_setting - 1 + ${#settings[@]}) % ${#settings[@]} ))
+                            selected_setting=$(( (selected_setting - 1 + ${#settings[@]} + 1) % (${#settings[@]} + 1) ))
                             ;;
                         'B')  # Стрелка вниз
-                            selected_setting=$(( (selected_setting + 1) % ${#settings[@]} ))
+                            selected_setting=$(( (selected_setting + 1) % (${#settings[@]} + 1) ))
                             ;;
                         *)  # Просто Esc - выход
                             tput cnorm 2>/dev/null || true
@@ -680,48 +689,57 @@ manage_change_settings() {
         tput cnorm 2>/dev/null || true
         
         # Обработка выбранного пункта
+        if [ $selected_setting -eq ${#settings[@]} ]; then
+            # Нажата кнопка "Назад"
+            return
+        fi
+        
         case $selected_setting in
-            0)  # APP_DOMAIN
+            0)  # Изменить домен
                 clear
                 echo -e "${BLUE}========================================${NC}"
-                echo -e "${GREEN}       🌐 APP_DOMAIN${NC}"
+                echo -e "${GREEN}       🌐 ИЗМЕНИТЬ ДОМЕН${NC}"
                 echo -e "${BLUE}========================================${NC}"
                 echo
                 echo "Текущее значение:"
                 grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2 | sed 's/^/  /'
                 echo
-                read -p "Введите новый APP_DOMAIN: " new_domain
+                read -p "Введите новый домен: " new_domain
                 
                 if [ -n "$new_domain" ]; then
                     echo
                     {
                         update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
                     } &
-                    show_spinner "Обновление APP_DOMAIN"
+                    show_spinner "Обновление домена"
                     echo
-                    echo -e "${GREEN}✅ APP_DOMAIN обновлён${NC}"
+                    echo -e "${GREEN}✅ Домен обновлён${NC}"
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
                 echo
+                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter для продолжения,${NC}"
+                echo -e "${DARKGRAY}или нажмите Esc для отмены${NC}"
+                echo
                 echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
                 read -p ""
                 ;;
-            1)  # BOT_TOKEN
+            1)  # Изменить Токен телеграм бота
+                clear
                 echo -e "${BLUE}========================================${NC}"
-                echo -e "${GREEN}       🤖 BOT_TOKEN${NC}"
+                echo -e "${GREEN}       🤖 ИЗМЕНИТЬ ТОКЕН ТЕЛЕГРАМ БОТА${NC}"
                 echo -e "${BLUE}========================================${NC}"
                 echo
                 echo "Текущее значение: (скрыто)"
                 echo
-                read -p "Введите новый BOT_TOKEN: " new_token
+                read -p "Введите новый токен: " new_token
                 
                 if [ -n "$new_token" ]; then
                     echo
                     {
                         update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
                     } &
-                    show_spinner "Обновление BOT_TOKEN"
+                    show_spinner "Обновление токена"
                     
                     {
                         cd "$PROJECT_DIR" || return
@@ -730,35 +748,42 @@ manage_change_settings() {
                     } &
                     show_spinner "Перезагрузка сервисов"
                     echo
-                    echo -e "${GREEN}✅ BOT_TOKEN обновлён и сервисы перезагружены${NC}"
+                    echo -e "${GREEN}✅ Токен обновлён и сервисы перезагружены${NC}"
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
                 echo
+                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter для продолжения,${NC}"
+                echo -e "${DARKGRAY}или нажмите Esc для отмены${NC}"
+                echo
                 echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
                 read -p ""
                 ;;
-            2)  # BOT_DEV_ID
+            2)  # Изменить Телеграм ID разработчика
+                clear
                 echo -e "${BLUE}========================================${NC}"
-                echo -e "${GREEN}       👤 BOT_DEV_ID${NC}"
+                echo -e "${GREEN}       👤 ИЗМЕНИТЬ ТЕЛЕГРАМ ID РАЗРАБОТЧИКА${NC}"
                 echo -e "${BLUE}========================================${NC}"
                 echo
                 echo "Текущее значение:"
                 grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2 | sed 's/^/  /'
                 echo
-                read -p "Введите новый BOT_DEV_ID: " new_dev_id
+                read -p "Введите новый ID: " new_dev_id
                 
                 if [ -n "$new_dev_id" ]; then
                     echo
                     {
                         update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
                     } &
-                    show_spinner "Обновление BOT_DEV_ID"
+                    show_spinner "Обновление ID разработчика"
                     echo
-                    echo -e "${GREEN}✅ BOT_DEV_ID обновлён${NC}"
+                    echo -e "${GREEN}✅ ID обновлён${NC}"
                 else
                     echo -e "${YELLOW}ℹ️  Пусто, отменено${NC}"
                 fi
+                echo
+                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter для продолжения,${NC}"
+                echo -e "${DARKGRAY}или нажмите Esc для отмены${NC}"
                 echo
                 echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
                 read -p ""
