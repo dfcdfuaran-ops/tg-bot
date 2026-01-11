@@ -325,6 +325,7 @@ btn-extra-device-item = { $device_count } шт. • { $price } ₽/мес • { 
 btn-extra-device-disable-auto-renew = ❌ Отключить автопродление
 btn-extra-device-delete = 🗑 Удалить сейчас
 btn-menu-subscription = 💳 Подписка
+btn-menu-connect-subscribe = 🔗 Подключиться
 btn-menu-topup = ➕ Пополнить
 btn-menu-invite = 👥 Пригласить
 btn-menu-invite-about = ❓ Подробнее о наградах
