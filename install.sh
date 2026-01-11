@@ -15,7 +15,7 @@ NC='\033[0m'
 DARKGRAY='\033[1;30m'
 
 # Показать курсор при выходе
-trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXIT
+trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true; cleanup_source_dir' EXIT
 
 # Путь к .env файлу
 PROJECT_DIR="/opt/tg-sell-bot"
@@ -26,6 +26,18 @@ INSTALL_MODE="dev"
 if [ "$1" = "--prod" ] || [ "$1" = "-p" ]; then
     INSTALL_MODE="prod"
 fi
+
+# Определяем исходную директорию скрипта
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SOURCE_DIR="$SCRIPT_DIR"
+
+# Функция для очистки исходной папки
+cleanup_source_dir() {
+    # Удаляем исходную папку только если она не /opt/tg-sell-bot
+    if [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ] && [ -d "$SOURCE_DIR" ]; then
+        rm -rf "$SOURCE_DIR" 2>/dev/null || true
+    fi
+}
 
 clear
 echo -e "${BLUE}========================================${NC}"
@@ -201,33 +213,30 @@ EOF
 
 # 0. Подготовка целевой директории в /opt/tg-sell-bot
 (
-  # Определяем где находится скрипт установки
-  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-  
   # Если скрипт запущен не из /opt/tg-sell-bot
-  if [ "$SCRIPT_DIR" != "/opt/tg-sell-bot" ]; then
+  if [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ]; then
     # Создаем целевую директорию
     mkdir -p "$PROJECT_DIR"
     
-    # Копируем необходимые файлы установки
-    if [ -f "$SCRIPT_DIR/docker-compose.yml" ]; then
-      cp "$SCRIPT_DIR/docker-compose.yml" "$PROJECT_DIR/"
+    # Копируем необходимые файлы установки из исходной директории
+    if [ -f "$SOURCE_DIR/docker-compose.yml" ]; then
+      cp "$SOURCE_DIR/docker-compose.yml" "$PROJECT_DIR/"
     fi
     
-    if [ -f "$SCRIPT_DIR/Dockerfile" ]; then
-      cp "$SCRIPT_DIR/Dockerfile" "$PROJECT_DIR/"
+    if [ -f "$SOURCE_DIR/Dockerfile" ]; then
+      cp "$SOURCE_DIR/Dockerfile" "$PROJECT_DIR/"
     fi
     
-    if [ -f "$SCRIPT_DIR/.env.example" ]; then
-      cp "$SCRIPT_DIR/.env.example" "$PROJECT_DIR/"
+    if [ -f "$SOURCE_DIR/.env.example" ]; then
+      cp "$SOURCE_DIR/.env.example" "$PROJECT_DIR/"
     fi
     
-    if [ -d "$SCRIPT_DIR/src" ]; then
-      cp -r "$SCRIPT_DIR/src" "$PROJECT_DIR/"
+    if [ -d "$SOURCE_DIR/src" ]; then
+      cp -r "$SOURCE_DIR/src" "$PROJECT_DIR/"
     fi
     
-    if [ -d "$SCRIPT_DIR/scripts" ]; then
-      cp -r "$SCRIPT_DIR/scripts" "$PROJECT_DIR/"
+    if [ -d "$SOURCE_DIR/scripts" ]; then
+      cp -r "$SOURCE_DIR/scripts" "$PROJECT_DIR/"
     fi
   fi
 ) &
@@ -446,7 +455,7 @@ show_spinner "Инициализация базы данных"
 ) &
 show_spinner "Настройка и перезапуск Caddy"
 
-# 7. Очистка ненужных файлов
+# 7. Очистка ненужных файлов в целевой директории
 (
   rm -rf "$PROJECT_DIR"/src 2>/dev/null || true
   rm -rf "$PROJECT_DIR"/scripts 2>/dev/null || true
@@ -462,7 +471,7 @@ show_spinner "Настройка и перезапуск Caddy"
 show_spinner "Очистка остаточных файлов"
 
 # ============================================================
-# ЗАВЕРШЕНИЕ УСТАНОВКИ
+# ЗАВЕРШЕНИЕ УСТАНОВКИ И ОЧИСТКА ИСХОДНОЙ ПАПКИ
 # ============================================================
 
 echo
@@ -472,6 +481,14 @@ echo -e "${BLUE}========================================${NC}"
 echo
 
 echo -e "${WHITE}✅ Бот успешно установлен в:${NC} ${GREEN}$PROJECT_DIR${NC}"
+
+# Удаление исходной папки (кроме самого скрипта)
+if [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ]; then
+    echo -e "${WHITE}🧹 Удаление исходных файлов...${NC}"
+    cleanup_source_dir
+    echo -e "${GREEN}✅ Исходные файлы удалены${NC}"
+fi
+
 echo
 
 cd /opt
