@@ -195,66 +195,43 @@ EOF
     log_info "  sudo systemctl restart nginx"
 }
 
-# Функция для копирования файлов установки в /opt/tg-sell-bot
-copy_installation_files() {
-    local SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-    
-    # Если мы уже в /opt/tg-sell-bot, ничего не делаем
-    if [ "$SCRIPT_DIR" = "/opt/tg-sell-bot" ]; then
-        return 0
-    fi
-    
-    print_action "Подготовка файлов установки..."
-    
-    # Создаем целевую директорию
-    mkdir -p "$PROJECT_DIR"
-    
-    # Определяем, что копировать
-    local FILES_TO_COPY=(
-        "docker-compose.yml"
-        "Dockerfile"
-        ".env.example"
-    )
-    
-    # Ищем файлы в текущей директории
-    for file in "${FILES_TO_COPY[@]}"; do
-        if [ -f "$SCRIPT_DIR/$file" ]; then
-            cp "$SCRIPT_DIR/$file" "$PROJECT_DIR/"
-            print_success "Скопирован $file"
-        fi
-    done
-    
-    # Копируем директории, если они существуют
-    if [ -d "$SCRIPT_DIR/src" ]; then
-        cp -r "$SCRIPT_DIR/src" "$PROJECT_DIR/"
-        print_success "Скопирована директория src"
-    fi
-    
-    if [ -d "$SCRIPT_DIR/scripts" ]; then
-        cp -r "$SCRIPT_DIR/scripts" "$PROJECT_DIR/"
-        print_success "Скопирована директория scripts"
-    fi
-    
-    # Копируем сам скрипт установки
-    if [ -f "$SCRIPT_DIR/install.sh" ]; then
-        cp "$SCRIPT_DIR/install.sh" "$PROJECT_DIR/"
-        print_success "Скопирован скрипт установки"
-    fi
-    
-    return 0
-}
-
 # ============================================================
 # ПРОВЕРКИ ПРЕДУСЛОВИЙ И ПОДГОТОВКА
 # ============================================================
 
-# 0. Копирование файлов установки в /opt/tg-sell-bot
-echo -e "${BLUE}========================================${NC}"
-echo -e "${WHITE}      📦 ПОДГОТОВКА ФАЙЛОВ${NC}"
-echo -e "${BLUE}========================================${NC}"
-echo
-
-copy_installation_files
+# 0. Подготовка целевой директории в /opt/tg-sell-bot
+(
+  # Определяем где находится скрипт установки
+  SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+  
+  # Если скрипт запущен не из /opt/tg-sell-bot
+  if [ "$SCRIPT_DIR" != "/opt/tg-sell-bot" ]; then
+    # Создаем целевую директорию
+    mkdir -p "$PROJECT_DIR"
+    
+    # Копируем необходимые файлы установки
+    if [ -f "$SCRIPT_DIR/docker-compose.yml" ]; then
+      cp "$SCRIPT_DIR/docker-compose.yml" "$PROJECT_DIR/"
+    fi
+    
+    if [ -f "$SCRIPT_DIR/Dockerfile" ]; then
+      cp "$SCRIPT_DIR/Dockerfile" "$PROJECT_DIR/"
+    fi
+    
+    if [ -f "$SCRIPT_DIR/.env.example" ]; then
+      cp "$SCRIPT_DIR/.env.example" "$PROJECT_DIR/"
+    fi
+    
+    if [ -d "$SCRIPT_DIR/src" ]; then
+      cp -r "$SCRIPT_DIR/src" "$PROJECT_DIR/"
+    fi
+    
+    if [ -d "$SCRIPT_DIR/scripts" ]; then
+      cp -r "$SCRIPT_DIR/scripts" "$PROJECT_DIR/"
+    fi
+  fi
+) &
+show_spinner "Подготовка целевой директории"
 
 # 1. Проверка Docker и OpenSSL
 (
@@ -471,7 +448,6 @@ show_spinner "Настройка и перезапуск Caddy"
 
 # 7. Очистка ненужных файлов
 (
-  # Очищаем только временные файлы в /opt/tg-sell-bot
   rm -rf "$PROJECT_DIR"/src 2>/dev/null || true
   rm -rf "$PROJECT_DIR"/scripts 2>/dev/null || true
   rm -rf "$PROJECT_DIR"/docs 2>/dev/null || true
@@ -495,9 +471,7 @@ echo -e "${GREEN}    🎉 УСТАНОВКА ЗАВЕРШЕНА УСПЕШНО!$
 echo -e "${BLUE}========================================${NC}"
 echo
 
-echo -e "${WHITE}📁 Файлы установлены в:${NC} ${GREEN}$PROJECT_DIR${NC}"
-echo -e "${WHITE}🌐 Домен бота:${NC} ${GREEN}https://$APP_DOMAIN${NC}"
-echo -e "${WHITE}⚙️  Файл конфигурации:${NC} ${GREEN}$ENV_FILE${NC}"
+echo -e "${WHITE}✅ Бот успешно установлен в:${NC} ${GREEN}$PROJECT_DIR${NC}"
 echo
 
 cd /opt
