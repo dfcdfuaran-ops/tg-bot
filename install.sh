@@ -428,6 +428,7 @@ echo -e "${WHITE}✅ Бот успешно установлен в:${NC} ${GREEN
 # Удаление исходной папки если она не в /opt/tg-sell-bot
 if [ "$COPY_FILES" = true ] && [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ]; then
     echo -e "${WHITE}🧹 Удаление временных файлов...${NC}"
+    cd /opt
     rm -rf "$SOURCE_DIR" 2>/dev/null || true
     echo -e "${GREEN}✅ Временные файлы удалены${NC}"
 fi
