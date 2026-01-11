@@ -284,6 +284,9 @@ show_full_menu() {
 manage_update_bot() {
     echo
     
+    # Скрываем курсор во время проверки
+    tput civis 2>/dev/null || true
+    
     # Создаём временную папку для клонирования репозитория
     TEMP_REPO=$(mktemp -d)
     trap "rm -rf '$TEMP_REPO'" RETURN
@@ -297,7 +300,6 @@ manage_update_bot() {
     # Убиваем спинер после завершения клонирования
     kill $SPINNER_PID 2>/dev/null || true
     wait $SPINNER_PID 2>/dev/null || true
-    tput cnorm >/dev/null 2>&1 || true  # Показываем курсор
     
     # Получаем хеш HEAD из удалённого репо
     REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD 2>/dev/null)
@@ -345,7 +347,8 @@ manage_update_bot() {
             return
         elif [ -z "$update_key" ] || [ "$(printf '%d' "'$update_key")" -eq 13 ] || [ "$(printf '%d' "'$update_key")" -eq 10 ]; then
             # Enter - начало обновления
-            clear
+            tput cnorm 2>/dev/null || true  # Показываем курсор перед началом
+            echo
             
             # Копируем новые файлы, исключая развёрнутые файлы
             {
