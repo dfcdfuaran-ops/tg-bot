@@ -173,8 +173,8 @@ show_full_menu() {
         echo
         echo -e "${BLUE}════════════════════════════════════════${NC}"
         echo -e "${DARKGRAY}Используйте ↑↓ для навигации, Enter для выбора${NC}"
+        echo
         
-        # Читаем один символ
         local key
         read -rsn1 key 2>/dev/null || key=""
         
