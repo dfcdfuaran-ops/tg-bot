@@ -143,9 +143,6 @@ show_full_menu() {
     local original_stty=$(stty -g 2>/dev/null)
     trap "stty '$original_stty' 2>/dev/null || true; set -e" EXIT
     
-    # Отключаем echo, но оставляем canonical mode для правильной обработки Enter
-    stty -echo 2>/dev/null || true
-    
     while true; do
         clear
         echo -e "${BLUE}════════════════════════════════════════${NC}"
@@ -170,92 +167,67 @@ show_full_menu() {
         echo
         echo -e "${GRAY}Используйте ↑ ↓ для навигации, Enter для выбора${NC}"
         
-        # Читаем одиночный символ без echo (с поддержкой escape-последовательностей)
+        # Используем read с timeout для неблокирующего чтения
         local key
-        # Отключаем canonical mode только для чтения стрелок, но потом возвращаем
-        stty -icanon time 0 min 1 2>/dev/null || true
+        # Это будет блокирующее чтение одного символа
+        read -rsn1 key
         
-        # Пытаемся прочитать первый символ
-        if IFS= read -rsn1 key 2>/dev/null; then
-            # Проверяем escape-последовательность для стрелок
-            if [[ "$key" == $'\e' ]]; then
-                # Это может быть стрелка, читаем остаток
-                local seq=""
-                IFS= read -rsn2 -t 0.1 seq 2>/dev/null || true
-                
-                # Возвращаемся в canonical mode
-                stty echo icanon 2>/dev/null || true
-                
-                case "$seq" in
-                    '[A')  # Стрелка вверх
+        # Проверяем escape-последовательность для стрелок
+        if [[ "$key" == $'\e' ]]; then
+            # Читаем остаток последовательности
+            read -rsn1 -t 0.1 key || true
+            if [[ "$key" == '[' ]]; then
+                read -rsn1 -t 0.1 arrow_key || true
+                case "$arrow_key" in
+                    'A')  # Стрелка вверх
                         ((selected--))
                         if [ $selected -lt 0 ]; then
                             selected=$((num_options - 1))
                         fi
                         ;;
-                    '[B')  # Стрелка вниз
+                    'B')  # Стрелка вниз
                         ((selected++))
                         if [ $selected -ge $num_options ]; then
                             selected=0
                         fi
                         ;;
                 esac
-            else
-                # Возвращаемся в canonical mode
-                stty echo icanon 2>/dev/null || true
-                
-                # Проверяем Enter (ASCII 10 = LF, 13 = CR)
-                local key_code
-                key_code=$(printf '%d' "'$key" 2>/dev/null || echo 0)
-                
-                if [ "$key_code" -eq 10 ] || [ "$key_code" -eq 13 ]; then
-                    # Enter нажата - восстанавливаем нормальный режим и выполняем действие
-                    stty "$original_stty" 2>/dev/null || true
-                    
-                    case $selected in
-                        0)  # Переустановить
-                            echo
-                            echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
-                            read -p "Продолжить? (Y/n): " confirm
-                            confirm=${confirm:-y}
-                            confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
-                            if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
-                                exec "$0" --install
-                            else
-                                echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                                sleep 2
-                            fi
-                            # Восстанавливаем режим
-                            stty -echo 2>/dev/null || true
-                            ;;
-                        1)  # Проверить обновления
-                            manage_update_bot
-                            # Восстанавливаем режим
-                            stty -echo 2>/dev/null || true
-                            ;;
-                        2)  # Изменить настройки
-                            manage_change_settings
-                            stty -echo 2>/dev/null || true
-                            ;;
-                        3)  # Очистить данные
-                            manage_cleanup_database
-                            stty -echo 2>/dev/null || true
-                            ;;
-                        4)  # Удалить бота
-                            manage_uninstall_bot
-                            exit 0
-                            ;;
-                        5)  # Выход
-                            echo
-                            echo -e "${YELLOW}ℹ️  До свидания!${NC}"
-                            exit 0
-                            ;;
-                    esac
-                fi
             fi
-        else
-            # На случай если read не прочитал ничего
-            stty echo icanon 2>/dev/null || true
+        elif [[ "$key" == $'\n' ]]; then
+            # Enter нажата
+            case $selected in
+                0)  # Переустановить
+                    echo
+                    echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
+                    read -p "Продолжить? (Y/n): " confirm
+                    confirm=${confirm:-y}
+                    confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
+                    if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
+                        exec "$0" --install
+                    else
+                        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                        sleep 2
+                    fi
+                    ;;
+                1)  # Проверить обновления
+                    manage_update_bot
+                    ;;
+                2)  # Изменить настройки
+                    manage_change_settings
+                    ;;
+                3)  # Очистить данные
+                    manage_cleanup_database
+                    ;;
+                4)  # Удалить бота
+                    manage_uninstall_bot
+                    exit 0
+                    ;;
+                5)  # Выход
+                    echo
+                    echo -e "${YELLOW}ℹ️  До свидания!${NC}"
+                    exit 0
+                    ;;
+            esac
         fi
     done
 }
