@@ -1,6 +1,12 @@
 # Files to exclude when deploying to production
 # Syntax: same as .gitignore
 
+# Management scripts and deployment configuration
+.deployignore
+manage.sh
+server-setup.sh
+original_install.sh
+
 # Development tools
 Makefile
 pyproject.toml
