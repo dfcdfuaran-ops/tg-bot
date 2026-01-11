@@ -75,7 +75,7 @@ ___
 
 ### ▶️ Полная установка в один шаг
 ```bash
-git clone https://github.com/DanteFuaran/tg-sell-bot.git tg-sell-bot
+git clone -b dev https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot
 cd tg-sell-bot
 ./install.sh
 ```
