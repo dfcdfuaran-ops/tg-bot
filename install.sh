@@ -139,6 +139,13 @@ show_full_menu() {
     local options=("🔄  Переустановить" "📦  Проверить обновления" "⚙️   Изменить настройки" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
     local num_options=${#options[@]}
     
+    # Сохраняем текущие настройки терминала
+    local original_stty=$(stty -g)
+    trap "stty '$original_stty'" RETURN
+    
+    # Отключаем canonical mode и echo
+    stty -echo -icanon time 0 min 0 2>/dev/null || true
+    
     while true; do
         clear
         echo -e "${BLUE}════════════════════════════════════════${NC}"
@@ -163,63 +170,79 @@ show_full_menu() {
         echo
         echo -e "${GRAY}Используйте ↑ ↓ для навигации, Enter для выбора${NC}"
         
-        # Читаем нажатие клавиши
-        read -rsn1 key
+        # Читаем нажатие клавиши напрямую с терминала
+        local key
+        IFS= read -rn1 key 2>/dev/null || key=''
         
-        case "$key" in
-            $'\x1b')
-                # Escape-последовательность для стрелочек
-                read -rsn2 key
-                case "$key" in
-                    '[A')  # Стрелка вверх
+        # Проверяем является ли это началом escape-последовательности
+        if [ "$key" = $'\x1b' ]; then
+            # Читаем следующие два символа
+            IFS= read -rn1 key_bracket 2>/dev/null || key_bracket=''
+            if [ "$key_bracket" = '[' ]; then
+                IFS= read -rn1 key_code 2>/dev/null || key_code=''
+                
+                case "$key_code" in
+                    'A')  # Стрелка вверх
                         ((selected--))
                         if [ $selected -lt 0 ]; then
                             selected=$((num_options - 1))
                         fi
                         ;;
-                    '[B')  # Стрелка вниз
+                    'B')  # Стрелка вниз
                         ((selected++))
                         if [ $selected -ge $num_options ]; then
                             selected=0
                         fi
                         ;;
                 esac
-                ;;
-            '')  # Enter
-                case $selected in
-                    0)  # Переустановить
-                        echo
-                        echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
-                        read -p "Продолжить? (Y/n): " confirm
-                        confirm=${confirm:-y}
-                        confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
-                        if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
-                            exec "$0" --install
-                        else
-                            echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                            sleep 2
-                        fi
-                        ;;
-                    1)  # Проверить обновления
-                        manage_update_bot
-                        ;;
-                    2)  # Изменить настройки
-                        manage_change_settings
-                        ;;
-                    3)  # Очистить данные
-                        manage_cleanup_database
-                        ;;
-                    4)  # Удалить бота
-                        manage_uninstall_bot
-                        ;;
-                    5)  # Выход
-                        echo
-                        echo -e "${YELLOW}ℹ️  До свидания!${NC}"
-                        exit 0
-                        ;;
-                esac
-                ;;
-        esac
+            fi
+        elif [ "$key" = '' ] || [ "$key" = $'\x0a' ] || [ "$key" = $'\x0d' ]; then
+            # Enter нажата
+            stty "$original_stty"  # Восстанавливаем терминал перед выполнением действия
+            
+            case $selected in
+                0)  # Переустановить
+                    echo
+                    echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
+                    read -p "Продолжить? (Y/n): " confirm
+                    confirm=${confirm:-y}
+                    confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
+                    if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
+                        exec "$0" --install
+                    else
+                        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                        sleep 2
+                    fi
+                    # Восстанавливаем raw mode
+                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    ;;
+                1)  # Проверить обновления
+                    stty "$original_stty"
+                    manage_update_bot
+                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    ;;
+                2)  # Изменить настройки
+                    stty "$original_stty"
+                    manage_change_settings
+                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    ;;
+                3)  # Очистить данные
+                    stty "$original_stty"
+                    manage_cleanup_database
+                    stty -echo -icanon time 0 min 0 2>/dev/null || true
+                    ;;
+                4)  # Удалить бота
+                    stty "$original_stty"
+                    manage_uninstall_bot
+                    exit 0
+                    ;;
+                5)  # Выход
+                    echo
+                    echo -e "${YELLOW}ℹ️  До свидания!${NC}"
+                    exit 0
+                    ;;
+            esac
+        fi
     done
 }
 
