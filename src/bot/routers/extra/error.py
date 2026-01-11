@@ -38,7 +38,7 @@ async def on_lost_context(
         target_message_id = callback_query.message.message_id
         
         # Удаляем несколько предыдущих сообщений (кроме того, которое будем редактировать)
-        for i in range(1, 5):  # Удаляем 4 предыдущих сообщения
+        for i in range(1, 10):  # Удаляем 9 предыдущих сообщений для полной очистки
             try:
                 await bot.delete_message(
                     chat_id=user.telegram_id,
