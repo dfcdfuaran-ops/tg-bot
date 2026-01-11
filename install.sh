@@ -21,6 +21,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[1;34m'
 WHITE='\033[1;37m'
+GRAY='\033[0;37m'
 NC='\033[0m'
 DARKGRAY='\033[1;30m'
 
@@ -134,59 +135,89 @@ show_simple_menu() {
 
 # Полное меню при установленном боте
 show_full_menu() {
+    local selected=0
+    local options=("🔄  Переустановить" "📦  Проверить обновления" "⚙️   Изменить настройки" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
+    local num_options=${#options[@]}
+    
     while true; do
         clear
         echo -e "${BLUE}════════════════════════════════════════${NC}"
         echo -e "${GREEN}   🚀 TG-SELL-BOT MANAGEMENT PANEL${NC}"
         echo -e "${BLUE}════════════════════════════════════════${NC}"
         echo
-        echo -e "${GREEN}✅ Статус:${NC} Установлен в ${WHITE}$PROJECT_DIR${NC}"
-        echo
-        echo -e "${WHITE}Доступные действия:${NC}"
-        echo -e "  ${BLUE}1)${NC} ${GREEN}🔄${NC}  Переустановить"
-        echo -e "  ${BLUE}2)${NC} ${GREEN}📦${NC}  Проверить обновления"
-        echo -e "  ${BLUE}3)${NC} ${GREEN}⚙️ ${NC}  Изменить настройки"
-        echo -e "  ${BLUE}4)${NC} ${GREEN}🧹${NC}  Очистить данные"
-        echo -e "  ${BLUE}5)${NC} ${GREEN}🗑️ ${NC}  Удалить бот"
-        echo -e "  ${BLUE}0)${NC} ${RED}❌${NC}  Выход"
-        echo
-        read -p "Выберите действие (0-5): " choice
         
-        case $choice in
-            1)
-                echo
-                echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
-                read -p "Продолжить? (Y/n): " confirm
-                confirm=${confirm:-y}
-                confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
-                if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
-                    exec "$0" --install
-                else
-                    echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                    sleep 2
-                fi
+        # Выводим опции меню
+        for i in "${!options[@]}"; do
+            if [ $i -eq $selected ]; then
+                echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]}${NC}"
+            else
+                echo "  ${options[$i]}"
+            fi
+            
+            # Разделители после пунктов 1 и 4
+            if [ $i -eq 1 ] || [ $i -eq 4 ]; then
+                echo -e "${BLUE}----------------------------------${NC}"
+            fi
+        done
+        
+        echo
+        echo -e "${GRAY}Используйте ↑ ↓ для навигации, Enter для выбора${NC}"
+        
+        # Читаем нажатие клавиши
+        read -rsn1 key
+        
+        case "$key" in
+            $'\x1b')
+                # Escape-последовательность для стрелочек
+                read -rsn2 key
+                case "$key" in
+                    '[A')  # Стрелка вверх
+                        ((selected--))
+                        if [ $selected -lt 0 ]; then
+                            selected=$((num_options - 1))
+                        fi
+                        ;;
+                    '[B')  # Стрелка вниз
+                        ((selected++))
+                        if [ $selected -ge $num_options ]; then
+                            selected=0
+                        fi
+                        ;;
+                esac
                 ;;
-            2)
-                manage_update_bot
-                ;;
-            3)
-                manage_change_settings
-                ;;
-            4)
-                manage_cleanup_database
-                ;;
-            5)
-                manage_uninstall_bot
-                ;;
-            0)
-                echo
-                echo -e "${YELLOW}ℹ️  До свидания!${NC}"
-                exit 0
-                ;;
-            *)
-                echo
-                echo -e "${RED}✖ Неверный выбор${NC}"
-                sleep 2
+            '')  # Enter
+                case $selected in
+                    0)  # Переустановить
+                        echo
+                        echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
+                        read -p "Продолжить? (Y/n): " confirm
+                        confirm=${confirm:-y}
+                        confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
+                        if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
+                            exec "$0" --install
+                        else
+                            echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                            sleep 2
+                        fi
+                        ;;
+                    1)  # Проверить обновления
+                        manage_update_bot
+                        ;;
+                    2)  # Изменить настройки
+                        manage_change_settings
+                        ;;
+                    3)  # Очистить данные
+                        manage_cleanup_database
+                        ;;
+                    4)  # Удалить бота
+                        manage_uninstall_bot
+                        ;;
+                    5)  # Выход
+                        echo
+                        echo -e "${YELLOW}ℹ️  До свидания!${NC}"
+                        exit 0
+                        ;;
+                esac
                 ;;
         esac
     done
@@ -201,7 +232,7 @@ manage_update_bot() {
     trap "rm -rf '$TEMP_REPO'" RETURN
     
     # Проверка обновлений с спинером
-    show_spinner "Загрузка информации из репозитория" &
+    show_spinner "Проверка обновлений" &
     SPINNER_PID=$!
     
     git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_REPO" >/dev/null 2>&1
@@ -283,7 +314,7 @@ manage_update_bot() {
     
     # Выводим результат проверки
     if [ $UPDATE_NEEDED -eq 0 ]; then
-        echo -e "${GREEN}✅ Бот уже на последней версии (обновлений нет)${NC}"
+        echo -e "${GREEN}✅ Обновление не требуется${NC}"
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
         read -p "Запустить обновление: (Y/n): " update_choice
