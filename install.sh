@@ -68,6 +68,18 @@ update_env_var() {
     fi
 }
 
+# Функция для проверки установлен ли бот
+is_installed() {
+    # Бот считается установленным только если:
+    # 1. Директория существует
+    # 2. Есть критические файлы (docker-compose.yml и .env)
+    # 3. Docker контейнеры запущены или есть следы работы
+    if [ -d "$PROJECT_DIR" ] && [ -f "$PROJECT_DIR/docker-compose.yml" ] && [ -f "$PROJECT_DIR/.env" ]; then
+        return 0  # installed
+    fi
+    return 1  # not installed
+}
+
 # Функция для проверки режима (установка или меню)
 check_mode() {
     # Если передан аргумент --install, пропускаем меню
@@ -76,12 +88,12 @@ check_mode() {
     fi
     
     # Если бот установлен и скрипт вызван без аргументов, показываем полное меню
-    if [ -d "$PROJECT_DIR" ] && [ -z "$1" ]; then
+    if is_installed && [ -z "$1" ]; then
         show_full_menu
     fi
     
     # Если бот не установлен и скрипт вызван без аргументов, показываем меню с одним пунктом
-    if [ ! -d "$PROJECT_DIR" ] && [ -z "$1" ]; then
+    if ! is_installed && [ -z "$1" ]; then
         show_simple_menu
     fi
 }
