@@ -192,10 +192,17 @@ connect = Window(
         url=Format("{download_url}"),
         id="download",
     ),
-    Url(
-        text=I18nFormat("btn-menu-connect-open"),
-        url=Format("{happ_url}"),
-        id="connect_happ",
+    Row(
+        Url(
+            text=I18nFormat("btn-menu-connect-open"),
+            url=Format("{happ_url}"),
+            id="connect_happ",
+        ),
+        Start(
+            text=I18nFormat("btn-menu-connect-subscribe"),
+            id="connect_subscribe_page",
+            state=Subscription.MAIN,
+        ),
     ),
     Row(
         *main_menu_button,
