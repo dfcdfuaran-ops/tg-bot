@@ -1120,29 +1120,51 @@ show_spinner "Сборка Docker образа"
 
 # 2. Создание конфигурации
 (
-  # Автогенерация ключей
+  # Автогенерация ключей безопасности
   if grep -q "^APP_CRYPT_KEY=$" "$ENV_FILE"; then
     APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')
     update_env_var "$ENV_FILE" "APP_CRYPT_KEY" "$APP_CRYPT_KEY"
   fi
 
   if grep -q "^BOT_SECRET_TOKEN=$" "$ENV_FILE"; then
-    BOT_SECRET_TOKEN=$(openssl rand -hex 32)
+    BOT_SECRET_TOKEN=$(openssl rand -hex 64 | tr -d '\n')
     update_env_var "$ENV_FILE" "BOT_SECRET_TOKEN" "$BOT_SECRET_TOKEN"
   fi
 
+  # Генерация пароля БД (убедиться что используется одинаковая длина)
   if grep -q "^DATABASE_PASSWORD=$" "$ENV_FILE"; then
-    DATABASE_PASSWORD=$(openssl rand -hex 16)
+    DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
     update_env_var "$ENV_FILE" "DATABASE_PASSWORD" "$DATABASE_PASSWORD"
+    # Синхронизируем с POSTGRES_PASSWORD если переменная существует
+    if grep -q "^POSTGRES_PASSWORD=" "$ENV_FILE"; then
+      update_env_var "$ENV_FILE" "POSTGRES_PASSWORD" "$DATABASE_PASSWORD"
+    fi
   fi
 
+  # Синхронизируем DATABASE_USER с POSTGRES_USER
+  if [ -f "$ENV_FILE" ]; then
+    DATABASE_USER=$(grep "^DATABASE_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -n "$DATABASE_USER" ] && grep -q "^POSTGRES_USER=" "$ENV_FILE"; then
+      update_env_var "$ENV_FILE" "POSTGRES_USER" "$DATABASE_USER"
+    fi
+  fi
+
+  # Синхронизируем DATABASE_NAME с POSTGRES_DB
+  if [ -f "$ENV_FILE" ]; then
+    DATABASE_NAME=$(grep "^DATABASE_NAME=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -n "$DATABASE_NAME" ] && grep -q "^POSTGRES_DB=" "$ENV_FILE"; then
+      update_env_var "$ENV_FILE" "POSTGRES_DB" "$DATABASE_NAME"
+    fi
+  fi
+
+  # Генерация пароля Redis
   if grep -q "^REDIS_PASSWORD=$" "$ENV_FILE"; then
-    REDIS_PASSWORD=$(openssl rand -hex 16)
+    REDIS_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
     update_env_var "$ENV_FILE" "REDIS_PASSWORD" "$REDIS_PASSWORD"
   fi
 
   if grep -q "^REMNAWAVE_WEBHOOK_SECRET=$" "$ENV_FILE"; then
-    REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32)
+    REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32 | tr -d '\n')
     update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_WEBHOOK_SECRET"
   fi
 ) &
