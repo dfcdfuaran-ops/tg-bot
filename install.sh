@@ -703,6 +703,7 @@ manage_change_settings() {
                     echo -e "${BLUE}========================================${NC}"
                     echo -e "${GREEN}       🌐 ИЗМЕНИТЬ ДОМЕН${NC}"
                     echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены${NC}"
                     echo
                     echo "Текущее значение: $(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2)"
                     echo
@@ -713,9 +714,6 @@ manage_change_settings() {
                     read -e new_domain
                     
                     tput civis 2>/dev/null || true
-                    echo
-                    echo -e "${BLUE}========================================${NC}"
-                    echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены${NC}"
                     echo
                     
                     if [ -z "$new_domain" ]; then
