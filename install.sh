@@ -206,41 +206,80 @@ manage_update_bot() {
     } &
     show_spinner "Загрузка информации из репозитория"
     
-    # Получаем хеш только учитываемых файлов (не в .deployignore)
-    REMOTE_HASH=""
-    {
-        cd "$TEMP_REPO" || exit
-        
-        # Читаем .deployignore в переменную
-        DEPLOY_IGNORE_PATTERNS=""
-        if [ -f ".deployignore" ]; then
-            DEPLOY_IGNORE_PATTERNS=$(grep -v '^#' .deployignore | grep -v '^$')
-        fi
-        
-        # Получаем список всех файлов, кроме исключённых
-        REMOTE_FILES=$(find . -type f ! -path './.git/*' ! -path './.github/*' ! -name '.gitignore' ! -name '.gitattributes' ! -name '.env.example' ! -name '.deployignore' ! -name 'Dockerfile' ! -name 'install.sh' | sort)
-        
-        # Генерируем хеш из содержимого файлов
-        REMOTE_HASH=$(echo "$REMOTE_FILES" | xargs cat 2>/dev/null | git hash-object --stdin 2>/dev/null)
-    }
+    # Получаем хеш HEAD из удалённого репо (для важных файлов)
+    REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD 2>/dev/null)
     
-    # Проверяем локальный хеш
+    # Проверяем, есть ли .git в проекте и получаем его хеш
     LOCAL_HASH=""
+    UPDATE_NEEDED=1
+    
     if [ -d "$PROJECT_DIR/.git" ]; then
-        {
-            cd "$PROJECT_DIR" || exit
+        # Если это git репозиторий, просто сравним хеши
+        LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
+        
+        if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
+            UPDATE_NEEDED=0
+        fi
+    else
+        # Если нет .git, проверим файлы (более сложный процесс)
+        # Создаём временный индекс для сравнения важных файлов
+        cd "$TEMP_REPO" || return
+        
+        # Список файлов которые будут скопированы (исключаем то что в .deployignore)
+        EXCLUDES=(
+            ".git"
+            ".github"
+            ".gitignore"
+            ".gitattributes"
+            ".env.example"
+            ".deployignore"
+            "Dockerfile"
+            "install.sh"
+            "manage.sh"
+            "server-setup.sh"
+            "original_install.sh"
+            "src"
+            "scripts"
+            "Makefile"
+            "pyproject.toml"
+            "uv.lock"
+            "README.md"
+            "docs"
+        )
+        
+        # Проверяем каждый файл в PROJECT_DIR
+        UPDATE_NEEDED=0
+        while IFS= read -r remote_file; do
+            # Пропускаем исключённые файлы
+            skip=0
+            for exclude in "${EXCLUDES[@]}"; do
+                if [[ "$remote_file" == "$exclude"* ]]; then
+                    skip=1
+                    break
+                fi
+            done
             
-            # Получаем список всех файлов, кроме исключённых
-            LOCAL_FILES=$(find . -type f ! -path './.git/*' ! -path './.github/*' ! -name '.gitignore' ! -name '.gitattributes' ! -name '.env.example' ! -name '.deployignore' ! -name 'Dockerfile' ! -name 'install.sh' | sort)
-            
-            # Генерируем хеш из содержимого файлов
-            LOCAL_HASH=$(echo "$LOCAL_FILES" | xargs cat 2>/dev/null | git hash-object --stdin 2>/dev/null)
-        }
+            if [ $skip -eq 0 ]; then
+                local_file="$PROJECT_DIR/$remote_file"
+                
+                # Если локальный файл не существует или отличается
+                if [ ! -f "$local_file" ]; then
+                    UPDATE_NEEDED=1
+                    break
+                fi
+                
+                # Сравниваем содержимое файлов
+                if ! diff -q "$remote_file" "$local_file" >/dev/null 2>&1; then
+                    UPDATE_NEEDED=1
+                    break
+                fi
+            fi
+        done < <(find . -type f ! -path './.git/*' ! -path './.github/*' -print)
     fi
     
-    # Сравниваем хеши с учётом исключённых файлов
-    if [ -n "$LOCAL_HASH" ] && [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
-        echo -e "${GREEN}✅ Бот уже на последней версии (src, assets, скрипты не изменились)${NC}"
+    # Выводим результат проверки
+    if [ $UPDATE_NEEDED -eq 0 ]; then
+        echo -e "${GREEN}✅ Бот уже на последней версии (обновлений нет)${NC}"
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
         read -p "Запустить обновление: (Y/n): " update_choice
