@@ -99,21 +99,18 @@ menu = Window(
         ),
         when=F["is_balance_enabled"],
     ),
-    # [Промокод]
-    Row(
-        Button(
-            text=I18nFormat("btn-menu-promocode"),
-            id="promocode",
-            on_click=on_promocode,
-        ),
-    ),
-    # [Подписка] - для всех пользователей
+    # [Подписка][Промокод] - для всех пользователей
     Row(
         Start(
             text=I18nFormat("btn-menu-subscription"),
             id="subscription",
             state=Subscription.MAIN,
             mode=StartMode.RESET_STACK,
+        ),
+        Button(
+            text=I18nFormat("btn-menu-promocode"),
+            id="promocode",
+            on_click=on_promocode,
         ),
     ),
     # [Подключиться][Пригласить] (если есть подписка)
