@@ -111,6 +111,14 @@ check_mode() {
     fi
 }
 
+# Функция очистки при выходе из установки
+cleanup_on_exit() {
+    # Удаляем скачанные файлы если они были скачаны но установка не началась
+    if [ -n "$TEMP_REPO" ] && [ -d "$TEMP_REPO" ]; then
+        rm -rf "$TEMP_REPO" 2>/dev/null || true
+    fi
+}
+
 # Простое меню при отсутствии бота
 show_simple_menu() {
     set +e  # Отключаем exit on error для функции меню
@@ -120,7 +128,15 @@ show_simple_menu() {
     
     # Сохраняем текущие настройки терминала
     local original_stty=$(stty -g 2>/dev/null)
-    trap "stty '$original_stty' 2>/dev/null || true; tput cnorm 2>/dev/null || true; set -e" EXIT
+    
+    # Функция для очистки скачанных файлов при выходе из меню установки
+    cleanup_menu_temp() {
+        if [ -n "$TEMP_REPO" ] && [ -d "$TEMP_REPO" ] && [ "$INSTALL_STARTED" = false ]; then
+            rm -rf "$TEMP_REPO" 2>/dev/null || true
+        fi
+    }
+    
+    trap "stty '$original_stty' 2>/dev/null || true; tput cnorm 2>/dev/null || true; cleanup_menu_temp; set -e" EXIT
     
     # Скрываем курсор
     tput civis 2>/dev/null || true
@@ -133,8 +149,6 @@ show_simple_menu() {
         echo -e "${BLUE}════════════════════════════════════════${NC}"
         echo -e "${GREEN}   🚀 TG-SELL-BOT INSTALLER${NC}"
         echo -e "${BLUE}════════════════════════════════════════${NC}"
-        echo
-        echo -e "${RED}❌ Статус: Не установлен${NC}"
         echo
         
         # Выводим опции меню
