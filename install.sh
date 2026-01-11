@@ -206,18 +206,70 @@ manage_update_bot() {
     } &
     show_spinner "Загрузка информации из репозитория"
     
-    # Получаем хеш из временного репозитория
-    REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD)
+    # Функция для проверки игнорирования (использует .deployignore)
+    should_ignore() {
+        local file="$1"
+        local pattern
+        
+        # Жёсткие исключения (всегда игнорировать)
+        case "$file" in
+            ./.git*|./.github*|./.gitignore|./.gitattributes|./.env.example)
+                return 0  # ignore
+                ;;
+        esac
+        
+        # Проверяем .deployignore если он существует
+        if [ -f ".deployignore" ]; then
+            while IFS= read -r pattern; do
+                # Пропускаем пустые строки и комментарии
+                [[ -z "$pattern" || "$pattern" =~ ^# ]] && continue
+                # Проверяем на совпадение (простая проверка)
+                if [[ "$file" == "$pattern"* ]] || [[ "$file" =~ $pattern ]]; then
+                    return 0  # ignore
+                fi
+            done < ".deployignore"
+        fi
+        
+        return 1  # don't ignore
+    }
     
-    # Проверяем если .git существует в проекте
+    # Получаем хеш только учитываемых файлов (не в .deployignore)
+    REMOTE_HASH=""
+    {
+        cd "$TEMP_REPO" || exit
+        
+        # Получаем список всех файлов, кроме исключённых
+        REMOTE_FILES=$(find . -type f -print0 | while IFS= read -r -d '' file; do
+            if ! should_ignore "$file"; then
+                echo "$file"
+            fi
+        done | sort)
+        
+        # Генерируем хеш из содержимого файлов
+        REMOTE_HASH=$(echo "$REMOTE_FILES" | xargs cat 2>/dev/null | git hash-object --stdin)
+    }
+    
+    # Проверяем локальный хеш
     LOCAL_HASH=""
     if [ -d "$PROJECT_DIR/.git" ]; then
-        LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
+        {
+            cd "$PROJECT_DIR" || exit
+            
+            # Получаем список всех файлов, кроме исключённых
+            LOCAL_FILES=$(find . -type f -print0 | while IFS= read -r -d '' file; do
+                if ! should_ignore "$file"; then
+                    echo "$file"
+                fi
+            done | sort)
+            
+            # Генерируем хеш из содержимого файлов
+            LOCAL_HASH=$(echo "$LOCAL_FILES" | xargs cat 2>/dev/null | git hash-object --stdin)
+        }
     fi
     
-    # Если мы не можем получить локальный хеш, всегда показываем опцию обновления
+    # Сравниваем хеши с учётом исключённых файлов
     if [ -n "$LOCAL_HASH" ] && [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
-        echo -e "${GREEN}✅ Бот уже на последней версии${NC}"
+        echo -e "${GREEN}✅ Бот уже на последней версии (src, assets, скрипты не изменились)${NC}"
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
         read -p "Запустить обновление: (Y/n): " update_choice
@@ -229,33 +281,6 @@ manage_update_bot() {
             # Копируем новые файлы, исключая развёрнутые файлы
             {
                 cd "$TEMP_REPO" || return
-                
-                # Создаём функцию для проверки игнорирования
-                should_ignore() {
-                    local file="$1"
-                    local pattern
-                    
-                    # Жёсткие исключения (всегда игнорировать)
-                    case "$file" in
-                        ./.git*|./.github*|./.gitignore|./.gitattributes|./.env.example)
-                            return 0  # ignore
-                            ;;
-                    esac
-                    
-                    # Проверяем .deployignore если он существует
-                    if [ -f ".deployignore" ]; then
-                        while IFS= read -r pattern; do
-                            # Пропускаем пустые строки и комментарии
-                            [[ -z "$pattern" || "$pattern" =~ ^# ]] && continue
-                            # Проверяем на совпадение (простая проверка)
-                            if [[ "$file" == "$pattern"* ]] || [[ "$file" =~ $pattern ]]; then
-                                return 0  # ignore
-                            fi
-                        done < ".deployignore"
-                    fi
-                    
-                    return 1  # don't ignore
-                }
                 
                 find . -type f -print0 | while IFS= read -r -d '' file; do
                     # Пропускаем игнорируемые файлы
