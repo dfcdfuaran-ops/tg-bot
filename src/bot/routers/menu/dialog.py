@@ -99,7 +99,7 @@ menu = Window(
         ),
         when=F["is_balance_enabled"],
     ),
-    # [Управление подпиской][Промокод]
+    # [Управление подпиской][Промокод][Подключиться]
     Row(
         Start(
             text=I18nFormat("btn-menu-subscription"),
@@ -110,6 +110,12 @@ menu = Window(
             text=I18nFormat("btn-menu-promocode"),
             id="promocode",
             on_click=on_promocode,
+        ),
+        Start(
+            text=I18nFormat("btn-menu-connect-subscribe"),
+            id="connect_subscribe",
+            state=Subscription.MAIN,
+            when=~F["has_subscription"],
         ),
     ),
     # [Подключиться][Пригласить] (если есть подписка)
