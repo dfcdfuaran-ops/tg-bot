@@ -762,7 +762,6 @@ manage_uninstall_bot() {
     echo -e "${GREEN}✅ Бот успешно удален${NC}"
     sleep 1
 }
-}
 
 # Функция очистки при ошибке или отмене
 cleanup_on_error() {
