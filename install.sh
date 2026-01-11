@@ -24,6 +24,50 @@ WHITE='\033[1;37m'
 NC='\033[0m'
 DARKGRAY='\033[1;30m'
 
+# ════════════════════════════════════════
+# ФУНКЦИИ УТИЛИТ
+# ════════════════════════════════════════
+
+# Функция спинера для длительных операций
+show_spinner() {
+  local pid=$!
+  local delay=0.08
+  local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local i=0 msg="$1"
+  tput civis 2>/dev/null || true
+  while kill -0 $pid 2>/dev/null; do
+    printf "\r${GREEN}%s${NC}  %s" "${spin[$i]}" "$msg"
+    i=$(( (i+1) % 10 ))
+    sleep $delay
+  done
+  printf "\r${GREEN}✅${NC} %s\n" "$msg"
+  tput cnorm 2>/dev/null || true
+}
+
+# Красивый вывод
+print_action() { printf "${BLUE}➜${NC}  %b\n" "$1"; }
+print_error()  { printf "${RED}✖ %b${NC}\n" "$1"; }
+print_success() { printf "${GREEN}✅${NC} %b\n" "$1"; }
+
+# Функция для безопасного обновления переменной в .env файле
+update_env_var() {
+    local env_file="$1"
+    local var_name="$2"
+    local var_value="$3"
+    
+    # Экранируем спецсимволы для sed
+    local escaped_value=$(printf '%s\n' "$var_value" | sed -e 's/[\/&]/\\&/g')
+    
+    # Проверяем, существует ли переменная в файле
+    if grep -q "^${var_name}=" "$env_file"; then
+        # Заменяем существующее значение
+        sed -i "s|^${var_name}=.*|${var_name}=${escaped_value}|" "$env_file"
+    else
+        # Добавляем новую переменную
+        echo "${var_name}=${var_value}" >> "$env_file"
+    fi
+}
+
 # Функция для проверки режима (установка или меню)
 check_mode() {
     # Если передан аргумент --install, пропускаем меню
@@ -469,44 +513,6 @@ log_warning() {
 }
 
 # Спиннер прогресса установки
-show_spinner() {
-  local pid=$!
-  local delay=0.08
-  local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-  local i=0 msg="$1"
-  tput civis 2>/dev/null || true
-  while kill -0 $pid 2>/dev/null; do
-    printf "\r${GREEN}%s${NC}  %s" "${spin[$i]}" "$msg"
-    i=$(( (i+1) % 10 ))
-    sleep $delay
-  done
-  printf "\r${GREEN}✅${NC} %s\n" "$msg"
-  tput cnorm 2>/dev/null || true
-}
-
-# Красивый вывод
-print_action() { printf "${BLUE}➜${NC}  %b\n" "$1"; }
-print_error()  { printf "${RED}✖ %b${NC}\n" "$1"; }
-print_success() { printf "${GREEN}✅${NC} %b\n" "$1"; }
-
-# Функция для безопасного обновления переменной в .env файле
-update_env_var() {
-    local env_file="$1"
-    local var_name="$2"
-    local var_value="$3"
-    
-    # Экранируем спецсимволы для sed
-    local escaped_value=$(printf '%s\n' "$var_value" | sed -e 's/[\/&]/\\&/g')
-    
-    # Проверяем, существует ли переменная в файле
-    if grep -q "^${var_name}=" "$env_file"; then
-        # Заменяем существующее значение
-        sed -i "s|^${var_name}=.*|${var_name}=${escaped_value}|" "$env_file"
-    else
-        # Добавляем новую переменную
-        echo "${var_name}=${var_value}" >> "$env_file"
-    fi
-}
 
 # Безопасный ввод
 safe_read() {
