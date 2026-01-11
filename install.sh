@@ -288,11 +288,18 @@ manage_update_bot() {
     # Получаем хеш HEAD из удалённого репо
     REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD 2>/dev/null)
     
-    # Проверяем, есть ли .git в проекте и получаем его хеш
+    # Проверяем сохранённый хеш из последнего обновления
     LOCAL_HASH=""
     UPDATE_NEEDED=1
     
-    if [ -d "$PROJECT_DIR/.git" ]; then
+    # Сначала проверяем есть ли хеш в .env (самый надёжный способ)
+    if [ -f "$ENV_FILE" ] && grep -q "^LAST_UPDATE_HASH=" "$ENV_FILE"; then
+        LOCAL_HASH=$(grep "^LAST_UPDATE_HASH=" "$ENV_FILE" | cut -d'=' -f2)
+        
+        if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
+            UPDATE_NEEDED=0
+        fi
+    elif [ -d "$PROJECT_DIR/.git" ]; then
         # Если это git репозиторий, просто сравним хеши
         LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
         
@@ -300,59 +307,8 @@ manage_update_bot() {
             UPDATE_NEEDED=0
         fi
     else
-        # Если нет .git, проверим файлы (простое сравнение)
-        cd "$TEMP_REPO" || return
-        
-        # Список файлов которые будут скопированы (исключаем то что в .deployignore)
-        EXCLUDES=(
-            ".git"
-            ".github"
-            ".gitignore"
-            ".gitattributes"
-            ".env.example"
-            ".deployignore"
-            "Dockerfile"
-            "install.sh"
-            "manage.sh"
-            "server-setup.sh"
-            "original_install.sh"
-            "src"
-            "scripts"
-            "Makefile"
-            "pyproject.toml"
-            "uv.lock"
-            "README.md"
-            "docs"
-        )
-        
-        # Проверяем наличие изменений в развёрнутых файлах
-        UPDATE_NEEDED=0
-        while IFS= read -r remote_file; do
-            # Пропускаем исключённые файлы
-            skip=0
-            for exclude in "${EXCLUDES[@]}"; do
-                if [[ "$remote_file" == "$exclude"* ]]; then
-                    skip=1
-                    break
-                fi
-            done
-            
-            if [ $skip -eq 0 ]; then
-                local_file="$PROJECT_DIR/$remote_file"
-                
-                # Если локальный файл не существует или отличается
-                if [ ! -f "$local_file" ]; then
-                    UPDATE_NEEDED=1
-                    break
-                fi
-                
-                # Сравниваем содержимое файлов
-                if ! diff -q "$remote_file" "$local_file" >/dev/null 2>&1; then
-                    UPDATE_NEEDED=1
-                    break
-                fi
-            fi
-        done < <(find . -type f ! -path './.git/*' ! -path './.github/*' -print)
+        # Если нет .git и нет сохранённого хеша - нужно обновить
+        UPDATE_NEEDED=1
     fi
     
     # Выводим результат проверки
@@ -430,6 +386,9 @@ manage_update_bot() {
             
             echo
             echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
+            
+            # Сохраняем хеш обновления в .env
+            update_env_var "$ENV_FILE" "LAST_UPDATE_HASH" "$REMOTE_HASH"
         fi
     fi
     
