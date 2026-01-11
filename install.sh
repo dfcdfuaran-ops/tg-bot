@@ -163,7 +163,7 @@ manage_update_bot() {
         echo -e "${GREEN}✅ Бот уже на последней версии${NC}"
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
-        read -p "Обновить? (Y/n): " update_choice
+        read -p "Запустить обновление: (Y/n): " update_choice
         update_choice=${update_choice:-y}  # По умолчанию Y если Enter нажали
         update_choice=$(echo "$update_choice" | tr '[:upper:]' '[:lower:]')
         if [ "$update_choice" = "y" ] || [ "$update_choice" = "да" ]; then
