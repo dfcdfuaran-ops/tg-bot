@@ -1183,15 +1183,15 @@ echo -e "${GREEN}    🎉 УСТАНОВКА ЗАВЕРШЕНА УСПЕШНО!$
 echo -e "${BLUE}========================================${NC}"
 echo
 
-echo -e "${WHITE}✅ Бот успешно установлен в:${NC} ${GREEN}$PROJECT_DIR${NC}"
+echo -e "${WHITE}✅ Бот успешно установлен по пути${NC} ${GREEN}$PROJECT_DIR${NC}"
+echo -e "${WHITE}✅ Команда вызова меню бота:${NC} ${YELLOW}tg-sell-bot${NC}"
+echo
 
 # Удаление исходной папки если она не в /opt/tg-sell-bot
 if [ "$COPY_FILES" = true ] && [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ]; then
     cd /opt
     rm -rf "$SOURCE_DIR" 2>/dev/null || true
 fi
-
-echo
 
 # Отмечаем успешное завершение установки
 INSTALL_STARTED=false
@@ -1205,7 +1205,10 @@ EOF
     sudo chmod +x /usr/local/bin/tg-sell-bot
 ) >/dev/null 2>&1
 
-echo -e "${WHITE}✅ Команда вызова меню бота:${NC} ${YELLOW}tg-sell-bot${NC}"
+# Ожидание ввода перед очисткой экрана
+echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+read -p ""
+clear
 
 cd /opt
 
