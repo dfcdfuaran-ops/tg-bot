@@ -1135,32 +1135,38 @@ if grep -q "^DATABASE_PASSWORD=" "$ENV_FILE"; then
   if [ -z "$CURRENT_DB_PASS" ]; then
     DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
     update_env_var "$ENV_FILE" "DATABASE_PASSWORD" "$DATABASE_PASSWORD"
-    # Синхронизируем с POSTGRES_PASSWORD
-    if grep -q "^POSTGRES_PASSWORD=" "$ENV_FILE"; then
-      update_env_var "$ENV_FILE" "POSTGRES_PASSWORD" "$DATABASE_PASSWORD"
-    fi
+  else
+    DATABASE_PASSWORD="$CURRENT_DB_PASS"
   fi
+else
+  DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
+  echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$ENV_FILE"
 fi
 
 # Синхронизируем DATABASE_USER с POSTGRES_USER
-if [ -f "$ENV_FILE" ]; then
-  DATABASE_USER=$(grep "^DATABASE_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-  if [ -n "$DATABASE_USER" ] && grep -q "^POSTGRES_USER=" "$ENV_FILE"; then
-    CURRENT_PG_USER=$(grep "^POSTGRES_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-    if [ -z "$CURRENT_PG_USER" ]; then
-      update_env_var "$ENV_FILE" "POSTGRES_USER" "$DATABASE_USER"
-    fi
+DATABASE_USER=$(grep "^DATABASE_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+if [ -n "$DATABASE_USER" ]; then
+  if grep -q "^POSTGRES_USER=" "$ENV_FILE"; then
+    update_env_var "$ENV_FILE" "POSTGRES_USER" "$DATABASE_USER"
+  else
+    echo "POSTGRES_USER=$DATABASE_USER" >> "$ENV_FILE"
   fi
 fi
 
+# Синхронизируем DATABASE_PASSWORD с POSTGRES_PASSWORD
+if grep -q "^POSTGRES_PASSWORD=" "$ENV_FILE"; then
+  update_env_var "$ENV_FILE" "POSTGRES_PASSWORD" "$DATABASE_PASSWORD"
+else
+  echo "POSTGRES_PASSWORD=$DATABASE_PASSWORD" >> "$ENV_FILE"
+fi
+
 # Синхронизируем DATABASE_NAME с POSTGRES_DB
-if [ -f "$ENV_FILE" ]; then
-  DATABASE_NAME=$(grep "^DATABASE_NAME=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-  if [ -n "$DATABASE_NAME" ] && grep -q "^POSTGRES_DB=" "$ENV_FILE"; then
-    CURRENT_PG_DB=$(grep "^POSTGRES_DB=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-    if [ -z "$CURRENT_PG_DB" ]; then
-      update_env_var "$ENV_FILE" "POSTGRES_DB" "$DATABASE_NAME"
-    fi
+DATABASE_NAME=$(grep "^DATABASE_NAME=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+if [ -n "$DATABASE_NAME" ]; then
+  if grep -q "^POSTGRES_DB=" "$ENV_FILE"; then
+    update_env_var "$ENV_FILE" "POSTGRES_DB" "$DATABASE_NAME"
+  else
+    echo "POSTGRES_DB=$DATABASE_NAME" >> "$ENV_FILE"
   fi
 fi
 
