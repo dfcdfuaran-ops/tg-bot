@@ -719,13 +719,24 @@ manage_change_settings() {
                 
                 while true; do
                     char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
-                    if [ "$(printf '%d' "'$char")" = "27" ]; then
+                    char_code=$(printf '%d' "'$char" 2>/dev/null || echo "0")
+                    
+                    if [ "$char_code" = "27" ]; then
+                        # Esc
                         esc_pressed=true
                         break
-                    elif [ "$(printf '%d' "'$char")" = "13" ]; then
+                    elif [ "$char_code" = "13" ]; then
+                        # Enter - завершаем ввод
                         break
+                    elif [ "$char_code" = "8" ] || [ "$char_code" = "127" ]; then
+                        # Backspace или Delete - удаляем последний символ
+                        if [ -n "$new_domain" ]; then
+                            new_domain="${new_domain%?}"
+                            # Выводим backspace + пробел + backspace для удаления с экрана
+                            echo -ne "\b \b"
+                        fi
                     else
-                        # Выводим символ на экран и добавляем в переменную
+                        # Обычный символ - добавляем в переменную и выводим
                         echo -n "$char"
                         new_domain="${new_domain}${char}"
                     fi
@@ -783,13 +794,24 @@ manage_change_settings() {
                 
                 while true; do
                     char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
-                    if [ "$(printf '%d' "'$char")" = "27" ]; then
+                    char_code=$(printf '%d' "'$char" 2>/dev/null || echo "0")
+                    
+                    if [ "$char_code" = "27" ]; then
+                        # Esc
                         esc_pressed=true
                         break
-                    elif [ "$(printf '%d' "'$char")" = "13" ]; then
+                    elif [ "$char_code" = "13" ]; then
+                        # Enter - завершаем ввод
                         break
+                    elif [ "$char_code" = "8" ] || [ "$char_code" = "127" ]; then
+                        # Backspace или Delete - удаляем последний символ
+                        if [ -n "$new_token" ]; then
+                            new_token="${new_token%?}"
+                            # Выводим backspace + пробел + backspace для удаления с экрана
+                            echo -ne "\b \b"
+                        fi
                     else
-                        # Выводим символ на экран и добавляем в переменную
+                        # Обычный символ - добавляем в переменную и выводим
                         echo -n "$char"
                         new_token="${new_token}${char}"
                     fi
@@ -854,13 +876,24 @@ manage_change_settings() {
                 
                 while true; do
                     char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
-                    if [ "$(printf '%d' "'$char")" = "27" ]; then
+                    char_code=$(printf '%d' "'$char" 2>/dev/null || echo "0")
+                    
+                    if [ "$char_code" = "27" ]; then
+                        # Esc
                         esc_pressed=true
                         break
-                    elif [ "$(printf '%d' "'$char")" = "13" ]; then
+                    elif [ "$char_code" = "13" ]; then
+                        # Enter - завершаем ввод
                         break
+                    elif [ "$char_code" = "8" ] || [ "$char_code" = "127" ]; then
+                        # Backspace или Delete - удаляем последний символ
+                        if [ -n "$new_dev_id" ]; then
+                            new_dev_id="${new_dev_id%?}"
+                            # Выводим backspace + пробел + backspace для удаления с экрана
+                            echo -ne "\b \b"
+                        fi
                     else
-                        # Выводим символ на экран и добавляем в переменную
+                        # Обычный символ - добавляем в переменную и выводим
                         echo -n "$char"
                         new_dev_id="${new_dev_id}${char}"
                     fi
