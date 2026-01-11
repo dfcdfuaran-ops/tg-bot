@@ -4,6 +4,7 @@
 # Management scripts and deployment configuration
 .deployignore
 Dockerfile
+install.sh
 manage.sh
 server-setup.sh
 original_install.sh
