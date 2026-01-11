@@ -206,47 +206,22 @@ manage_update_bot() {
     } &
     show_spinner "Загрузка информации из репозитория"
     
-    # Функция для проверки игнорирования (использует .deployignore)
-    should_ignore() {
-        local file="$1"
-        local pattern
-        
-        # Жёсткие исключения (всегда игнорировать)
-        case "$file" in
-            ./.git*|./.github*|./.gitignore|./.gitattributes|./.env.example)
-                return 0  # ignore
-                ;;
-        esac
-        
-        # Проверяем .deployignore если он существует
-        if [ -f ".deployignore" ]; then
-            while IFS= read -r pattern; do
-                # Пропускаем пустые строки и комментарии
-                [[ -z "$pattern" || "$pattern" =~ ^# ]] && continue
-                # Проверяем на совпадение (простая проверка)
-                if [[ "$file" == "$pattern"* ]] || [[ "$file" =~ $pattern ]]; then
-                    return 0  # ignore
-                fi
-            done < ".deployignore"
-        fi
-        
-        return 1  # don't ignore
-    }
-    
     # Получаем хеш только учитываемых файлов (не в .deployignore)
     REMOTE_HASH=""
     {
         cd "$TEMP_REPO" || exit
         
+        # Читаем .deployignore в переменную
+        DEPLOY_IGNORE_PATTERNS=""
+        if [ -f ".deployignore" ]; then
+            DEPLOY_IGNORE_PATTERNS=$(grep -v '^#' .deployignore | grep -v '^$')
+        fi
+        
         # Получаем список всех файлов, кроме исключённых
-        REMOTE_FILES=$(find . -type f -print0 | while IFS= read -r -d '' file; do
-            if ! should_ignore "$file"; then
-                echo "$file"
-            fi
-        done | sort)
+        REMOTE_FILES=$(find . -type f ! -path './.git/*' ! -path './.github/*' ! -name '.gitignore' ! -name '.gitattributes' ! -name '.env.example' ! -name '.deployignore' ! -name 'Dockerfile' ! -name 'install.sh' | sort)
         
         # Генерируем хеш из содержимого файлов
-        REMOTE_HASH=$(echo "$REMOTE_FILES" | xargs cat 2>/dev/null | git hash-object --stdin)
+        REMOTE_HASH=$(echo "$REMOTE_FILES" | xargs cat 2>/dev/null | git hash-object --stdin 2>/dev/null)
     }
     
     # Проверяем локальный хеш
@@ -256,14 +231,10 @@ manage_update_bot() {
             cd "$PROJECT_DIR" || exit
             
             # Получаем список всех файлов, кроме исключённых
-            LOCAL_FILES=$(find . -type f -print0 | while IFS= read -r -d '' file; do
-                if ! should_ignore "$file"; then
-                    echo "$file"
-                fi
-            done | sort)
+            LOCAL_FILES=$(find . -type f ! -path './.git/*' ! -path './.github/*' ! -name '.gitignore' ! -name '.gitattributes' ! -name '.env.example' ! -name '.deployignore' ! -name 'Dockerfile' ! -name 'install.sh' | sort)
             
             # Генерируем хеш из содержимого файлов
-            LOCAL_HASH=$(echo "$LOCAL_FILES" | xargs cat 2>/dev/null | git hash-object --stdin)
+            LOCAL_HASH=$(echo "$LOCAL_FILES" | xargs cat 2>/dev/null | git hash-object --stdin 2>/dev/null)
         }
     fi
     
@@ -282,16 +253,45 @@ manage_update_bot() {
             {
                 cd "$TEMP_REPO" || return
                 
-                find . -type f -print0 | while IFS= read -r -d '' file; do
-                    # Пропускаем игнорируемые файлы
-                    if should_ignore "$file"; then
-                        continue
-                    fi
+                # Список исключений (всё что в .deployignore)
+                EXCLUDES=(
+                    ".git"
+                    ".github"
+                    ".gitignore"
+                    ".gitattributes"
+                    ".env.example"
+                    ".deployignore"
+                    "Dockerfile"
+                    "install.sh"
+                    "manage.sh"
+                    "server-setup.sh"
+                    "original_install.sh"
+                    "src"
+                    "scripts"
+                    "Makefile"
+                    "pyproject.toml"
+                    "uv.lock"
+                    "README.md"
+                    "docs"
+                )
+                
+                # Копируем файлы с исключениями
+                find . -type f | while read -r file; do
+                    # Пропускаем исключённые файлы
+                    skip=0
+                    for exclude in "${EXCLUDES[@]}"; do
+                        if [[ "$file" == "./$exclude"* ]]; then
+                            skip=1
+                            break
+                        fi
+                    done
                     
-                    target_file="${file#./}"
-                    target_dir="$PROJECT_DIR/$(dirname "$target_file")"
-                    mkdir -p "$target_dir" 2>/dev/null || true
-                    cp -f "$file" "$target_dir/" 2>/dev/null || true
+                    if [ $skip -eq 0 ]; then
+                        target_file="${file#./}"
+                        target_dir="$PROJECT_DIR/$(dirname "$target_file")"
+                        mkdir -p "$target_dir" 2>/dev/null || true
+                        cp -f "$file" "$target_dir/" 2>/dev/null || true
+                    fi
                 done
             } &
             show_spinner "Загрузка файлов обновления"
