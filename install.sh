@@ -1130,144 +1130,151 @@ echo -e "${GREEN}       🚀 ПРОЦЕСС УСТАНОВКИ${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo
 
-# 1. СНАЧАЛА - Создание конфигурации (БЕЗ фона - ждём завершения)
-# Автогенерация ключей безопасности
-if grep -q "^APP_CRYPT_KEY=$" "$ENV_FILE"; then
-  APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')
-  update_env_var "$ENV_FILE" "APP_CRYPT_KEY" "$APP_CRYPT_KEY"
-fi
-
-if grep -q "^BOT_SECRET_TOKEN=$" "$ENV_FILE"; then
-  BOT_SECRET_TOKEN=$(openssl rand -hex 64 | tr -d '\n')
-  update_env_var "$ENV_FILE" "BOT_SECRET_TOKEN" "$BOT_SECRET_TOKEN"
-fi
-
-# Генерация пароля БД
-if grep -q "^DATABASE_PASSWORD=" "$ENV_FILE"; then
-  CURRENT_DB_PASS=$(grep "^DATABASE_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-  if [ -z "$CURRENT_DB_PASS" ]; then
-    DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
-    update_env_var "$ENV_FILE" "DATABASE_PASSWORD" "$DATABASE_PASSWORD"
-  else
-    DATABASE_PASSWORD="$CURRENT_DB_PASS"
-  fi
-else
-  DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
-  echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$ENV_FILE"
-fi
-
-# Синхронизируем DATABASE_USER с POSTGRES_USER
-DATABASE_USER=$(grep "^DATABASE_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-if [ -n "$DATABASE_USER" ]; then
-  if grep -q "^POSTGRES_USER=" "$ENV_FILE"; then
-    update_env_var "$ENV_FILE" "POSTGRES_USER" "$DATABASE_USER"
-  else
-    echo "POSTGRES_USER=$DATABASE_USER" >> "$ENV_FILE"
-  fi
-fi
-
-# Синхронизируем DATABASE_PASSWORD с POSTGRES_PASSWORD
-if grep -q "^POSTGRES_PASSWORD=" "$ENV_FILE"; then
-  update_env_var "$ENV_FILE" "POSTGRES_PASSWORD" "$DATABASE_PASSWORD"
-else
-  echo "POSTGRES_PASSWORD=$DATABASE_PASSWORD" >> "$ENV_FILE"
-fi
-
-# Синхронизируем DATABASE_NAME с POSTGRES_DB
-DATABASE_NAME=$(grep "^DATABASE_NAME=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-if [ -n "$DATABASE_NAME" ]; then
-  if grep -q "^POSTGRES_DB=" "$ENV_FILE"; then
-    update_env_var "$ENV_FILE" "POSTGRES_DB" "$DATABASE_NAME"
-  else
-    echo "POSTGRES_DB=$DATABASE_NAME" >> "$ENV_FILE"
-  fi
-fi
-
-# Генерация пароля Redis
-if grep -q "^REDIS_PASSWORD=$" "$ENV_FILE"; then
-  CURRENT_REDIS_PASS=$(grep "^REDIS_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-  if [ -z "$CURRENT_REDIS_PASS" ]; then
-    REDIS_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
-    update_env_var "$ENV_FILE" "REDIS_PASSWORD" "$REDIS_PASSWORD"
-  fi
-fi
-
-if grep -q "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE"; then
-  CURRENT_WEBHOOK_SECRET=$(grep "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
-  if [ -z "$CURRENT_WEBHOOK_SECRET" ]; then
-    REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32 | tr -d '\n')
-    update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_WEBHOOK_SECRET"
-  fi
-fi
-
-echo -e "${GREEN}✅${NC}  Создание конфигурации"
-
-# 2. Синхронизация webhook (последовательно)
-
-REMNAWAVE_ENV="/opt/remnawave/.env"
-
-if [ -f "$REMNAWAVE_ENV" ]; then
-  # Включаем webhook
-  if grep -q "^WEBHOOK_ENABLED=" "$REMNAWAVE_ENV"; then
-    sed -i "s|^WEBHOOK_ENABLED=.*|WEBHOOK_ENABLED=true|" "$REMNAWAVE_ENV"
-  else
-    echo "WEBHOOK_ENABLED=true" >> "$REMNAWAVE_ENV"
+# 1. СНАЧАЛА - Создание конфигурации (в фоне со спинером)
+(
+  # Автогенерация ключей безопасности
+  if grep -q "^APP_CRYPT_KEY=$" "$ENV_FILE"; then
+    APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')
+    update_env_var "$ENV_FILE" "APP_CRYPT_KEY" "$APP_CRYPT_KEY"
   fi
 
-  # Копируем WEBHOOK_SECRET_HEADER
-  REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
-  if [ -n "$REMNAWAVE_SECRET" ]; then
-    update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_SECRET"
+  if grep -q "^BOT_SECRET_TOKEN=$" "$ENV_FILE"; then
+    BOT_SECRET_TOKEN=$(openssl rand -hex 64 | tr -d '\n')
+    update_env_var "$ENV_FILE" "BOT_SECRET_TOKEN" "$BOT_SECRET_TOKEN"
   fi
 
-  # Подставляем домен
-  if [ -n "$APP_DOMAIN" ]; then
-    if grep -q "^WEBHOOK_URL=" "$REMNAWAVE_ENV"; then
-      sed -i "s|^WEBHOOK_URL=.*|WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave|" "$REMNAWAVE_ENV"
+  # Генерация пароля БД
+  if grep -q "^DATABASE_PASSWORD=" "$ENV_FILE"; then
+    CURRENT_DB_PASS=$(grep "^DATABASE_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -z "$CURRENT_DB_PASS" ]; then
+      DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
+      update_env_var "$ENV_FILE" "DATABASE_PASSWORD" "$DATABASE_PASSWORD"
     else
-      echo "WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave" >> "$REMNAWAVE_ENV"
+      DATABASE_PASSWORD="$CURRENT_DB_PASS"
+    fi
+  else
+    DATABASE_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
+    echo "DATABASE_PASSWORD=$DATABASE_PASSWORD" >> "$ENV_FILE"
+  fi
+
+  # Синхронизируем DATABASE_USER с POSTGRES_USER
+  DATABASE_USER=$(grep "^DATABASE_USER=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+  if [ -n "$DATABASE_USER" ]; then
+    if grep -q "^POSTGRES_USER=" "$ENV_FILE"; then
+      update_env_var "$ENV_FILE" "POSTGRES_USER" "$DATABASE_USER"
+    else
+      echo "POSTGRES_USER=$DATABASE_USER" >> "$ENV_FILE"
     fi
   fi
-fi
 
-echo -e "${GREEN}✅${NC}  Синхронизация с Remnawave"
+  # Синхронизируем DATABASE_PASSWORD с POSTGRES_PASSWORD
+  if grep -q "^POSTGRES_PASSWORD=" "$ENV_FILE"; then
+    update_env_var "$ENV_FILE" "POSTGRES_PASSWORD" "$DATABASE_PASSWORD"
+  else
+    echo "POSTGRES_PASSWORD=$DATABASE_PASSWORD" >> "$ENV_FILE"
+  fi
 
-# 3. Создание структуры папок
-mkdir -p "$PROJECT_DIR"/{assets,backups,logs}
-echo -e "${GREEN}✅${NC}  Создание структуры папок"
+  # Синхронизируем DATABASE_NAME с POSTGRES_DB
+  DATABASE_NAME=$(grep "^DATABASE_NAME=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+  if [ -n "$DATABASE_NAME" ]; then
+    if grep -q "^POSTGRES_DB=" "$ENV_FILE"; then
+      update_env_var "$ENV_FILE" "POSTGRES_DB" "$DATABASE_NAME"
+    else
+      echo "POSTGRES_DB=$DATABASE_NAME" >> "$ENV_FILE"
+    fi
+  fi
 
-# 4. Удаление старых томов БД для свежей установки
+  # Генерация пароля Redis
+  if grep -q "^REDIS_PASSWORD=$" "$ENV_FILE"; then
+    CURRENT_REDIS_PASS=$(grep "^REDIS_PASSWORD=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -z "$CURRENT_REDIS_PASS" ]; then
+      REDIS_PASSWORD=$(openssl rand -hex 32 | tr -d '\n')
+      update_env_var "$ENV_FILE" "REDIS_PASSWORD" "$REDIS_PASSWORD"
+    fi
+  fi
+
+  if grep -q "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE"; then
+    CURRENT_WEBHOOK_SECRET=$(grep "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE" | cut -d'=' -f2 | tr -d ' ')
+    if [ -z "$CURRENT_WEBHOOK_SECRET" ]; then
+      REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32 | tr -d '\n')
+      update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_WEBHOOK_SECRET"
+    fi
+  fi
+) &
+show_spinner "Создание конфигурации"
+
+# 2. Синхронизация webhook (в фоне со спинером)
+(
+  REMNAWAVE_ENV="/opt/remnawave/.env"
+
+  if [ -f "$REMNAWAVE_ENV" ]; then
+    # Включаем webhook
+    if grep -q "^WEBHOOK_ENABLED=" "$REMNAWAVE_ENV"; then
+      sed -i "s|^WEBHOOK_ENABLED=.*|WEBHOOK_ENABLED=true|" "$REMNAWAVE_ENV"
+    else
+      echo "WEBHOOK_ENABLED=true" >> "$REMNAWAVE_ENV"
+    fi
+
+    # Копируем WEBHOOK_SECRET_HEADER
+    REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
+    if [ -n "$REMNAWAVE_SECRET" ]; then
+      update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_SECRET"
+    fi
+
+    # Подставляем домен
+    if [ -n "$APP_DOMAIN" ]; then
+      if grep -q "^WEBHOOK_URL=" "$REMNAWAVE_ENV"; then
+        sed -i "s|^WEBHOOK_URL=.*|WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave|" "$REMNAWAVE_ENV"
+      else
+        echo "WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave" >> "$REMNAWAVE_ENV"
+      fi
+    fi
+  fi
+) &
+show_spinner "Синхронизация с Remnawave"
+
+# 3. Создание структуры папок (в фоне со спинером)
+(
+  mkdir -p "$PROJECT_DIR"/{assets,backups,logs}
+) &
+show_spinner "Создание структуры папок"
+
+# 4. Удаление старых томов БД для свежей установки (в фоне со спинером)
 (
   cd "$PROJECT_DIR"
   # Останавливаем контейнеры если они есть
   docker compose down >/dev/null 2>&1 || true
   # Удаляем том БД чтобы PostgreSQL переинициализировалась с правильными паролями
   docker volume rm remnashop-db-data >/dev/null 2>&1 || true
-) || true
-echo -e "${GREEN}✅${NC}  Очистка старых данных БД"
+) &
+show_spinner "Очистка старых данных БД"
 
-# 5. Сборка Docker образа (теперь ПОСЛЕ конфигурации)
+# 5. Сборка Docker образа (в фоне со спинером)
 (
   cd "$PROJECT_DIR"
   docker compose build >/dev/null 2>&1
-) || true
-echo -e "${GREEN}✅${NC}  Сборка Docker образа"
+) &
+show_spinner "Сборка Docker образа"
 
-# 6. Запуск контейнеров (после build)
+# 6. Запуск контейнеров (в фоне со спинером)
 (
   cd "$PROJECT_DIR"
   docker compose up -d >/dev/null 2>&1
-) || true
-echo -e "${GREEN}✅${NC}  Запуск сервисов"
+) &
+show_spinner "Запуск сервисов"
 
-# 7. Инициализация БД
-sleep 20
-echo -e "${GREEN}✅${NC}  Инициализация базы данных"
+# 7. Инициализация БД (в фоне со спинером)
+(
+  sleep 20
+) &
+show_spinner "Инициализация базы данных"
 
-# 8. Настройка и перезапуск Caddy
+# 8. Настройка и перезапуск Caddy (в фоне со спинером)
 if [ -d "/opt/remnawave/caddy" ]; then
-  configure_caddy "$APP_DOMAIN"
-  echo -e "${GREEN}✅${NC}  Настройка и перезапуск Caddy"
+  (
+    configure_caddy "$APP_DOMAIN"
+  ) &
+  show_spinner "Настройка и перезапуск Caddy"
 fi
 
 # 9. Очистка ненужных файлов в целевой директории
