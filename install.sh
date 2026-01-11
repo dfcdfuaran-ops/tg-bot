@@ -143,6 +143,9 @@ show_full_menu() {
     local original_stty=$(stty -g 2>/dev/null)
     trap "stty '$original_stty' 2>/dev/null || true; set -e" EXIT
     
+    # Отключаем canonical mode и echo, включаем чтение отдельных символов
+    stty -icanon -echo min 1 time 0 2>/dev/null || true
+    
     while true; do
         clear
         echo -e "${BLUE}════════════════════════════════════════${NC}"
@@ -167,18 +170,21 @@ show_full_menu() {
         echo
         echo -e "${GRAY}Используйте ↑ ↓ для навигации, Enter для выбора${NC}"
         
-        # Используем read с timeout для неблокирующего чтения
+        # Читаем один символ
         local key
-        # Это будет блокирующее чтение одного символа
-        read -rsn1 key
+        read -rsn1 key 2>/dev/null || key=""
         
-        # Проверяем escape-последовательность для стрелок
+        # Проверяем escape-последовательность для стрелок (ASCII 27)
         if [[ "$key" == $'\e' ]]; then
-            # Читаем остаток последовательности
-            read -rsn1 -t 0.1 key || true
-            if [[ "$key" == '[' ]]; then
-                read -rsn1 -t 0.1 arrow_key || true
-                case "$arrow_key" in
+            # Читаем остаток последовательности [A или [B
+            local seq1=""
+            read -rsn1 -t 0.1 seq1 2>/dev/null || seq1=""
+            
+            if [[ "$seq1" == '[' ]]; then
+                local seq2=""
+                read -rsn1 -t 0.1 seq2 2>/dev/null || seq2=""
+                
+                case "$seq2" in
                     'A')  # Стрелка вверх
                         ((selected--))
                         if [ $selected -lt 0 ]; then
@@ -193,8 +199,11 @@ show_full_menu() {
                         ;;
                 esac
             fi
-        elif [[ "$key" == $'\n' ]]; then
-            # Enter нажата
+        # Проверяем Enter (ASCII 13 = CR, или иногда 10 = LF)
+        elif [[ "$key" == $'\r' ]] || [[ "$key" == $'\n' ]]; then
+            # Enter нажата - восстанавливаем режим и выполняем действие
+            stty "$original_stty" 2>/dev/null || true
+            
             case $selected in
                 0)  # Переустановить
                     echo
@@ -208,15 +217,21 @@ show_full_menu() {
                         echo -e "${YELLOW}ℹ️  Отменено${NC}"
                         sleep 2
                     fi
+                    # Возвращаемся в raw mode
+                    stty -icanon -echo min 1 time 0 2>/dev/null || true
                     ;;
                 1)  # Проверить обновления
                     manage_update_bot
+                    # Возвращаемся в raw mode
+                    stty -icanon -echo min 1 time 0 2>/dev/null || true
                     ;;
                 2)  # Изменить настройки
                     manage_change_settings
+                    stty -icanon -echo min 1 time 0 2>/dev/null || true
                     ;;
                 3)  # Очистить данные
                     manage_cleanup_database
+                    stty -icanon -echo min 1 time 0 2>/dev/null || true
                     ;;
                 4)  # Удалить бота
                     manage_uninstall_bot
