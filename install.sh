@@ -735,6 +735,9 @@ manage_change_settings() {
                 if [ "$esc_pressed" = true ]; then
                     echo -e "${BLUE}========================================${NC}"
                     echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                    echo
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
                 else
                     if [ -n "$new_domain" ]; then
                         {
@@ -746,12 +749,9 @@ manage_change_settings() {
                     else
                         echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
                     fi
-                fi
-                echo
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
-                
-                if [ "$esc_pressed" = false ]; then
+                    echo
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
                     read -p ""
                 fi
                 ;;
@@ -795,6 +795,9 @@ manage_change_settings() {
                 if [ "$esc_pressed" = true ]; then
                     echo -e "${BLUE}========================================${NC}"
                     echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                    echo
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
                 else
                     if [ -n "$new_token" ]; then
                         {
@@ -813,12 +816,9 @@ manage_change_settings() {
                     else
                         echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
                     fi
-                fi
-                echo
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
-                
-                if [ "$esc_pressed" = false ]; then
+                    echo
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
                     read -p ""
                 fi
                 ;;
@@ -862,6 +862,9 @@ manage_change_settings() {
                 if [ "$esc_pressed" = true ]; then
                     echo -e "${BLUE}========================================${NC}"
                     echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                    echo
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
                 else
                     if [ -n "$new_dev_id" ]; then
                         {
@@ -873,12 +876,9 @@ manage_change_settings() {
                     else
                         echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
                     fi
-                fi
-                echo
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
-                
-                if [ "$esc_pressed" = false ]; then
+                    echo
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
                     read -p ""
                 fi
                 ;;
