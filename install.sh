@@ -706,27 +706,54 @@ manage_change_settings() {
                 echo "Текущее значение: $(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2)"
                 echo
                 
-                # Показываем курсор для ввода
+                # Включаем raw mode для обработки Esc
+                stty -icanon -echo 2>/dev/null || true
                 tput cnorm 2>/dev/null || true
-                read -p "$(echo -e "${YELLOW}Введите новый домен:${NC} ")" new_domain
                 
-                if [ -n "$new_domain" ]; then
-                    echo
-                    {
-                        update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
-                    } &
-                    show_spinner "Обновление домена"
-                    echo
-                    echo -e "${GREEN}✅ Домен обновлён${NC}"
-                else
+                echo -n -e "${YELLOW}Введите новый домен:${NC}    "
+                
+                # Позиция для возврата при Esc
+                new_domain=""
+                esc_pressed=false
+                
+                while true; do
+                    char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
+                    if [ "$(printf '%d' "'$char")" = "27" ]; then
+                        esc_pressed=true
+                        break
+                    elif [ "$(printf '%d' "'$char")" = "13" ]; then
+                        break
+                    else
+                        new_domain="${new_domain}${char}"
+                    fi
+                done
+                
+                stty icanon echo 2>/dev/null || true
+                echo
+                echo
+                
+                if [ "$esc_pressed" = true ]; then
+                    echo -e "${BLUE}========================================${NC}"
                     echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                else
+                    if [ -n "$new_domain" ]; then
+                        {
+                            update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
+                        } &
+                        show_spinner "Обновление домена"
+                        echo
+                        echo -e "${GREEN}✅ Домен обновлён${NC}"
+                    else
+                        echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
+                    fi
                 fi
                 echo
                 echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены и возврата в предыдущее меню${NC}"
-                echo
-                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-                read -p ""
+                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
+                
+                if [ "$esc_pressed" = false ]; then
+                    read -p ""
+                fi
                 ;;
             1)  # Изменить Токен телеграм бота
                 clear
@@ -739,34 +766,61 @@ manage_change_settings() {
                 echo "Текущее значение: (скрыто)"
                 echo
                 
-                # Показываем курсор для ввода
+                # Включаем raw mode для обработки Esc
+                stty -icanon -echo 2>/dev/null || true
                 tput cnorm 2>/dev/null || true
-                read -p "$(echo -e "${YELLOW}Введите новый токен:${NC} ")" new_token
                 
-                if [ -n "$new_token" ]; then
-                    echo
-                    {
-                        update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
-                    } &
-                    show_spinner "Обновление токена"
-                    
-                    {
-                        cd "$PROJECT_DIR" || return
-                        docker compose down >/dev/null 2>&1
-                        docker compose up -d >/dev/null 2>&1
-                    } &
-                    show_spinner "Перезагрузка сервисов"
-                    echo
-                    echo -e "${GREEN}✅ Токен обновлён и сервисы перезагружены${NC}"
-                else
+                echo -n -e "${YELLOW}Введите новый токен:${NC}    "
+                
+                # Позиция для возврата при Esc
+                new_token=""
+                esc_pressed=false
+                
+                while true; do
+                    char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
+                    if [ "$(printf '%d' "'$char")" = "27" ]; then
+                        esc_pressed=true
+                        break
+                    elif [ "$(printf '%d' "'$char")" = "13" ]; then
+                        break
+                    else
+                        new_token="${new_token}${char}"
+                    fi
+                done
+                
+                stty icanon echo 2>/dev/null || true
+                echo
+                echo
+                
+                if [ "$esc_pressed" = true ]; then
+                    echo -e "${BLUE}========================================${NC}"
                     echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                else
+                    if [ -n "$new_token" ]; then
+                        {
+                            update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
+                        } &
+                        show_spinner "Обновление токена"
+                        
+                        {
+                            cd "$PROJECT_DIR" || return
+                            docker compose down >/dev/null 2>&1
+                            docker compose up -d >/dev/null 2>&1
+                        } &
+                        show_spinner "Перезагрузка сервисов"
+                        echo
+                        echo -e "${GREEN}✅ Токен обновлён и сервисы перезагружены${NC}"
+                    else
+                        echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
+                    fi
                 fi
                 echo
                 echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены и возврата в предыдущее меню${NC}"
-                echo
-                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-                read -p ""
+                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
+                
+                if [ "$esc_pressed" = false ]; then
+                    read -p ""
+                fi
                 ;;
             2)  # Изменить Телеграм ID разработчика
                 clear
@@ -779,27 +833,54 @@ manage_change_settings() {
                 echo "Текущее значение: $(grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2)"
                 echo
                 
-                # Показываем курсор для ввода
+                # Включаем raw mode для обработки Esc
+                stty -icanon -echo 2>/dev/null || true
                 tput cnorm 2>/dev/null || true
-                read -p "$(echo -e "${YELLOW}Введите новый ID:${NC} ")" new_dev_id
                 
-                if [ -n "$new_dev_id" ]; then
-                    echo
-                    {
-                        update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
-                    } &
-                    show_spinner "Обновление ID разработчика"
-                    echo
-                    echo -e "${GREEN}✅ ID обновлён${NC}"
-                else
+                echo -n -e "${YELLOW}Введите новый ID:${NC}    "
+                
+                # Позиция для возврата при Esc
+                new_dev_id=""
+                esc_pressed=false
+                
+                while true; do
+                    char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
+                    if [ "$(printf '%d' "'$char")" = "27" ]; then
+                        esc_pressed=true
+                        break
+                    elif [ "$(printf '%d' "'$char")" = "13" ]; then
+                        break
+                    else
+                        new_dev_id="${new_dev_id}${char}"
+                    fi
+                done
+                
+                stty icanon echo 2>/dev/null || true
+                echo
+                echo
+                
+                if [ "$esc_pressed" = true ]; then
+                    echo -e "${BLUE}========================================${NC}"
                     echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                else
+                    if [ -n "$new_dev_id" ]; then
+                        {
+                            update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
+                        } &
+                        show_spinner "Обновление ID разработчика"
+                        echo
+                        echo -e "${GREEN}✅ ID обновлён${NC}"
+                    else
+                        echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
+                    fi
                 fi
                 echo
                 echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные или нажмите Esc для отмены и возврата в предыдущее меню${NC}"
-                echo
-                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-                read -p ""
+                echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
+                
+                if [ "$esc_pressed" = false ]; then
+                    read -p ""
+                fi
                 ;;
         esac
     done
