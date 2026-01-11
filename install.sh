@@ -5,6 +5,7 @@ set -e
 INSTALL_STARTED=false
 SOURCE_DIR=""
 CLEANUP_DIRS=()
+TEMP_REPO=""
 
 # Переменные путей
 PROJECT_DIR="/opt/tg-sell-bot"
@@ -100,6 +101,9 @@ check_mode() {
         return 0
     fi
     
+    # Инициализируем временный каталог для скачивания репозитория
+    TEMP_REPO=$(mktemp -d)
+    
     # Если бот установлен и скрипт вызван без аргументов, показываем полное меню
     if is_installed && [ -z "$1" ]; then
         show_full_menu
@@ -109,7 +113,7 @@ check_mode() {
     if ! is_installed && [ -z "$1" ]; then
         show_simple_menu
     fi
-}
+
 
 # Функция очистки при выходе из установки
 cleanup_on_exit() {
