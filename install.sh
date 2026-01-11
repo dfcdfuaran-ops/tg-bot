@@ -246,18 +246,11 @@ show_spinner "Инициализация конфигурации"
   REMNAWAVE_ENV="/opt/remnawave/.env"
 
   if [ -f "$REMNAWAVE_ENV" ]; then
-      print_success "Найден remnawave .env"
+      print_success "Найден файл remnawave .env"
 
-      # Включаем WEBHOOK_ENABLED=true
-      if grep -q "^WEBHOOK_ENABLED=" "$REMNAWAVE_ENV"; then
-          sed -i "s|^WEBHOOK_ENABLED=.*|WEBHOOK_ENABLED=true|" "$REMNAWAVE_ENV"
-      else
-          echo "WEBHOOK_ENABLED=true" >> "$REMNAWAVE_ENV"
-      fi
-
-      print_success "WEBHOOK_ENABLED установлен в true"
-
-      # Читаем WEBHOOK_SECRET_HEADER
+      # ----------------------------
+      # 1. Копируем WEBHOOK_SECRET_HEADER → REMNAWAVE_WEBHOOK_SECRET
+      # ----------------------------
       REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
 
       if [ -n "$REMNAWAVE_SECRET" ]; then
@@ -266,13 +259,23 @@ show_spinner "Инициализация конфигурации"
           else
               echo "REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}" >> "$ENV_FILE"
           fi
-
-          print_success "REMNAWAVE_WEBHOOK_SECRET синхронизирован"
+          print_success "REMNAWAVE_WEBHOOK_SECRET скопирован из remnawave"
       else
           print_warning "WEBHOOK_SECRET_HEADER не найден в remnawave .env"
       fi
+
+      # ----------------------------
+      # 2. Подставляем домен в WEBHOOK_URL
+      # ----------------------------
+      if grep -q "^WEBHOOK_URL=" "$REMNAWAVE_ENV"; then
+          sed -i "s|^WEBHOOK_URL=.*|WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave|" "$REMNAWAVE_ENV"
+          print_success "WEBHOOK_URL обновлён с доменом ${APP_DOMAIN}"
+      else
+          echo "WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave" >> "$REMNAWAVE_ENV"
+          print_success "WEBHOOK_URL добавлён в remnawave .env"
+      fi
   else
-      print_warning "Файл /opt/remnawave/.env не найден — пропускаем настройку webhook"
+      print_warning "Файл /opt/remnawave/.env не найден — webhook не синхронизирован"
   fi
 ) &
 show_spinner "Синхронизация webhook с Remnawave"
