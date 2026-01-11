@@ -5,9 +5,6 @@
 .deployignore
 Dockerfile
 install.sh
-manage.sh
-server-setup.sh
-original_install.sh
 
 # Development tools
 Makefile
