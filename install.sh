@@ -113,7 +113,7 @@ check_mode() {
     if ! is_installed && [ -z "$1" ]; then
         show_simple_menu
     fi
-
+}
 
 # Функция очистки при выходе из установки
 cleanup_on_exit() {
