@@ -253,8 +253,7 @@ show_full_menu() {
                         exit 0
                         ;;
                     5)  # Выход
-                        echo
-                        echo -e "${YELLOW}ℹ️  До свидания!${NC}"
+                        clear
                         exit 0
                         ;;
                 esac
