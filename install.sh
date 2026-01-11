@@ -199,50 +199,63 @@ show_full_menu() {
                         ;;
                 esac
             fi
-        # Проверяем Enter (ASCII 13 = CR, или иногда 10 = LF)
-        elif [[ "$key" == $'\r' ]] || [[ "$key" == $'\n' ]]; then
-            # Enter нажата - восстанавливаем режим и выполняем действие
-            stty "$original_stty" 2>/dev/null || true
+        else
+            # Если это не escape, проверяем другие символы
+            # В raw mode Enter может быть CR (ASCII 13) или быть пустым
+            local key_code
+            if [ -n "$key" ]; then
+                # Получаем ASCII код символа
+                key_code=$(printf '%d' "'$key" 2>/dev/null || echo 0)
+            else
+                # Пустая строка - это может быть быть Enter в некоторых режимах
+                key_code=13  # Трактуем пустую строку как CR
+            fi
             
-            case $selected in
-                0)  # Переустановить
-                    echo
-                    echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
-                    read -p "Продолжить? (Y/n): " confirm
-                    confirm=${confirm:-y}
-                    confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
-                    if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
-                        exec "$0" --install
-                    else
-                        echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                        sleep 2
-                    fi
-                    # Возвращаемся в raw mode
-                    stty -icanon -echo min 1 time 0 2>/dev/null || true
-                    ;;
-                1)  # Проверить обновления
-                    manage_update_bot
-                    # Возвращаемся в raw mode
-                    stty -icanon -echo min 1 time 0 2>/dev/null || true
-                    ;;
-                2)  # Изменить настройки
-                    manage_change_settings
-                    stty -icanon -echo min 1 time 0 2>/dev/null || true
-                    ;;
-                3)  # Очистить данные
-                    manage_cleanup_database
-                    stty -icanon -echo min 1 time 0 2>/dev/null || true
-                    ;;
-                4)  # Удалить бота
-                    manage_uninstall_bot
-                    exit 0
-                    ;;
-                5)  # Выход
-                    echo
-                    echo -e "${YELLOW}ℹ️  До свидания!${NC}"
-                    exit 0
-                    ;;
-            esac
+            # Проверяем это Enter (ASCII 10 = LF, 13 = CR)
+            if [ "$key_code" -eq 10 ] || [ "$key_code" -eq 13 ]; then
+                # Enter нажата - восстанавливаем режим и выполняем действие
+                stty "$original_stty" 2>/dev/null || true
+                
+                case $selected in
+                    0)  # Переустановить
+                        echo
+                        echo -e "${YELLOW}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
+                        read -p "Продолжить? (Y/n): " confirm
+                        confirm=${confirm:-y}
+                        confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
+                        if [ "$confirm" = "y" ] || [ "$confirm" = "да" ]; then
+                            exec "$0" --install
+                        else
+                            echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                            sleep 2
+                        fi
+                        # Возвращаемся в raw mode
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        ;;
+                    1)  # Проверить обновления
+                        manage_update_bot
+                        # Возвращаемся в raw mode
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        ;;
+                    2)  # Изменить настройки
+                        manage_change_settings
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        ;;
+                    3)  # Очистить данные
+                        manage_cleanup_database
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        ;;
+                    4)  # Удалить бота
+                        manage_uninstall_bot
+                        exit 0
+                        ;;
+                    5)  # Выход
+                        echo
+                        echo -e "${YELLOW}ℹ️  До свидания!${NC}"
+                        exit 0
+                        ;;
+                esac
+            fi
         fi
     done
 }
