@@ -716,7 +716,10 @@ manage_uninstall_bot() {
         return
     elif [ -z "$delete_key" ] || [ "$(printf '%d' "'$delete_key")" -eq 13 ] || [ "$(printf '%d' "'$delete_key")" -eq 10 ]; then
         # Enter - начало удаления
-        echo
+        # Очищаем предыдущую информацию (надпись об удалении)
+        tput rc 2>/dev/null || true
+        tput ed 2>/dev/null || true
+        tput cnorm 2>/dev/null || true
         
         # Остановка контейнеров и удаление
         {
@@ -735,8 +738,18 @@ manage_uninstall_bot() {
         
         echo
         echo -e "${GREEN}✅ Бот успешно удален${NC}"
+        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
         echo
-        sleep 1
+        
+        # Ожидаем нажатия Enter
+        local original_stty_continue=$(stty -g)
+        stty -icanon -echo min 1 time 0
+        local continue_key=""
+        read -rsn1 continue_key 2>/dev/null || continue_key=""
+        stty "$original_stty_continue"
+        
+        # Очищаем экран
+        clear
         exit 0
     fi
 }
