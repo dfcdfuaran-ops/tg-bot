@@ -708,10 +708,10 @@ manage_change_settings() {
                     echo
                     echo "Текущее значение: $(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2)"
                     
-                    # Используем read -e для редактирования с поддержкой Backspace
+                    # Используем простой read для ввода без редактирования промпта
                     echo -n -e "${YELLOW}Введите новый домен:${NC} "
                     tput cnorm 2>/dev/null || true
-                    read -e new_domain
+                    read new_domain
                     
                     tput civis 2>/dev/null || true
                     echo
@@ -731,7 +731,10 @@ manage_change_settings() {
                             update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
                             # Обновляем Caddyfile в /opt/remnawave/caddy/
                             if [ -f "/opt/remnawave/caddy/Caddyfile" ]; then
-                                sed -i "s|https://$old_domain|https://$new_domain|g" /opt/remnawave/caddy/Caddyfile 2>/dev/null || true
+                                # Экранируем точки для sed
+                                old_domain_escaped=$(printf '%s\n' "$old_domain" | sed -e 's/[\.]/\\&/g')
+                                new_domain_escaped=$(printf '%s\n' "$new_domain" | sed -e 's/[\/&]/\\&/g')
+                                sed -i "s/https:\/\/$old_domain_escaped/https:\/\/$new_domain_escaped/g" /opt/remnawave/caddy/Caddyfile 2>/dev/null || true
                             fi
                         } &
                         show_spinner "Обновление домена"
@@ -757,10 +760,10 @@ manage_change_settings() {
                     echo
                     echo "Текущее значение: (скрыто)"
                     
-                    # Используем read -e для редактирования с поддержкой Backspace
+                    # Используем простой read для ввода без редактирования промпта
                     echo -n -e "${YELLOW}Введите новый токен:${NC} "
                     tput cnorm 2>/dev/null || true
-                    read -e new_token
+                    read new_token
                     
                     tput civis 2>/dev/null || true
                     echo
@@ -808,10 +811,10 @@ manage_change_settings() {
                     echo
                     echo "Текущее значение: $(grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2)"
                     
-                    # Используем read -e для редактирования с поддержкой Backspace
+                    # Используем простой read для ввода без редактирования промпта
                     echo -n -e "${YELLOW}Введите новый ID:${NC} "
                     tput cnorm 2>/dev/null || true
-                    read -e new_dev_id
+                    read new_dev_id
                     
                     tput civis 2>/dev/null || true
                     echo
