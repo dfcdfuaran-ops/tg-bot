@@ -2,6 +2,9 @@
 set -e
 exec < /dev/tty
 
+# Автоматически даем права на выполнение самому себе
+chmod +x "$0" 2>/dev/null || true
+
 # Скрыть курсор
 tput civis >/dev/null 2>&1 || true
 
