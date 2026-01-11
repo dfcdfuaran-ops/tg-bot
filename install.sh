@@ -696,137 +696,79 @@ manage_change_settings() {
         
         case $selected_setting in
             0)  # Изменить домен
-                clear
-                tput civis 2>/dev/null || true
-                
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${GREEN}       🌐 ИЗМЕНИТЬ ДОМЕН${NC}"
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные, или нажмите Esc для отмены${NC}"
-                echo
-                echo "Текущее значение: $(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2)"
-                echo
-                
-                # Включаем raw mode для обработки Esc
-                stty -icanon -echo 2>/dev/null || true
-                tput cnorm 2>/dev/null || true
-                
-                # Выводим промпт БЕЗ newline
-                echo -n -e "${YELLOW}Введите новый домен:${NC} "
-                
-                # Позиция для возврата при Esc
-                new_domain=""
-                esc_pressed=false
-                
                 while true; do
-                    char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
-                    char_code=$(printf '%d' "'$char" 2>/dev/null || echo "0")
+                    clear
+                    tput civis 2>/dev/null || true
                     
-                    if [ "$char_code" = "27" ]; then
-                        # Esc
-                        esc_pressed=true
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${GREEN}       🌐 ИЗМЕНИТЬ ДОМЕН${NC}"
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные, или нажмите Esc для отмены${NC}"
+                    echo
+                    echo "Текущее значение: $(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2)"
+                    echo
+                    
+                    # Используем read -e для редактирования с поддержкой Backspace
+                    echo -n -e "${YELLOW}Введите новый домен:${NC} "
+                    tput cnorm 2>/dev/null || true
+                    read -e new_domain
+                    
+                    tput civis 2>/dev/null || true
+                    echo
+                    
+                    if [ -z "$new_domain" ]; then
+                        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                        echo
+                        echo -e "${BLUE}========================================${NC}"
+                        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                        read -p ""
                         break
-                    elif [ "$char_code" = "13" ]; then
-                        # Enter - завершаем ввод
-                        break
-                    elif [ "$char_code" = "8" ] || [ "$char_code" = "127" ]; then
-                        # Backspace или Delete - удаляем последний символ
-                        if [ -n "$new_domain" ]; then
-                            new_domain="${new_domain%?}"
-                            # Выводим backspace + пробел + backspace для удаления с экрана
-                            echo -ne "\b \b"
-                        fi
                     else
-                        # Обычный символ - добавляем в переменную и выводим
-                        echo -n "$char"
-                        new_domain="${new_domain}${char}"
-                    fi
-                done
-                
-                stty icanon echo 2>/dev/null || true
-                echo
-                echo
-                
-                if [ "$esc_pressed" = true ]; then
-                    echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                else
-                    if [ -n "$new_domain" ]; then
+                        echo
                         {
                             update_env_var "$ENV_FILE" "APP_DOMAIN" "$new_domain" >/dev/null 2>&1
                         } &
                         show_spinner "Обновление домена"
                         echo
                         echo -e "${GREEN}✅ Домен обновлён${NC}"
-                    else
-                        echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
-                    fi
-                fi
-                echo
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-                read -p ""
-                ;;
-            1)  # Изменить Токен телеграм бота
-                clear
-                tput civis 2>/dev/null || true
-                
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${GREEN}       🤖 ИЗМЕНИТЬ ТОКЕН ТЕЛЕГРАМ БОТА${NC}"
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные, или нажмите Esc для отмены${NC}"
-                echo
-                echo "Текущее значение: (скрыто)"
-                echo
-                
-                # Включаем raw mode для обработки Esc
-                stty -icanon -echo 2>/dev/null || true
-                tput cnorm 2>/dev/null || true
-                
-                # Выводим промпт БЕЗ newline
-                echo -n -e "${YELLOW}Введите новый токен:${NC} "
-                
-                # Позиция для возврата при Esc
-                new_token=""
-                esc_pressed=false
-                
-                while true; do
-                    char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
-                    char_code=$(printf '%d' "'$char" 2>/dev/null || echo "0")
-                    
-                    if [ "$char_code" = "27" ]; then
-                        # Esc
-                        esc_pressed=true
+                        echo
+                        echo -e "${BLUE}========================================${NC}"
+                        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                        read -p ""
                         break
-                    elif [ "$char_code" = "13" ]; then
-                        # Enter - завершаем ввод
-                        break
-                    elif [ "$char_code" = "8" ] || [ "$char_code" = "127" ]; then
-                        # Backspace или Delete - удаляем последний символ
-                        if [ -n "$new_token" ]; then
-                            new_token="${new_token%?}"
-                            # Выводим backspace + пробел + backspace для удаления с экрана
-                            echo -ne "\b \b"
-                        fi
-                    else
-                        # Обычный символ - добавляем в переменную и выводим
-                        echo -n "$char"
-                        new_token="${new_token}${char}"
                     fi
                 done
-                
-                stty icanon echo 2>/dev/null || true
-                echo
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Нажмите Esc для отмены${NC}"
-                echo
-                
-                if [ "$esc_pressed" = true ]; then
-                    echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                    echo
+                ;;
+            1)  # Изменить Токен телеграм бота
+                while true; do
+                    clear
+                    tput civis 2>/dev/null || true
+                    
                     echo -e "${BLUE}========================================${NC}"
-                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
-                else
-                    if [ -n "$new_token" ]; then
+                    echo -e "${GREEN}       🤖 ИЗМЕНИТЬ ТОКЕН ТЕЛЕГРАМ БОТА${NC}"
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные, или нажмите Esc для отмены${NC}"
+                    echo
+                    echo "Текущее значение: (скрыто)"
+                    echo
+                    
+                    # Используем read -e для редактирования с поддержкой Backspace
+                    echo -n -e "${YELLOW}Введите новый токен:${NC} "
+                    tput cnorm 2>/dev/null || true
+                    read -e new_token
+                    
+                    tput civis 2>/dev/null || true
+                    echo
+                    
+                    if [ -z "$new_token" ]; then
+                        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                        echo
+                        echo -e "${BLUE}========================================${NC}"
+                        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                        read -p ""
+                        break
+                    else
+                        echo
                         {
                             update_env_var "$ENV_FILE" "BOT_TOKEN" "$new_token" >/dev/null 2>&1
                         } &
@@ -840,85 +782,57 @@ manage_change_settings() {
                         show_spinner "Перезагрузка сервисов"
                         echo
                         echo -e "${GREEN}✅ Токен обновлён и сервисы перезагружены${NC}"
-                    else
-                        echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
-                    fi
-                    echo
-                    echo -e "${BLUE}========================================${NC}"
-                    echo -e "${DARKGRAY}Введите новые данные и нажмите Enter, или нажмите Esc для отмены${NC}"
-                    read -p ""
-                fi
-                ;;
-            2)  # Изменить Телеграм ID разработчика
-                clear
-                tput civis 2>/dev/null || true
-                
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${GREEN}       👤 ИЗМЕНИТЬ ТЕЛЕГРАМ ID РАЗРАБОТЧИКА${NC}"
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Введите новые данные, или нажмите Esc для отмены${NC}"
-                echo
-                echo "Текущее значение: $(grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2)"
-                echo
-                
-                # Включаем raw mode для обработки Esc
-                stty -icanon -echo 2>/dev/null || true
-                tput cnorm 2>/dev/null || true
-                
-                # Выводим промпт БЕЗ newline
-                echo -n -e "${YELLOW}Введите новый ID:${NC} "
-                
-                # Позиция для возврата при Esc
-                new_dev_id=""
-                esc_pressed=false
-                
-                while true; do
-                    char=$(dd if=/dev/tty bs=1 count=1 2>/dev/null || true)
-                    char_code=$(printf '%d' "'$char" 2>/dev/null || echo "0")
-                    
-                    if [ "$char_code" = "27" ]; then
-                        # Esc
-                        esc_pressed=true
+                        echo
+                        echo -e "${BLUE}========================================${NC}"
+                        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                        read -p ""
                         break
-                    elif [ "$char_code" = "13" ]; then
-                        # Enter - завершаем ввод
-                        break
-                    elif [ "$char_code" = "8" ] || [ "$char_code" = "127" ]; then
-                        # Backspace или Delete - удаляем последний символ
-                        if [ -n "$new_dev_id" ]; then
-                            new_dev_id="${new_dev_id%?}"
-                            # Выводим backspace + пробел + backspace для удаления с экрана
-                            echo -ne "\b \b"
-                        fi
-                    else
-                        # Обычный символ - добавляем в переменную и выводим
-                        echo -n "$char"
-                        new_dev_id="${new_dev_id}${char}"
                     fi
                 done
-                
-                stty icanon echo 2>/dev/null || true
-                echo
-                echo
-                
-                if [ "$esc_pressed" = true ]; then
-                    echo -e "${YELLOW}ℹ️  Отменено${NC}"
-                else
-                    if [ -n "$new_dev_id" ]; then
+                ;;
+            2)  # Изменить Телеграм ID разработчика
+                while true; do
+                    clear
+                    tput civis 2>/dev/null || true
+                    
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${GREEN}       👤 ИЗМЕНИТЬ ТЕЛЕГРАМ ID РАЗРАБОТЧИКА${NC}"
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${DARKGRAY}Введите новые данные, или нажмите Esc для отмены${NC}"
+                    echo
+                    echo "Текущее значение: $(grep "^BOT_DEV_ID=" "$ENV_FILE" | cut -d'=' -f2)"
+                    echo
+                    
+                    # Используем read -e для редактирования с поддержкой Backspace
+                    echo -n -e "${YELLOW}Введите новый ID:${NC} "
+                    tput cnorm 2>/dev/null || true
+                    read -e new_dev_id
+                    
+                    tput civis 2>/dev/null || true
+                    echo
+                    
+                    if [ -z "$new_dev_id" ]; then
+                        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+                        echo
+                        echo -e "${BLUE}========================================${NC}"
+                        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                        read -p ""
+                        break
+                    else
+                        echo
                         {
                             update_env_var "$ENV_FILE" "BOT_DEV_ID" "$new_dev_id" >/dev/null 2>&1
                         } &
                         show_spinner "Обновление ID разработчика"
                         echo
                         echo -e "${GREEN}✅ ID обновлён${NC}"
-                    else
-                        echo -e "${YELLOW}ℹ️  Значение не изменено${NC}"
+                        echo
+                        echo -e "${BLUE}========================================${NC}"
+                        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                        read -p ""
+                        break
                     fi
-                fi
-                echo
-                echo -e "${BLUE}========================================${NC}"
-                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-                read -p ""
+                done
                 ;;
         esac
     done
