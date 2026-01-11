@@ -113,36 +113,102 @@ check_mode() {
 
 # Простое меню при отсутствии бота
 show_simple_menu() {
-    clear
-    echo -e "${BLUE}========================================${NC}"
-    echo -e "${GREEN}       🚀 TG-SELL-BOT INSTALLER${NC}"
-    echo -e "${BLUE}========================================${NC}"
-    echo
-    echo -e "${RED}❌ Статус: Не установлен${NC}"
-    echo
-    echo "Доступное действие:"
-    echo "1) Установить"
-    echo "0) Выход"
-    echo
-    read -p "Введите номер (0-1): " choice
+    set +e  # Отключаем exit on error для функции меню
+    local selected=0
+    local options=("🚀  Установить" "❌  Выход")
+    local num_options=${#options[@]}
     
-    case $choice in
-        1)
-            # Продолжаем с установкой с флагом --install
-            exec "$0" --install
-            ;;
-        0)
-            echo
-            echo -e "${YELLOW}ℹ До свидания!${NC}"
-            exit 0
-            ;;
-        *)
-            echo
-            echo -e "${RED}✖ Неверный выбор${NC}"
-            sleep 2
-            exec "$0"
-            ;;
-    esac
+    # Сохраняем текущие настройки терминала
+    local original_stty=$(stty -g 2>/dev/null)
+    trap "stty '$original_stty' 2>/dev/null || true; tput cnorm 2>/dev/null || true; set -e" EXIT
+    
+    # Скрываем курсор
+    tput civis 2>/dev/null || true
+    
+    # Отключаем canonical mode и echo, включаем чтение отдельных символов
+    stty -icanon -echo min 1 time 0 2>/dev/null || true
+    
+    while true; do
+        clear
+        echo -e "${BLUE}════════════════════════════════════════${NC}"
+        echo -e "${GREEN}   🚀 TG-SELL-BOT INSTALLER${NC}"
+        echo -e "${BLUE}════════════════════════════════════════${NC}"
+        echo
+        echo -e "${RED}❌ Статус: Не установлен${NC}"
+        echo
+        
+        # Выводим опции меню
+        for i in "${!options[@]}"; do
+            if [ $i -eq $selected ]; then
+                echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]}${NC}"
+            else
+                echo "  ${options[$i]}"
+            fi
+        done
+        
+        echo
+        echo -e "${BLUE}════════════════════════════════════════${NC}"
+        echo -e "${DARKGRAY}Используйте ↑↓ для навигации, Enter для выбора${NC}"
+        echo
+        
+        local key
+        read -rsn1 key 2>/dev/null || key=""
+        
+        # Проверяем escape-последовательность для стрелок (ASCII 27)
+        if [[ "$key" == $'\e' ]]; then
+            # Читаем остаток последовательности [A или [B
+            local seq1=""
+            read -rsn1 -t 0.1 seq1 2>/dev/null || seq1=""
+            
+            if [[ "$seq1" == '[' ]]; then
+                local seq2=""
+                read -rsn1 -t 0.1 seq2 2>/dev/null || seq2=""
+                
+                case "$seq2" in
+                    'A')  # Стрелка вверх
+                        ((selected--))
+                        if [ $selected -lt 0 ]; then
+                            selected=$((num_options - 1))
+                        fi
+                        ;;
+                    'B')  # Стрелка вниз
+                        ((selected++))
+                        if [ $selected -ge $num_options ]; then
+                            selected=0
+                        fi
+                        ;;
+                esac
+            fi
+        else
+            # Если это не escape, проверяем другие символы
+            # В raw mode Enter может быть CR (ASCII 13) или быть пустым
+            local key_code
+            if [ -n "$key" ]; then
+                # Получаем ASCII код символа
+                key_code=$(printf '%d' "'$key" 2>/dev/null || echo 0)
+            else
+                # Пустая строка - это может быть быть Enter в некоторых режимах
+                key_code=13  # Трактуем пустую строку как CR
+            fi
+            
+            # Проверяем это Enter (ASCII 10 = LF, 13 = CR)
+            if [ "$key_code" -eq 10 ] || [ "$key_code" -eq 13 ]; then
+                # Enter нажата - восстанавливаем режим и выполняем действие
+                stty "$original_stty" 2>/dev/null || true
+                
+                case $selected in
+                    0)  # Установить
+                        echo
+                        exec "$0" --install
+                        ;;
+                    1)  # Выход
+                        clear
+                        exit 0
+                        ;;
+                esac
+            fi
+        fi
+    done
 }
 
 # Полное меню при установленном боте
