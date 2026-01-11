@@ -168,33 +168,29 @@ manage_update_bot() {
         update_choice=$(echo "$update_choice" | tr '[:upper:]' '[:lower:]')
         if [ "$update_choice" = "y" ] || [ "$update_choice" = "да" ]; then
             # Копируем новые файлы из временного репозитория
+            echo -n -e "${GREEN}🔄${NC} Загрузка обновления "
             {
                 cd "$TEMP_REPO" || return
                 find . -type f ! -path "./.git/*" ! -path "./.github/*" ! -name ".gitignore" ! -name ".env*" -print0 | while IFS= read -r -d '' file; do
-                    # Получаем имя файла относительно текущей папки
                     target_file="${file#./}"
-                    # Получаем директорию файла
                     target_dir="$PROJECT_DIR/$(dirname "$target_file")"
-                    # Создаём директорию если её нет
                     mkdir -p "$target_dir" 2>/dev/null || true
-                    # Копируем файл
                     cp -f "$file" "$target_dir/" 2>/dev/null || true
                 done
-            } >/dev/null 2>&1 &
-            show_spinner "Загрузка обновления"
+            } >/dev/null 2>&1 && echo -e "${GREEN}✅${NC}"
             
+            echo -n -e "${GREEN}🔧${NC} Настройка обновлений "
             {
                 cd "$PROJECT_DIR" || return
                 docker compose down >/dev/null 2>&1
-            } >/dev/null 2>&1 &
-            show_spinner "Настройка обновлений"
+            } >/dev/null 2>&1 && echo -e "${GREEN}✅${NC}"
             
+            echo -n -e "${GREEN}🚀${NC} Перегрузка бота "
             {
                 cd "$PROJECT_DIR" || return
                 docker compose build --no-cache >/dev/null 2>&1
                 docker compose up -d >/dev/null 2>&1
-            } >/dev/null 2>&1 &
-            show_spinner "Перегрузка бота"
+            } >/dev/null 2>&1 && echo -e "${GREEN}✅${NC}"
             
             echo -e "${GREEN}✅ Бот обновлен${NC}"
         fi
