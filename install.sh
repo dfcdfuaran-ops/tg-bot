@@ -65,6 +65,31 @@ print_action() { printf "${BLUE}➜${NC}  %b\n" "$1"; }
 print_error()  { printf "${RED}✖ %b${NC}\n" "$1"; }
 print_success() { printf "${GREEN}✅${NC} %b\n" "$1"; }
 
+# Функция для подтверждения действия (Enter/Esc)
+confirm_action() {
+    local message="${1:-Продолжить?}"
+    echo -e "${DARKGRAY}Нажмите Enter для подтверждения или Esc для отмены${NC}"
+    
+    # Ожидаем нажатия Enter или Esc
+    local original_stty=$(stty -g)
+    stty -icanon -echo min 1 time 0
+    local key=""
+    read -rsn1 key 2>/dev/null || key=""
+    stty "$original_stty"
+    
+    # Проверяем нажал ли пользователь Enter (ASCII 13 или 10) или Esc (ASCII 27)
+    if [ "$key" = $'\033' ] || [ "$key" = $'\x1b' ]; then
+        # Esc - отмена
+        echo -e "${YELLOW}ℹ️  Отменено${NC}"
+        sleep 1
+        return 1
+    elif [ -z "$key" ] || [ "$(printf '%d' "'$key")" -eq 13 ] || [ "$(printf '%d' "'$key")" -eq 10 ]; then
+        # Enter - подтверждение
+        return 0
+    fi
+    return 1
+}
+
 # Функция для безопасного обновления переменной в .env файле
 update_env_var() {
     local env_file="$1"
@@ -671,13 +696,9 @@ manage_cleanup_database() {
     echo -e "${BLUE}========================================${NC}"
     echo
     echo -e "${RED}⚠️  Внимание!${NC} Это удалит всех пользователей и данные!"
-    read -p "Вы уверены? (Y/n): " confirm
-    confirm=${confirm:-y}
-    confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')
+    echo
     
-    if [ "$confirm" != "y" ] && [ "$confirm" != "да" ]; then
-        echo -e "${YELLOW}ℹ️  Отменено${NC}"
-        sleep 1
+    if ! confirm_action; then
         return
     fi
     
@@ -714,59 +735,33 @@ manage_uninstall_bot() {
     echo -e "${BLUE}========================================${NC}"
     echo
     echo -e "${RED}⚠️  Внимание!${NC} Это удалит весь бот и все данные!"
-    echo -e "${DARKGRAY}Нажмите Enter для удаления или Esc для отмены${NC}"
+    echo
     
-    # Ожидаем нажатия Enter или Esc
-    local original_stty=$(stty -g)
-    stty -icanon -echo min 1 time 0
-    local delete_key=""
-    read -rsn1 delete_key 2>/dev/null || delete_key=""
-    stty "$original_stty"
-    
-    # Проверяем нажал ли пользователь Enter (ASCII 13 или 10) или Esc (ASCII 27)
-    if [ "$delete_key" = $'\033' ] || [ "$delete_key" = $'\x1b' ]; then
-        # Esc - отмена, возвращаем в меню
-        echo -e "${YELLOW}ℹ️  Отменено${NC}"
-        sleep 1
+    if ! confirm_action; then
         return
-    elif [ -z "$delete_key" ] || [ "$(printf '%d' "'$delete_key")" -eq 13 ] || [ "$(printf '%d' "'$delete_key")" -eq 10 ]; then
-        # Enter - начало удаления
-        # Очищаем предыдущую информацию (надпись об удалении)
-        tput rc 2>/dev/null || true
-        tput ed 2>/dev/null || true
-        tput cnorm 2>/dev/null || true
-        
-        # Остановка контейнеров и удаление
-        {
-            cd "$PROJECT_DIR" || return
-            docker compose down >/dev/null 2>&1 || true
-            cd /opt
-            rm -rf "$PROJECT_DIR"
-        } &
-        show_spinner "Удаление бота и контейнеров"
-        
-        # Удаляем глобальную команду
-        {
-            sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
-        } &
-        show_spinner "Удаление ярлыка команды"
-        
-        echo
-        echo -e "${GREEN}✅ Бот успешно удален${NC}"
-        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-        echo
-        
-        # Ожидаем нажатия Enter
-        local original_stty_continue=$(stty -g)
-        stty -icanon -echo min 1 time 0
-        local continue_key=""
-        read -rsn1 continue_key 2>/dev/null || continue_key=""
-        stty "$original_stty_continue"
-        
-        # Очищаем экран
-        clear
-        exit 0
     fi
+    
+    echo
+    
+    # Остановка контейнеров и удаление
+    {
+        cd "$PROJECT_DIR" || return
+        docker compose down >/dev/null 2>&1 || true
+        cd /opt
+        rm -rf "$PROJECT_DIR"
+    } &
+    show_spinner "Удаление бота и контейнеров"
+    
+    # Удаляем глобальную команду
+    {
+        sudo rm -f /usr/local/bin/tg-sell-bot 2>/dev/null || true
+    } &
+    show_spinner "Удаление ярлыка команды"
+    
+    echo
+    echo -e "${GREEN}✅ Бот успешно удален${NC}"
+    sleep 1
+}
 }
 
 # Функция очистки при ошибке или отмене
