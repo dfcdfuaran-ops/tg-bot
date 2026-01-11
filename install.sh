@@ -7,6 +7,7 @@ SOURCE_DIR=""
 CLEANUP_DIRS=()
 TEMP_REPO=""
 SCRIPT_CWD="$(cd "$(dirname "$0")" && pwd)"
+CLONE_DIR=""
 
 # Переменные путей
 PROJECT_DIR="/opt/tg-sell-bot"
@@ -741,6 +742,12 @@ cleanup_on_error() {
         echo
     fi
     
+    # Удаляем временную папку клонирования если она была создана
+    if [ -n "$CLONE_DIR" ] && [ -d "$CLONE_DIR" ]; then
+        cd /opt 2>/dev/null || true
+        rm -rf "$CLONE_DIR" 2>/dev/null || true
+    fi
+    
     exit $exit_code
 }
 
@@ -759,6 +766,40 @@ trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXI
 
 # Режим установки: dev или prod
 INSTALL_MODE="dev"
+
+# Если это первый запуск (не из временной папки), клонируем репозиторий в /tmp
+if [ "$1" != "--install" ] && [ ! -d "/tmp/tg-bot-install-$$" ]; then
+    # Проверяем режим если скрипт вызван без аргументов --install
+    if [ "$1" != "--prod" ] && [ "$1" != "-p" ]; then
+        check_mode "$1"
+    fi
+    
+    # Если нужна установка, создаем временную папку и клонируем туда
+    if [ "$1" = "--install" ] || [ -z "$1" ]; then
+        # Это будет обработано ниже после check_mode
+        :
+    fi
+    
+    if [ "$1" = "--prod" ] || [ "$1" = "-p" ]; then
+        INSTALL_MODE="prod"
+    fi
+    
+    # Если скрипт запущен с флагом установки, создаем временную папку и переклонируемся туда
+    if [ "$1" = "--install" ]; then
+        CLONE_DIR=$(mktemp -d /tmp/tg-bot-install-XXXXXX)
+        trap "cd /opt 2>/dev/null || true; rm -rf '$CLONE_DIR' 2>/dev/null || true" EXIT
+        git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$CLONE_DIR" >/dev/null 2>&1
+        cd "$CLONE_DIR"
+        exec "$CLONE_DIR/install.sh" --install "$$"
+    fi
+else
+    # Это повторный запуск из временной папки
+    CLONE_DIR="/tmp/tg-bot-install-$2"
+    INSTALL_MODE="$3"
+    if [ "$INSTALL_MODE" = "prod" ] || [ "$INSTALL_MODE" = "-p" ]; then
+        INSTALL_MODE="prod"
+    fi
+fi
 
 # Проверяем режим если скрипт вызван без аргументов --install
 if [ "$1" != "--install" ] && [ "$1" != "--prod" ] && [ "$1" != "-p" ]; then
@@ -1167,3 +1208,8 @@ EOF
 echo -e "${WHITE}✅ Команда вызова меню бота:${NC} ${YELLOW}tg-sell-bot${NC}"
 
 cd /opt
+
+# Удаляем временную папку клонирования если она была создана
+if [ -n "$CLONE_DIR" ] && [ -d "$CLONE_DIR" ]; then
+    rm -rf "$CLONE_DIR" 2>/dev/null || true
+fi
