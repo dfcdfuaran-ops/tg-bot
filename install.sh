@@ -135,6 +135,25 @@ print_action() { printf "${BLUE}➜${NC}  %b\n" "$1"; }
 print_error()  { printf "${RED}✖ %b${NC}\n" "$1"; }
 print_success() { printf "${GREEN}✅${NC} %b\n" "$1"; }
 
+# Функция для безопасного обновления переменной в .env файле
+update_env_var() {
+    local env_file="$1"
+    local var_name="$2"
+    local var_value="$3"
+    
+    # Экранируем спецсимволы для sed
+    local escaped_value=$(printf '%s\n' "$var_value" | sed -e 's/[\/&]/\\&/g')
+    
+    # Проверяем, существует ли переменная в файле
+    if grep -q "^${var_name}=" "$env_file"; then
+        # Заменяем существующее значение
+        sed -i "s|^${var_name}=.*|${var_name}=${escaped_value}|" "$env_file"
+    else
+        # Добавляем новую переменную
+        echo "${var_name}=${var_value}" >> "$env_file"
+    fi
+}
+
 # Безопасный ввод
 safe_read() {
   local prompt="$1"
@@ -312,7 +331,7 @@ if [ -z "$APP_DOMAIN" ]; then
     print_error "Домен не может быть пустым!"
     exit 1
 fi
-sed -i "s|^APP_DOMAIN=.*|APP_DOMAIN=${APP_DOMAIN}|" "$ENV_FILE"
+update_env_var "$ENV_FILE" "APP_DOMAIN" "$APP_DOMAIN"
 
 # BOT_TOKEN
 echo ""
@@ -321,7 +340,7 @@ if [ -z "$BOT_TOKEN" ]; then
     print_error "BOT_TOKEN не может быть пустым!"
     exit 1
 fi
-sed -i "s|^BOT_TOKEN=.*|BOT_TOKEN=${BOT_TOKEN}|" "$ENV_FILE"
+update_env_var "$ENV_FILE" "BOT_TOKEN" "$BOT_TOKEN"
 
 # BOT_DEV_ID
 safe_read "${YELLOW}➜ Введите телеграм ID разработчика:${NC} " BOT_DEV_ID
@@ -329,12 +348,12 @@ if [ -z "$BOT_DEV_ID" ]; then
     print_error "BOT_DEV_ID не может быть пустым!"
     exit 1
 fi
-sed -i "s|^BOT_DEV_ID=.*|BOT_DEV_ID=${BOT_DEV_ID}|" "$ENV_FILE"
+update_env_var "$ENV_FILE" "BOT_DEV_ID" "$BOT_DEV_ID"
 
 # BOT_SUPPORT_USERNAME
 safe_read "${YELLOW}➜ Введите username группы поддержки (без @):${NC} " BOT_SUPPORT_USERNAME
 echo
-sed -i "s|^BOT_SUPPORT_USERNAME=.*|BOT_SUPPORT_USERNAME=${BOT_SUPPORT_USERNAME}|" "$ENV_FILE"
+update_env_var "$ENV_FILE" "BOT_SUPPORT_USERNAME" "$BOT_SUPPORT_USERNAME"
 
 # REMNAWAVE_TOKEN
 safe_read "${YELLOW}➜ Введите API Токен Remnawave:${NC} " REMNAWAVE_TOKEN
@@ -342,7 +361,7 @@ if [ -z "$REMNAWAVE_TOKEN" ]; then
     print_error "REMNAWAVE_TOKEN не может быть пустым!"
     exit 1
 fi
-sed -i "s|^REMNAWAVE_TOKEN=.*|REMNAWAVE_TOKEN=${REMNAWAVE_TOKEN}|" "$ENV_FILE"
+update_env_var "$ENV_FILE" "REMNAWAVE_TOKEN" "$REMNAWAVE_TOKEN"
 
 echo ""
 echo -e "${BLUE}========================================${NC}"
@@ -362,27 +381,27 @@ show_spinner "Сборка Docker образа"
   # Автогенерация ключей
   if grep -q "^APP_CRYPT_KEY=$" "$ENV_FILE"; then
     APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')
-    sed -i "s|^APP_CRYPT_KEY=.*|APP_CRYPT_KEY=${APP_CRYPT_KEY}|" "$ENV_FILE"
+    update_env_var "$ENV_FILE" "APP_CRYPT_KEY" "$APP_CRYPT_KEY"
   fi
 
   if grep -q "^BOT_SECRET_TOKEN=$" "$ENV_FILE"; then
     BOT_SECRET_TOKEN=$(openssl rand -hex 32)
-    sed -i "s|^BOT_SECRET_TOKEN=.*|BOT_SECRET_TOKEN=${BOT_SECRET_TOKEN}|" "$ENV_FILE"
+    update_env_var "$ENV_FILE" "BOT_SECRET_TOKEN" "$BOT_SECRET_TOKEN"
   fi
 
   if grep -q "^DATABASE_PASSWORD=$" "$ENV_FILE"; then
     DATABASE_PASSWORD=$(openssl rand -hex 16)
-    sed -i "s|^DATABASE_PASSWORD=.*|DATABASE_PASSWORD=${DATABASE_PASSWORD}|" "$ENV_FILE"
+    update_env_var "$ENV_FILE" "DATABASE_PASSWORD" "$DATABASE_PASSWORD"
   fi
 
   if grep -q "^REDIS_PASSWORD=$" "$ENV_FILE"; then
     REDIS_PASSWORD=$(openssl rand -hex 16)
-    sed -i "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=${REDIS_PASSWORD}|" "$ENV_FILE"
+    update_env_var "$ENV_FILE" "REDIS_PASSWORD" "$REDIS_PASSWORD"
   fi
 
   if grep -q "^REMNAWAVE_WEBHOOK_SECRET=$" "$ENV_FILE"; then
     REMNAWAVE_WEBHOOK_SECRET=$(openssl rand -hex 32)
-    sed -i "s|^REMNAWAVE_WEBHOOK_SECRET=.*|REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_WEBHOOK_SECRET}|" "$ENV_FILE"
+    update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_WEBHOOK_SECRET"
   fi
 ) &
 show_spinner "Создание конфигурации"
@@ -406,11 +425,7 @@ show_spinner "Создание конфигурации"
       REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
 
       if [ -n "$REMNAWAVE_SECRET" ]; then
-          if grep -q "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE"; then
-              sed -i "s|^REMNAWAVE_WEBHOOK_SECRET=.*|REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}|" "$ENV_FILE"
-          else
-              echo "REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}" >> "$ENV_FILE"
-          fi
+          update_env_var "$ENV_FILE" "REMNAWAVE_WEBHOOK_SECRET" "$REMNAWAVE_SECRET"
       fi
 
       # 3. Подставляем домен пользователя в WEBHOOK_URL
