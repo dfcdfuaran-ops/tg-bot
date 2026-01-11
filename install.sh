@@ -143,8 +143,8 @@ show_full_menu() {
     local original_stty=$(stty -g 2>/dev/null)
     trap "stty '$original_stty' 2>/dev/null || true; set -e" EXIT
     
-    # Отключаем canonical mode и echo
-    stty -echo -icanon time 0 min 0 2>/dev/null || true
+    # Отключаем canonical mode и echo, но включаем обработку Enter
+    stty -echo -icanon time 0 min 1 2>/dev/null || true
     
     while true; do
         clear
@@ -170,30 +170,34 @@ show_full_menu() {
         echo
         echo -e "${GRAY}Используйте ↑ ↓ для навигации, Enter для выбора${NC}"
         
-        # Читаем нажатие клавиши с помощью read -t (non-blocking)
+        # Читаем нажатие клавиши - блокирующее чтение
         local key
-        if read -rsn1 -t 0.1 key 2>/dev/null || true; then
-            # Проверяем является ли это началом escape-последовательности
-            if [[ "$key" == $'\e' ]]; then
-                # Читаем остаток escape-последовательности
-                local seq=""
-                if read -rsn2 -t 0.1 seq 2>/dev/null || true; then
-                    case "$seq" in
-                        '[A')  # Стрелка вверх
-                            ((selected--))
-                            if [ $selected -lt 0 ]; then
-                                selected=$((num_options - 1))
-                            fi
-                            ;;
-                        '[B')  # Стрелка вниз
-                            ((selected++))
-                            if [ $selected -ge $num_options ]; then
-                                selected=0
-                            fi
-                            ;;
-                    esac
-                fi
-            elif [[ "$key" == $'\n' ]] || [[ "$key" == $'\r' ]]; then
+        read -rsn1 key 2>/dev/null || true
+        
+        # Проверяем является ли это началом escape-последовательности (стрелка)
+        if [[ "$key" == $'\e' ]]; then
+            # Читаем остаток escape-последовательности для стрелок
+            local seq=""
+            read -rsn2 seq 2>/dev/null || true
+            
+            case "$seq" in
+                '[A')  # Стрелка вверх
+                    ((selected--))
+                    if [ $selected -lt 0 ]; then
+                        selected=$((num_options - 1))
+                    fi
+                    ;;
+                '[B')  # Стрелка вниз
+                    ((selected++))
+                    if [ $selected -ge $num_options ]; then
+                        selected=0
+                    fi
+                    ;;
+            esac
+        else
+            # Проверяем Enter (может быть \r или \n в зависимости от терминала)
+            local key_code=$(printf '%d' "'$key")
+            if [ "$key_code" -eq 10 ] || [ "$key_code" -eq 13 ] || [[ "$key" == $'\n' ]] || [[ "$key" == $'\r' ]]; then
                 # Enter нажата - восстанавливаем нормальный режим и выполняем действие
                 stty "$original_stty" 2>/dev/null || true
                 
@@ -211,20 +215,20 @@ show_full_menu() {
                             sleep 2
                         fi
                         # Восстанавливаем raw mode для следующей итерации
-                        stty -echo -icanon time 0 min 0 2>/dev/null || true
+                        stty -echo -icanon time 0 min 1 2>/dev/null || true
                         ;;
                     1)  # Проверить обновления
                         manage_update_bot
                         # Восстанавливаем raw mode
-                        stty -echo -icanon time 0 min 0 2>/dev/null || true
+                        stty -echo -icanon time 0 min 1 2>/dev/null || true
                         ;;
                     2)  # Изменить настройки
                         manage_change_settings
-                        stty -echo -icanon time 0 min 0 2>/dev/null || true
+                        stty -echo -icanon time 0 min 1 2>/dev/null || true
                         ;;
                     3)  # Очистить данные
                         manage_cleanup_database
-                        stty -echo -icanon time 0 min 0 2>/dev/null || true
+                        stty -echo -icanon time 0 min 1 2>/dev/null || true
                         ;;
                     4)  # Удалить бота
                         manage_uninstall_bot
