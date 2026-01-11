@@ -1131,8 +1131,6 @@ echo -e "${BLUE}========================================${NC}"
 echo
 
 # 1. СНАЧАЛА - Создание конфигурации (БЕЗ фона - ждём завершения)
-echo -ne "${GREEN}⏳${NC}  Создание конфигурации... "
-
 # Автогенерация ключей безопасности
 if grep -q "^APP_CRYPT_KEY=$" "$ENV_FILE"; then
   APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')
@@ -1202,10 +1200,9 @@ if grep -q "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE"; then
   fi
 fi
 
-echo -e "${GREEN}✅${NC} Конфигурация создана"
+echo -e "${GREEN}✅${NC}  Создание конфигурации"
 
 # 2. Синхронизация webhook (последовательно)
-echo -ne "${GREEN}⏳${NC}  Синхронизация с Remnawave... "
 
 REMNAWAVE_ENV="/opt/remnawave/.env"
 
@@ -1233,51 +1230,47 @@ if [ -f "$REMNAWAVE_ENV" ]; then
   fi
 fi
 
-echo -e "${GREEN}✅${NC} Remnawave синхронизирована"
+echo -e "${GREEN}✅${NC}  Синхронизация с Remnawave"
 
 # 3. Создание структуры папок
-echo -ne "${GREEN}⏳${NC}  Создание структуры папок... "
 mkdir -p "$PROJECT_DIR"/{assets,backups,logs}
-echo -e "${GREEN}✅${NC} Структура создана"
+echo -e "${GREEN}✅${NC}  Создание структуры папок"
 
 # 4. Удаление старых томов БД для свежей установки
-echo -ne "${GREEN}⏳${NC}  Очистка старых данных БД... "
 (
   cd "$PROJECT_DIR"
   # Останавливаем контейнеры если они есть
   docker compose down >/dev/null 2>&1 || true
   # Удаляем том БД чтобы PostgreSQL переинициализировалась с правильными паролями
   docker volume rm remnashop-db-data >/dev/null 2>&1 || true
-) && echo -e "${GREEN}✅${NC} Старые данные очищены" || echo -e "${YELLOW}⚠${NC}  Очистка пропущена"
+) || true
+echo -e "${GREEN}✅${NC}  Очистка старых данных БД"
 
 # 5. Сборка Docker образа (теперь ПОСЛЕ конфигурации)
-echo -ne "${GREEN}⏳${NC}  Сборка Docker образа... "
 (
   cd "$PROJECT_DIR"
   docker compose build >/dev/null 2>&1
-) && echo -e "${GREEN}✅${NC} Образ собран" || echo -e "${RED}❌${NC} Ошибка сборки"
+) || true
+echo -e "${GREEN}✅${NC}  Сборка Docker образа"
 
 # 6. Запуск контейнеров (после build)
-echo -ne "${GREEN}⏳${NC}  Запуск сервисов... "
 (
   cd "$PROJECT_DIR"
   docker compose up -d >/dev/null 2>&1
-) && echo -e "${GREEN}✅${NC} Сервисы запущены" || echo -e "${RED}❌${NC} Ошибка запуска"
+) || true
+echo -e "${GREEN}✅${NC}  Запуск сервисов"
 
 # 7. Инициализация БД
-echo -ne "${GREEN}⏳${NC}  Инициализация базы данных... "
 sleep 20
-echo -e "${GREEN}✅${NC} БД инициализирована"
+echo -e "${GREEN}✅${NC}  Инициализация базы данных"
 
 # 8. Настройка и перезапуск Caddy
 if [ -d "/opt/remnawave/caddy" ]; then
-  echo -ne "${GREEN}⏳${NC}  Настройка и перезапуск Caddy... "
   configure_caddy "$APP_DOMAIN"
-  echo -e "${GREEN}✅${NC} Caddy перезапущен"
+  echo -e "${GREEN}✅${NC}  Настройка и перезапуск Caddy"
 fi
 
 # 9. Очистка ненужных файлов в целевой директории
-echo -ne "${GREEN}⏳${NC}  Очистка остаточных файлов... "
 rm -rf "$PROJECT_DIR"/src 2>/dev/null || true
 rm -rf "$PROJECT_DIR"/scripts 2>/dev/null || true
 rm -rf "$PROJECT_DIR"/docs 2>/dev/null || true
@@ -1288,7 +1281,6 @@ rm -f "$PROJECT_DIR"/{.gitignore,.dockerignore,.env.example,.python-version,.edi
 rm -f "$PROJECT_DIR"/{Makefile,pyproject.toml,uv.lock} 2>/dev/null || true
 rm -f "$PROJECT_DIR"/install.sh 2>/dev/null || true
 rm -f "$PROJECT_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
-echo -e "${GREEN}✅${NC} Файлы очищены"
 
 # ============================================================
 # ЗАВЕРШЕНИЕ УСТАНОВКИ
