@@ -238,48 +238,6 @@ show_spinner "Создание окружения"
 ) &
 show_spinner "Инициализация конфигурации"
 
-# ============================================================
-# СИНХРОНИЗАЦИЯ WEBHOOK С REMNAWAVE
-# ============================================================
-
-(
-  REMNAWAVE_ENV="/opt/remnawave/.env"
-
-  if [ -f "$REMNAWAVE_ENV" ]; then
-      print_success "Найден файл remnawave .env"
-
-      # ----------------------------
-      # 1. Копируем WEBHOOK_SECRET_HEADER → REMNAWAVE_WEBHOOK_SECRET
-      # ----------------------------
-      REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
-
-      if [ -n "$REMNAWAVE_SECRET" ]; then
-          if grep -q "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE"; then
-              sed -i "s|^REMNAWAVE_WEBHOOK_SECRET=.*|REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}|" "$ENV_FILE"
-          else
-              echo "REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}" >> "$ENV_FILE"
-          fi
-          print_success "REMNAWAVE_WEBHOOK_SECRET скопирован из remnawave"
-      else
-          print_warning "WEBHOOK_SECRET_HEADER не найден в remnawave .env"
-      fi
-
-      # ----------------------------
-      # 2. Подставляем домен в WEBHOOK_URL
-      # ----------------------------
-      if grep -q "^WEBHOOK_URL=" "$REMNAWAVE_ENV"; then
-          sed -i "s|^WEBHOOK_URL=.*|WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave|" "$REMNAWAVE_ENV"
-          print_success "WEBHOOK_URL обновлён с доменом ${APP_DOMAIN}"
-      else
-          echo "WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave" >> "$REMNAWAVE_ENV"
-          print_success "WEBHOOK_URL добавлён в remnawave .env"
-      fi
-  else
-      print_warning "Файл /opt/remnawave/.env не найден — webhook не синхронизирован"
-  fi
-) &
-show_spinner "Синхронизация webhook с Remnawave"
-
 # 4. Автоопределение реверс-прокси
 if [ -d "/opt/remnawave/caddy" ]; then
   REVERSE_PROXY="caddy"
@@ -381,6 +339,47 @@ show_spinner "Сборка Docker образа"
   fi
 ) &
 show_spinner "Создание конфигурации"
+
+# ============================================================
+# СИНХРОНИЗАЦИЯ WEBHOOK С REMNAWAVE (ПОСЛЕ ВВОДА APP_DOMAIN)
+# ============================================================
+
+(
+  REMNAWAVE_ENV="/opt/remnawave/.env"
+
+  if [ -f "$REMNAWAVE_ENV" ]; then
+      print_success "Найден файл remnawave .env"
+
+      # 1. Копируем WEBHOOK_SECRET_HEADER → REMNAWAVE_WEBHOOK_SECRET
+      REMNAWAVE_SECRET=$(grep "^WEBHOOK_SECRET_HEADER=" "$REMNAWAVE_ENV" | cut -d'=' -f2)
+
+      if [ -n "$REMNAWAVE_SECRET" ]; then
+          if grep -q "^REMNAWAVE_WEBHOOK_SECRET=" "$ENV_FILE"; then
+              sed -i "s|^REMNAWAVE_WEBHOOK_SECRET=.*|REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}|" "$ENV_FILE"
+          else
+              echo "REMNAWAVE_WEBHOOK_SECRET=${REMNAWAVE_SECRET}" >> "$ENV_FILE"
+          fi
+          print_success "REMNAWAVE_WEBHOOK_SECRET скопирован из remnawave"
+      else
+          print_warning "WEBHOOK_SECRET_HEADER не найден в remnawave .env"
+      fi
+
+      # 2. Подставляем домен пользователя в WEBHOOK_URL
+      if [ -n "$APP_DOMAIN" ]; then
+          if grep -q "^WEBHOOK_URL=" "$REMNAWAVE_ENV"; then
+              sed -i "s|^WEBHOOK_URL=.*|WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave|" "$REMNAWAVE_ENV"
+          else
+              echo "WEBHOOK_URL=https://${APP_DOMAIN}/api/v1/remnawave" >> "$REMNAWAVE_ENV"
+          fi
+          print_success "WEBHOOK_URL обновлён: https://${APP_DOMAIN}/api/v1/remnawave"
+      else
+          print_warning "APP_DOMAIN пуст — WEBHOOK_URL не обновлён"
+      fi
+  else
+      print_warning "Файл /opt/remnawave/.env не найден — webhook пропущен"
+  fi
+) &
+show_spinner "Синхронизация webhook с Remnawave"
 
 # 3. Создание структуры папок
 (
