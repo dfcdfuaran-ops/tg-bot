@@ -163,26 +163,40 @@ manage_update_bot() {
         echo -e "${GREEN}✅ Бот уже на последней версии${NC}"
     else
         echo -e "${YELLOW}📦 Доступно обновление!${NC}"
-        read -p "Обновить? (да/нет): " update_choice
-        if [ "$update_choice" = "да" ]; then
-            echo -e "${WHITE}📥 Загружаю обновления...${NC}"
-            
+        read -p "Обновить? (Y/n): " update_choice
+        update_choice=${update_choice:-y}  # По умолчанию Y если Enter нажали
+        update_choice=$(echo "$update_choice" | tr '[:upper:]' '[:lower:]')
+        if [ "$update_choice" = "y" ] || [ "$update_choice" = "да" ]; then
             # Копируем новые файлы из временного репозитория
-            cd "$TEMP_REPO" || return
+            (
+                cd "$TEMP_REPO" || return
+                find . -type f ! -path "./.git/*" ! -path "./.github/*" ! -name ".gitignore" ! -name ".env*" -print0 | while IFS= read -r -d '' file; do
+                    # Получаем имя файла относительно текущей папки
+                    target_file="${file#./}"
+                    # Получаем директорию файла
+                    target_dir="$PROJECT_DIR/$(dirname "$target_file")"
+                    # Создаём директорию если её нет
+                    mkdir -p "$target_dir" 2>/dev/null || true
+                    # Копируем файл
+                    cp -f "$file" "$target_dir/" 2>/dev/null || true
+                done
+                wait
+            ) &
+            show_spinner "Загрузка обновления"
             
-            # Копируем только необходимые файлы (исключаем .git, .env, logs и т.д.)
-            for file in $(find . -maxdepth 2 -type f ! -path "./.git/*" ! -path "./.github/*" ! -name ".gitignore" ! -name ".env*"); do
-                dir=$(dirname "$file" | sed 's|^\./||')
-                mkdir -p "$PROJECT_DIR/$dir" 2>/dev/null || true
-                cp "$file" "$PROJECT_DIR/$dir/" 2>/dev/null || true
-            done
+            (
+                cd "$PROJECT_DIR" || return
+                docker compose down >/dev/null 2>&1
+            ) &
+            show_spinner "Настройка обновлений"
             
-            cd "$PROJECT_DIR" || return
+            (
+                cd "$PROJECT_DIR" || return
+                docker compose build --no-cache >/dev/null 2>&1
+                docker compose up -d >/dev/null 2>&1
+            ) &
+            show_spinner "Перегрузка бота"
             
-            # Перестраиваем контейнеры
-            docker compose down >/dev/null 2>&1
-            docker compose build --no-cache >/dev/null 2>&1
-            docker compose up -d >/dev/null 2>&1
             echo -e "${GREEN}✅ Бот обновлен${NC}"
         fi
     fi
