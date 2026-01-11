@@ -214,10 +214,43 @@ manage_update_bot() {
         if [ "$update_choice" = "y" ] || [ "$update_choice" = "да" ]; then
             echo
             
-            # Копируем новые файлы
+            # Копируем новые файлы, исключая развёрнутые файлы
             {
                 cd "$TEMP_REPO" || return
-                find . -type f ! -path "./.git/*" ! -path "./.github/*" ! -name ".gitignore" ! -name ".env*" -print0 | while IFS= read -r -d '' file; do
+                
+                # Создаём функцию для проверки игнорирования
+                should_ignore() {
+                    local file="$1"
+                    local pattern
+                    
+                    # Жёсткие исключения (всегда игнорировать)
+                    case "$file" in
+                        ./.git*|./.github*|./.gitignore|./.gitattributes|./.env.example)
+                            return 0  # ignore
+                            ;;
+                    esac
+                    
+                    # Проверяем .deployignore если он существует
+                    if [ -f ".deployignore" ]; then
+                        while IFS= read -r pattern; do
+                            # Пропускаем пустые строки и комментарии
+                            [[ -z "$pattern" || "$pattern" =~ ^# ]] && continue
+                            # Проверяем на совпадение (простая проверка)
+                            if [[ "$file" == "$pattern"* ]] || [[ "$file" =~ $pattern ]]; then
+                                return 0  # ignore
+                            fi
+                        done < ".deployignore"
+                    fi
+                    
+                    return 1  # don't ignore
+                }
+                
+                find . -type f -print0 | while IFS= read -r -d '' file; do
+                    # Пропускаем игнорируемые файлы
+                    if should_ignore "$file"; then
+                        continue
+                    fi
+                    
                     target_file="${file#./}"
                     target_dir="$PROJECT_DIR/$(dirname "$target_file")"
                     mkdir -p "$target_dir" 2>/dev/null || true
