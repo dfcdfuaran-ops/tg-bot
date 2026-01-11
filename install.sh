@@ -772,10 +772,8 @@ echo -e "${WHITE}✅ Бот успешно установлен в:${NC} ${GREEN
 
 # Удаление исходной папки если она не в /opt/tg-sell-bot
 if [ "$COPY_FILES" = true ] && [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ]; then
-    echo -e "${WHITE}🧹 Удаление временных файлов...${NC}"
     cd /opt
     rm -rf "$SOURCE_DIR" 2>/dev/null || true
-    echo -e "${GREEN}✅ Временные файлы удалены${NC}"
 fi
 
 echo
@@ -784,16 +782,14 @@ echo
 INSTALL_STARTED=false
 
 # Создание глобальной команды tg-sell-bot
-echo
-echo -e "${WHITE}📋 Создание глобальной команды tg-sell-bot...${NC}"
 (
     sudo tee /usr/local/bin/tg-sell-bot > /dev/null << 'EOF'
 #!/bin/bash
 exec /opt/tg-bot/install.sh
 EOF
     sudo chmod +x /usr/local/bin/tg-sell-bot
-) >/dev/null 2>&1 && echo -e "${GREEN}✅ Команда tg-sell-bot создана${NC}" || echo -e "${YELLOW}⚠️ Не удалось создать глобальную команду${NC}"
+) >/dev/null 2>&1
 
-echo -e "${WHITE}Использование:${NC} ${YELLOW}tg-sell-bot${NC}"
+echo -e "${WHITE}✅ Команда вызова меню бота:${NC} ${YELLOW}tg-sell-bot${NC}"
 
 cd /opt
