@@ -402,7 +402,6 @@ show_full_menu() {
                         ;;
                     4)  # Удалить бота
                         manage_uninstall_bot
-                        exit 0
                         ;;
                     5)  # Выход
                         clear
@@ -726,8 +725,9 @@ manage_uninstall_bot() {
     
     # Проверяем нажал ли пользователь Enter (ASCII 13 или 10) или Esc (ASCII 27)
     if [ "$delete_key" = $'\033' ] || [ "$delete_key" = $'\x1b' ]; then
-        # Esc - отмена
+        # Esc - отмена, возвращаем в меню
         echo -e "${YELLOW}ℹ️  Отменено${NC}"
+        sleep 1
         return
     elif [ -z "$delete_key" ] || [ "$(printf '%d' "'$delete_key")" -eq 13 ] || [ "$(printf '%d' "'$delete_key")" -eq 10 ]; then
         # Enter - начало удаления
