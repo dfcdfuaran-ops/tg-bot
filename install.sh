@@ -18,7 +18,7 @@ NC='\033[0m'
 DARKGRAY='\033[1;30m'
 
 # Показать курсор при выходе
-trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true; cleanup_source_dir' EXIT
+trap 'tput cnorm >/dev/null 2>&1 || true; tput sgr0 >/dev/null 2>&1 || true' EXIT
 
 # Путь к .env файлу
 PROJECT_DIR="/opt/tg-sell-bot"
@@ -29,25 +29,6 @@ INSTALL_MODE="dev"
 if [ "$1" = "--prod" ] || [ "$1" = "-p" ]; then
     INSTALL_MODE="prod"
 fi
-
-# Определяем исходную директорию скрипта
-SCRIPT_PATH="$(realpath "$0")"
-SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
-SOURCE_DIR="$SCRIPT_DIR"
-
-# Функция для очистки исходной папки
-cleanup_source_dir() {
-    # Удаляем исходную папку только если она не /opt/tg-sell-bot и не корневая
-    if [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ] && [ -d "$SOURCE_DIR" ]; then
-        # Сохраняем путь к родительской директории
-        PARENT_DIR="$(dirname "$SOURCE_DIR")"
-        
-        # Удаляем папку из родительской директории
-        if [ -d "$SOURCE_DIR" ]; then
-            rm -rf "$SOURCE_DIR" 2>/dev/null || true
-        fi
-    fi
-}
 
 clear
 echo -e "${BLUE}========================================${NC}"
@@ -119,21 +100,6 @@ read_input() {
     echo "$input"
 }
 
-read_webhook_secret() {
-    local remnawave_env="/opt/remnawave/.env"
-    
-    if [ -f "$remnawave_env" ]; then
-        local secret=$(grep "^WEBHOOK_SECRET_HEADER=" "$remnawave_env" | cut -d'=' -f2)
-        if [ -n "$secret" ]; then
-            echo "$secret"
-            return
-        fi
-    fi
-    
-    # Если не найдено в файле, просим ввести вручную
-    read_input "REMNAWAVE_WEBHOOK_SECRET"
-}
-
 generate_token() {
     openssl rand -hex 64 | tr -d '\n'
 }
@@ -144,17 +110,6 @@ generate_password() {
 
 generate_key() {
     openssl rand -base64 32 | tr -d '\n'
-}
-
-configure_reverse_proxy() {
-    local app_domain="$1"
-    local choice="$2"
-    
-    if [ "$choice" = "caddy" ]; then
-        configure_caddy "$app_domain"
-    elif [ "$choice" = "nginx" ]; then
-        configure_nginx "$app_domain"
-    fi
 }
 
 configure_caddy() {
@@ -182,75 +137,9 @@ EOF
     docker compose up -d  >/dev/null 2>&1
 }
 
-
-configure_nginx() {
-    local app_domain="$1"
-    local nginx_config="/etc/nginx/sites-available/${app_domain}.remnashop"
-    
-    log_warning "Nginx конфигурация требует ручной настройки"
-    log_info "Создайте файл конфигурации: $nginx_config"
-    log_info ""
-    log_info "Пример конфигурации:"
-    cat << 'EOF'
-    
-upstream remnashop {
-    server localhost:5000;
-}
-
-server {
-    listen 80;
-    server_name APP_DOMAIN;
-    
-    location / {
-        proxy_pass http://remnashop;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-EOF
-    log_info ""
-    log_info "После создания файла выполните:"
-    log_info "  sudo ln -s /etc/nginx/sites-available/${app_domain}.remnashop /etc/nginx/sites-enabled/"
-    log_info "  sudo nginx -t"
-    log_info "  sudo systemctl restart nginx"
-}
-
 # ============================================================
 # ПРОВЕРКИ ПРЕДУСЛОВИЙ И ПОДГОТОВКА
 # ============================================================
-
-# 0. Подготовка целевой директории в /opt/tg-sell-bot
-(
-  # Если скрипт запущен не из /opt/tg-sell-bot
-  if [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ]; then
-    # Создаем целевую директорию
-    mkdir -p "$PROJECT_DIR"
-    
-    # Копируем необходимые файлы установки из исходной директории
-    if [ -f "$SOURCE_DIR/docker-compose.yml" ]; then
-      cp "$SOURCE_DIR/docker-compose.yml" "$PROJECT_DIR/"
-    fi
-    
-    if [ -f "$SOURCE_DIR/Dockerfile" ]; then
-      cp "$SOURCE_DIR/Dockerfile" "$PROJECT_DIR/"
-    fi
-    
-    if [ -f "$SOURCE_DIR/.env.example" ]; then
-      cp "$SOURCE_DIR/.env.example" "$PROJECT_DIR/"
-    fi
-    
-    if [ -d "$SOURCE_DIR/src" ]; then
-      cp -r "$SOURCE_DIR/src" "$PROJECT_DIR/"
-    fi
-    
-    if [ -d "$SOURCE_DIR/scripts" ]; then
-      cp -r "$SOURCE_DIR/scripts" "$PROJECT_DIR/"
-    fi
-  fi
-) &
-show_spinner "Подготовка целевой директории"
 
 # 1. Проверка Docker и OpenSSL
 (
@@ -266,20 +155,64 @@ show_spinner "Подготовка целевой директории"
 ) &
 show_spinner "Проверка установленных компонентов"
 
-# 2. Подготовка окружения
+# 2. Подготовка целевой директории
 (
+  # Создаем целевую директорию
+  mkdir -p "$PROJECT_DIR"
   mkdir -p "$PROJECT_DIR/logs"
   mkdir -p "$PROJECT_DIR/backups"
   mkdir -p "$PROJECT_DIR/assets"
   chmod 755 "$PROJECT_DIR/logs" "$PROJECT_DIR/backups" "$PROJECT_DIR/assets"
 
+  # Создаем сеть Docker если не существует
   if ! docker network ls | grep -q "remnawave-network"; then
       docker network create remnawave-network 2>/dev/null || true
   fi
 ) &
-show_spinner "Создание окружения"
+show_spinner "Подготовка целевой директории"
 
-# 3. Создание .env файла
+# 3. Определение, откуда копировать файлы
+# Если скрипт запущен не из целевой директории, значит мы в клонированной папке
+SCRIPT_PATH="$(realpath "$0")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+SOURCE_DIR="$SCRIPT_DIR"
+
+if [ "$SOURCE_DIR" = "/opt/tg-sell-bot" ]; then
+    # Скрипт уже в целевой директории - ничего не копируем
+    COPY_FILES=false
+else
+    # Скрипт в клонированной папке - копируем файлы
+    COPY_FILES=true
+    SOURCE_FILES=(
+        "docker-compose.yml"
+        "Dockerfile"
+        ".env.example"
+    )
+fi
+
+# 4. Копирование файлов если нужно
+if [ "$COPY_FILES" = true ]; then
+    (
+      # Копируем основные файлы
+      for file in "${SOURCE_FILES[@]}"; do
+          if [ -f "$SOURCE_DIR/$file" ]; then
+              cp "$SOURCE_DIR/$file" "$PROJECT_DIR/"
+          fi
+      done
+      
+      # Копируем директории
+      if [ -d "$SOURCE_DIR/src" ]; then
+          cp -r "$SOURCE_DIR/src" "$PROJECT_DIR/"
+      fi
+      
+      if [ -d "$SOURCE_DIR/scripts" ]; then
+          cp -r "$SOURCE_DIR/scripts" "$PROJECT_DIR/"
+      fi
+    ) &
+    show_spinner "Копирование файлов установки"
+fi
+
+# 5. Создание .env файла
 (
   if [ ! -f "$ENV_FILE" ]; then
       if [ ! -f "$PROJECT_DIR/.env.example" ]; then
@@ -291,7 +224,7 @@ show_spinner "Создание окружения"
 ) &
 show_spinner "Инициализация конфигурации"
 
-# 4. Автоопределение реверс-прокси
+# 6. Автоопределение реверс-прокси
 if [ -d "/opt/remnawave/caddy" ]; then
   REVERSE_PROXY="caddy"
   print_success "Обнаружен реверс прокси Caddy"
@@ -394,7 +327,7 @@ show_spinner "Сборка Docker образа"
 show_spinner "Создание конфигурации"
 
 # ============================================================
-# СИНХРОНИЗАЦИЯ WEBHOOK С REMNAWAVE (ПОСЛЕ ВВОДА APP_DOMAIN)
+# СИНХРОНИЗАЦИЯ WEBHOOK С REMNAWAVE
 # ============================================================
 
 (
@@ -475,12 +408,13 @@ show_spinner "Настройка и перезапуск Caddy"
   rm -rf "$PROJECT_DIR"/__pycache__ 2>/dev/null || true
   rm -f "$PROJECT_DIR"/{.gitignore,.dockerignore,.env.example,.python-version,.editorconfig} 2>/dev/null || true
   rm -f "$PROJECT_DIR"/{Makefile,pyproject.toml,uv.lock} 2>/dev/null || true
+  rm -f "$PROJECT_DIR"/install.sh 2>/dev/null || true
   rm -f "$PROJECT_DIR"/{README.md,INSTALL_RU.md,BACKUP_RESTORE_GUIDE.md,CHANGES_SUMMARY.md,DETAILED_EXPLANATION.md,INVITE_FIX.md} 2>/dev/null || true
 ) &
 show_spinner "Очистка остаточных файлов"
 
 # ============================================================
-# ЗАВЕРШЕНИЕ УСТАНОВКИ И ОЧИСТКА ИСХОДНОЙ ПАПКИ
+# ЗАВЕРШЕНИЕ УСТАНОВКИ
 # ============================================================
 
 echo
@@ -491,11 +425,11 @@ echo
 
 echo -e "${WHITE}✅ Бот успешно установлен в:${NC} ${GREEN}$PROJECT_DIR${NC}"
 
-# Удаление исходной папки (кроме самого скрипта)
-if [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ]; then
-    echo -e "${WHITE}🧹 Удаление исходных файлов...${NC}"
-    cleanup_source_dir
-    echo -e "${GREEN}✅ Исходные файлы удалены${NC}"
+# Удаление исходной папки если она не в /opt/tg-sell-bot
+if [ "$COPY_FILES" = true ] && [ "$SOURCE_DIR" != "/opt/tg-sell-bot" ] && [ "$SOURCE_DIR" != "/" ]; then
+    echo -e "${WHITE}🧹 Удаление временных файлов...${NC}"
+    rm -rf "$SOURCE_DIR" 2>/dev/null || true
+    echo -e "${GREEN}✅ Временные файлы удалены${NC}"
 fi
 
 echo
