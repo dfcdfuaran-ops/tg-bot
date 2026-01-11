@@ -107,6 +107,15 @@ menu = Window(
             on_click=on_promocode,
         ),
     ),
+    # [Подписка] - для всех пользователей
+    Row(
+        Start(
+            text=I18nFormat("btn-menu-subscription"),
+            id="subscription",
+            state=Subscription.MAIN,
+            mode=StartMode.RESET_STACK,
+        ),
+    ),
     # [Подключиться][Пригласить] (если есть подписка)
     Row(
         *connect_buttons,
