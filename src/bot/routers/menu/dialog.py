@@ -99,13 +99,8 @@ menu = Window(
         ),
         when=F["is_balance_enabled"],
     ),
-    # [Управление подпиской][Промокод]
+    # [Промокод]
     Row(
-        Start(
-            text=I18nFormat("btn-menu-subscription"),
-            id=f"{PURCHASE_PREFIX}subscription",
-            state=Subscription.MAIN,
-        ),
         Button(
             text=I18nFormat("btn-menu-promocode"),
             id="promocode",
@@ -192,10 +187,10 @@ connect = Window(
             url=Format("{happ_url}"),
             id="connect_happ",
         ),
-        Start(
+        Url(
             text=I18nFormat("btn-menu-connect-subscribe"),
+            url=Format("{subscription_url}"),
             id="connect_subscribe_page",
-            state=Subscription.MAIN,
         ),
     ),
     Row(
