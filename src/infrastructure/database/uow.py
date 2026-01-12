@@ -37,7 +37,8 @@ class UnitOfWork:
                 await self.commit()
             else:
                 logger.warning(
-                    f"Exception detected '{exc_val}', rolling back session '{session_id}'"
+                    f"Exception detected '{exc_val}', rolling back session '{session_id}'",
+                    exc_info=(exc_type, exc_val, exc_tb)
                 )
                 await self.rollback()
         finally:
