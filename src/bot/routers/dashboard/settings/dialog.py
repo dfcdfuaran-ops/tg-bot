@@ -1669,11 +1669,7 @@ global_discount_mode = Window(
 # Соглашение (Terms of Service)
 tos_settings = Window(
     Banner(BannerName.DASHBOARD),
-    I18nFormat(
-        "msg-dashboard-settings-tos",
-        status=F["status_text"],
-        source=F["url_display"],
-    ),
+    I18nFormat("msg-dashboard-settings-tos"),
     Button(
         text=I18nFormat(
             "btn-tos-set-url",
