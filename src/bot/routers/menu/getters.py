@@ -56,12 +56,12 @@ async def menu_getter(
         
         # Get invite message from settings
         settings = await settings_service.get()
-        invite_message_template = settings.referral.invite_message
-        # Format invite message with placeholders
-        invite_message = invite_message_template.format(
-            name="VPN",
-            url=ref_link,
-        )
+        # Replace Fluent-style placeholders with actual values
+        invite_message = settings.referral.invite_message
+        if invite_message:
+            invite_message = invite_message.replace("$url", ref_link).replace("$name", "VPN")
+        else:
+            invite_message = f"Join us! {ref_link}"
         
         # Get referral balance
         referral_balance = await referral_service.get_pending_rewards_amount(
@@ -285,11 +285,12 @@ async def invite_getter(
     )
     
     # Get invite message from settings
-    invite_message_template = settings.invite_message
-    invite_message = invite_message_template.format(
-        name="VPN",
-        url=ref_link,
-    )
+    # Replace Fluent-style placeholders with actual values
+    invite_message = settings.invite_message
+    if invite_message:
+        invite_message = invite_message.replace("$url", ref_link).replace("$name", "VPN")
+    else:
+        invite_message = f"Join us! {ref_link}"
     
     # Get pending referral balance (not issued rewards)
     referral_balance = await referral_service.get_pending_rewards_amount(
