@@ -78,6 +78,16 @@ async def sync_panel_to_bot_task(
                 bot_user = await user_service.get(telegram_id)
                 
                 if bot_user:
+                    # Обновляем имя пользователя из панели
+                    new_name = str(panel_user.telegram_id)
+                    if panel_user.username:
+                        new_name = f"{panel_user.telegram_id} ({panel_user.username})"
+                    
+                    if bot_user.name != new_name:
+                        bot_user.name = new_name
+                        await user_service.update(bot_user)
+                        logger.debug(f"Updated name for user {telegram_id}: {new_name}")
+                    
                     # Пользователь существует - синхронизируем
                     await remnawave_service.sync_user(panel_user, creating=False)
                     synced_count += 1
