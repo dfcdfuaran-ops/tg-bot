@@ -78,10 +78,10 @@ async def sync_panel_to_bot_task(
                 bot_user = await user_service.get(telegram_id)
                 
                 if bot_user:
-                    # Обновляем имя пользователя из панели
+                    # Обновляем имя пользователя из панели (description содержит имя из Telegram)
                     new_name = str(panel_user.telegram_id)
-                    if panel_user.username:
-                        new_name = f"{panel_user.telegram_id} ({panel_user.username})"
+                    if panel_user.description:
+                        new_name = f"{panel_user.telegram_id} ({panel_user.description})"
                     
                     if bot_user.name != new_name:
                         bot_user.name = new_name
