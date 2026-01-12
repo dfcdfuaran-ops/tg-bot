@@ -1669,13 +1669,15 @@ global_discount_mode = Window(
 # Соглашение (Terms of Service)
 tos_settings = Window(
     Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-dashboard-settings-tos"),
-    Format("📋 <b>Соглашение с пользователем</b>\n\n• Статус: {status_text}\n• Источник:"),
-    Format("\n🔽 Укажите ссылку на документ с правилами."),
+    I18nFormat(
+        "msg-dashboard-settings-tos",
+        status=F["status_text"],
+        source=F["url_display"],
+    ),
     Button(
         text=I18nFormat(
-            "btn-setting-value",
-            name="Назначить источник",
+            "btn-tos-set-url",
+            name=Const("Назначить источник"),
             value=F["url_display"],
         ),
         id="tos_url",
