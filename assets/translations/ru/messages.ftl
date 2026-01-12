@@ -2025,8 +2025,6 @@ msg-dashboard-settings-tos-url =
     Введите ссылку (в формате https://telegram.org/tos).
     </blockquote>
 
-btn-tos-set-url = Назначить источник: { $value }
-
 # Payment Link for Extra Devices
 msg-add-device-payment-link = <b>💳 Ссылка для оплаты</b>
 

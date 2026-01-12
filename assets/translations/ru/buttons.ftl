@@ -28,6 +28,7 @@ btn-settings-access = 🔓 Режим доступа
 btn-settings-referral = 👥 Реф. система
 btn-settings-community = 👥 Сообщество
 btn-settings-tos = 📜 Соглашение
+btn-tos-set-url = Назначить источник: { $value }
 btn-settings-global-discount = 🏷️ Глобальная скидка
 btn-settings-toggle = { $enabled ->
     [1] 🟢
