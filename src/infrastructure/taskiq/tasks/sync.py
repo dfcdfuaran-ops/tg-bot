@@ -144,12 +144,7 @@ async def sync_panel_to_bot_task(
                         logger.debug(f"Created subscription for existing user {telegram_id} from panel")
                 else:
                     # Пользователя нет в боте - создаем нового с подпиской
-                    new_user = UserDto(
-                        telegram_id=telegram_id,
-                        username=panel_user.username,
-                        name=panel_user.username or f"User_{telegram_id}",
-                    )
-                    created_user = await user_service.create(new_user)
+                    created_user = await user_service.create_from_panel(panel_user)
                     
                     # Ищем план по тегу
                     plan = None
