@@ -64,6 +64,7 @@ async def configurator_getter(
         # Создаем новый план с первым внутренним сквадом по умолчанию
         default_internal_squads = [first_internal_squad] if first_internal_squad else []
         
+        # Создаём только цены в RUB - остальные валюты будут конвертироваться автоматически
         plan = PlanDto(
             internal_squads=default_internal_squads,
             external_squad=None,  # Внешний сквад по умолчанию пустой
@@ -71,32 +72,24 @@ async def configurator_getter(
                 PlanDurationDto(
                     days=7,
                     prices=[
-                        PlanPriceDto(currency=Currency.USD, price=Decimal(0.5)),
-                        PlanPriceDto(currency=Currency.XTR, price=Decimal(30)),
                         PlanPriceDto(currency=Currency.RUB, price=Decimal(50)),
                     ],
                 ),
                 PlanDurationDto(
                     days=30,
                     prices=[
-                        PlanPriceDto(currency=Currency.USD, price=Decimal(1)),
-                        PlanPriceDto(currency=Currency.XTR, price=Decimal(60)),
                         PlanPriceDto(currency=Currency.RUB, price=Decimal(100)),
                     ],
                 ),
                 PlanDurationDto(
                     days=365,
                     prices=[
-                        PlanPriceDto(currency=Currency.USD, price=Decimal(10)),
-                        PlanPriceDto(currency=Currency.XTR, price=Decimal(600)),
                         PlanPriceDto(currency=Currency.RUB, price=Decimal(1000)),
                     ],
                 ),
                 PlanDurationDto(
                     days=-1,
                     prices=[
-                        PlanPriceDto(currency=Currency.USD, price=Decimal(100)),
-                        PlanPriceDto(currency=Currency.XTR, price=Decimal(6000)),
                         PlanPriceDto(currency=Currency.RUB, price=Decimal(10000)),
                     ],
                 ),
@@ -299,7 +292,10 @@ async def prices_getter(dialog_manager: DialogManager, **kwargs: Any) -> dict[st
 
     selected_duration = dialog_manager.dialog_data["selected_duration"]
     prices = get_prices_for_duration(plan.durations, selected_duration)
-    prices_data = [price.model_dump() for price in prices] if prices else []
+    
+    # Показываем только RUB - остальные будут конвертироваться автоматически
+    rub_price = next((p for p in prices if p.currency == Currency.RUB), None) if prices else None
+    prices_data = [rub_price.model_dump()] if rub_price else []
 
     return {
         "duration": selected_duration,

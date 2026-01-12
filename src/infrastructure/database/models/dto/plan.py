@@ -120,17 +120,57 @@ class PlanDurationDto(TrackableDto):
     def is_unlimited(self) -> bool:
         return self.days == -1
 
-    def get_price(self, currency: Currency) -> Decimal:
-        return next((p.price for p in self.prices if p.currency == currency))
+    def get_price(
+        self, 
+        currency: Currency,
+        usd_rate: Optional[float] = None,
+        eur_rate: Optional[float] = None,
+        stars_rate: Optional[float] = None,
+    ) -> Decimal:
+        """
+        Получить цену в указанной валюте.
+        
+        Если переданы курсы валют - конвертирует из RUB.
+        Если курсы не переданы - ищет цену напрямую в списке prices.
+        """
+        # Если переданы курсы - конвертируем из RUB
+        if usd_rate is not None or eur_rate is not None or stars_rate is not None:
+            # Получаем базовую цену в RUB
+            rub_price = next((p.price for p in self.prices if p.currency == Currency.RUB), None)
+            if rub_price is None:
+                # Fallback - ищем напрямую
+                return next((p.price for p in self.prices if p.currency == currency), Decimal(0))
+            
+            if currency == Currency.RUB:
+                return rub_price
+            elif currency == Currency.USD and usd_rate:
+                converted = rub_price / Decimal(str(usd_rate))
+                return converted.quantize(Decimal("0.01"))
+            elif currency == Currency.EUR and eur_rate:
+                converted = rub_price / Decimal(str(eur_rate))
+                return converted.quantize(Decimal("0.01"))
+            elif currency == Currency.XTR and stars_rate:
+                converted = rub_price / Decimal(str(stars_rate))
+                return converted.to_integral_value()
+            else:
+                # Fallback - ищем напрямую
+                return next((p.price for p in self.prices if p.currency == currency), Decimal(0))
+        
+        # Старое поведение - ищем цену напрямую
+        return next((p.price for p in self.prices if p.currency == currency), Decimal(0))
 
-    def get_price_per_day(self, currency: Currency) -> Optional[Decimal]:
+    def get_price_per_day(
+        self, 
+        currency: Currency,
+        usd_rate: Optional[float] = None,
+        eur_rate: Optional[float] = None,
+        stars_rate: Optional[float] = None,
+    ) -> Optional[Decimal]:
         if self.days <= 0:
             return None
 
-        for price in self.prices:
-            if price.currency == currency:
-                return price.price / Decimal(self.days)
-        return None
+        price = self.get_price(currency, usd_rate, eur_rate, stars_rate)
+        return price / Decimal(self.days) if price else None
 
 
 class PlanPriceDto(TrackableDto):

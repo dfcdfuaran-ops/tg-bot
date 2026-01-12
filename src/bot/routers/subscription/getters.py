@@ -367,6 +367,13 @@ async def duration_getter(
     # Получаем настройки глобальной скидки
     global_discount = await settings_service.get_global_discount_settings()
     
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    usd_rate = rates.usd_rate
+    eur_rate = rates.eur_rate
+    stars_rate = rates.stars_rate
+    
     # Получаем стоимость дополнительных устройств для RENEW и CHANGE
     # Но только если включена ежемесячная оплата (is_one_time = False)
     purchase_type = dialog_manager.dialog_data.get("purchase_type")
@@ -384,7 +391,7 @@ async def duration_getter(
 
     for duration in plan.durations:
         key, kw = i18n_format_days(duration.days)
-        base_price = duration.get_price(currency)
+        base_price = duration.get_price(currency, usd_rate, eur_rate, stars_rate)
         
         # Для продления добавляем стоимость доп. устройств пропорционально периоду
         if extra_devices_monthly_cost > 0:
@@ -611,9 +618,16 @@ async def payment_method_getter(
 
     payment_methods = []
     
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    usd_rate = rates.usd_rate
+    eur_rate = rates.eur_rate
+    stars_rate = rates.stars_rate
+    
     # Add balance payment option if user has enough balance
     currency = await settings_service.get_default_currency()
-    base_price = duration.get_price(currency)
+    base_price = duration.get_price(currency, usd_rate, eur_rate, stars_rate)
     total_price = base_price + extra_devices_cost if extra_devices_cost > 0 else base_price
     price = pricing_service.calculate(user, total_price, currency, global_discount, context="subscription")
     
@@ -631,7 +645,7 @@ async def payment_method_getter(
         )
     
     for gateway in gateways:
-        gateway_base_price = duration.get_price(gateway.currency)
+        gateway_base_price = duration.get_price(gateway.currency, usd_rate, eur_rate, stars_rate)
         # Добавляем стоимость доп. устройств (если есть)
         gateway_total_price = gateway_base_price + extra_devices_cost if extra_devices_cost > 0 else gateway_base_price
         

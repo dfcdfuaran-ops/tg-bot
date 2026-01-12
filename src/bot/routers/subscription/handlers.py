@@ -86,7 +86,16 @@ async def _create_payment_and_get_data(
         return None
 
     transaction_plan = PlanSnapshotDto.from_plan(plan, duration.days)
-    base_price = duration.get_price(payment_gateway.currency)
+    
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    base_price = duration.get_price(
+        payment_gateway.currency, 
+        rates.usd_rate, 
+        rates.eur_rate, 
+        rates.stars_rate
+    )
     
     # Получаем настройки глобальной скидки
     global_discount = await settings_service.get_global_discount_settings()
@@ -400,9 +409,16 @@ async def on_duration_select(
     gateways = await payment_gateway_service.filter_active()
     currency = await settings_service.get_default_currency()
     global_discount = await settings_service.get_global_discount_settings()
+    
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    
     price = pricing_service.calculate(
         user=user,
-        price=plan.get_duration(selected_duration).get_price(currency),  # type: ignore[union-attr]
+        price=plan.get_duration(selected_duration).get_price(
+            currency, rates.usd_rate, rates.eur_rate, rates.stars_rate
+        ),  # type: ignore[union-attr]
         currency=currency,
         global_discount=global_discount,
         context="subscription",
@@ -479,7 +495,12 @@ async def on_payment_method_select(
         
         currency = await settings_service.get_default_currency()
         global_discount = await settings_service.get_global_discount_settings()
-        base_price = duration.get_price(currency)
+        
+        # Получаем курсы валют для конвертации
+        settings = await settings_service.get()
+        rates = settings.features.currency_rates
+        
+        base_price = duration.get_price(currency, rates.usd_rate, rates.eur_rate, rates.stars_rate)
         base_subscription_price = int(base_price)  # Сохраняем цену подписки БЕЗ доп. устройств
         
         # Добавляем стоимость доп. устройств для RENEW и CHANGE
@@ -608,7 +629,12 @@ async def on_confirm_balance_payment(
     
     currency = await settings_service.get_default_currency()
     global_discount = await settings_service.get_global_discount_settings()
-    base_price = duration.get_price(currency)
+    
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    
+    base_price = duration.get_price(currency, rates.usd_rate, rates.eur_rate, rates.stars_rate)
     
     # Добавляем стоимость доп. устройств для RENEW и CHANGE
     purchase_type: PurchaseType = dialog_manager.dialog_data["purchase_type"]
