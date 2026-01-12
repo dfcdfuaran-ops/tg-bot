@@ -44,7 +44,7 @@ from .getters import (
 
 gateways = Window(
     Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-gateways-main", default_currency=F["default_currency"], default_currency_name=F["default_currency_name"]),
+    I18nFormat("msg-gateways-main"),
     ListGroup(
         Row(
             Button(

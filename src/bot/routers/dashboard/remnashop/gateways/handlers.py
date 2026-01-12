@@ -270,6 +270,9 @@ async def on_gateways_cancel(
         dialog_manager.dialog_data.pop("current_state", None)
     
     logger.info(f"{log(user)} Cancelled all gateway changes")
+    
+    # Возвращаемся на одно меню назад
+    await dialog_manager.back()
 
 
 @inject
@@ -287,8 +290,8 @@ async def on_gateways_accept(
         dialog_manager.dialog_data.pop("current_state", None)
         logger.info(f"{log(user)} Accepted all gateway changes")
     
-    # Навигируем обратно в Finances
-    await dialog_manager.start(DashboardSettings.FINANCES, mode=StartMode.RESET_STACK)
+    # Возвращаемся на одно меню назад
+    await dialog_manager.back()
 
 
 @inject

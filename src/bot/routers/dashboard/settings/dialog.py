@@ -1762,7 +1762,7 @@ tos_url_manual = Window(
 
 finances_settings = Window(
     Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-dashboard-settings-finances"),
+    I18nFormat("msg-dashboard-settings-finances", default_currency=F["default_currency"], default_currency_name=F["default_currency_name"]),
     Row(
         Button(
             text=I18nFormat("btn-finances-sync", enabled=F["sync_enabled"]),

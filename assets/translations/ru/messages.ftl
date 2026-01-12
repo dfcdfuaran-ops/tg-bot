@@ -1289,12 +1289,7 @@ msg-admins-main = <b>👮‍♂️ Администраторы</b>
 
 
 # Gateways
-msg-gateways-main = 
-    <b>🌐 Платежные системы</b>
-    
-    <blockquote>
-    • <b>Валюта по умолчанию:</b> { $default_currency } ({ $default_currency_name })
-    </blockquote>
+msg-gateways-main = <b>🌐 Платежные системы</b>
 msg-gateways-settings = <b>🌐 Конфигурация { gateway-type }</b>
 msg-gateways-default-currency = <b>💸 Валюта по умолчанию</b>
 msg-gateways-placement = <b>🔢 Изменить позиционирование</b>
@@ -2038,6 +2033,10 @@ msg-dashboard-settings-tos-url =
 # Finances Settings
 msg-dashboard-settings-finances =
     <b>💰 Финансы</b>
+    
+    <blockquote>
+    • <b>Валюта по умолчанию:</b> { $default_currency } ({ $default_currency_name })
+    </blockquote>
 
     <blockquote>
     Статус: { $sync_status }

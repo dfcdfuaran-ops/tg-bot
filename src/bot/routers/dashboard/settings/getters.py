@@ -511,12 +511,15 @@ async def finances_settings_getter(
     """Геттер для меню Финансы."""
     settings = await settings_service.get()
     rates = settings.features.currency_rates
+    default_currency = await settings_service.get_default_currency()
     
     sync_enabled = rates.auto_update
     
     return {
         "sync_enabled": 1 if sync_enabled else 0,
         "sync_status": "🟢 Включена" if sync_enabled else "🔴 Выключена",
+        "default_currency": default_currency.symbol,
+        "default_currency_name": default_currency.value,
     }
 
 
