@@ -87,7 +87,7 @@ async def sync_panel_to_bot_task(
                             if line.startswith('name:'):
                                 extracted_name = line.replace('name:', '').strip()
                                 if extracted_name:
-                                    new_name = f"{panel_user.telegram_id} ({extracted_name})"
+                                    new_name = extracted_name
                                 break
                     
                     if bot_user.name != new_name:
