@@ -149,6 +149,9 @@ class DashboardSettings(StatesGroup):
     TOS = State()
     TOS_URL_MANUAL = State()
     
+    # Финансы
+    FINANCES = State()
+    
     # Курсы валют
     CURRENCY_RATES = State()
     CURRENCY_RATE_USD = State()

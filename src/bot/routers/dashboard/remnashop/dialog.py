@@ -11,7 +11,6 @@ from src.bot.states import (
     Dashboard,
     DashboardRemnashop,
     DashboardFeatures,
-    RemnashopGateways,
     RemnashopNotifications,
     RemnashopPlans,
     RemnashopReferral,
@@ -45,13 +44,6 @@ remnashop = Window(
             text=I18nFormat("btn-remnashop-admins"),
             id="admins",
             state=DashboardRemnashop.ADMINS,
-        ),
-    ),
-    Row(
-        Start(
-            text=I18nFormat("btn-remnashop-gateways"),
-            id="gateways",
-            state=RemnashopGateways.MAIN,
         ),
     ),
     Row(

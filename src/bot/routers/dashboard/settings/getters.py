@@ -29,7 +29,7 @@ async def settings_main_getter(
         "community_enabled": 1 if features.community_enabled else 0,
         "tos_enabled": 1 if features.tos_enabled else 0,
         "global_discount_enabled": 1 if features.global_discount.enabled else 0,
-        "currency_rates_auto": 1 if features.currency_rates.auto_update else 0,
+        "finances_sync_enabled": 1 if features.currency_rates.auto_update else 0,
     }
 
 
@@ -499,6 +499,24 @@ async def tos_settings_getter(
         "url": url,
         "url_display": url_display,
         "status_text": status_text,
+    }
+
+
+@inject
+async def finances_settings_getter(
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Геттер для меню Финансы."""
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    
+    sync_enabled = rates.auto_update
+    
+    return {
+        "sync_enabled": 1 if sync_enabled else 0,
+        "sync_status": "🟢 Включена" if sync_enabled else "🔴 Выключена",
     }
 
 

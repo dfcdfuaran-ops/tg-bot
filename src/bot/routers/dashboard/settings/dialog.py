@@ -5,7 +5,7 @@ from aiogram_dialog.widgets.kbd import Button, Column, Row, Start, SwitchTo
 from aiogram_dialog.widgets.text import Format
 from magic_filter import F
 
-from src.bot.states import DashboardSettings, RemnashopNotifications, DashboardAccess, RemnashopReferral
+from src.bot.states import DashboardSettings, RemnashopNotifications, DashboardAccess, RemnashopReferral, RemnashopGateways
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.enums import BannerName
 
@@ -19,6 +19,7 @@ from .getters import (
     global_discount_apply_to_getter,
     global_discount_mode_getter,
     tos_settings_getter,
+    finances_settings_getter,
     currency_rates_getter,
 )
 from .handlers import (
@@ -115,6 +116,11 @@ from .handlers import (
     on_toggle_tos_enabled,
     on_accept_tos,
     on_cancel_tos,
+    # Finances
+    on_finances_click,
+    on_finances_currency_rates_click,
+    on_finances_back,
+    on_toggle_finances_sync,
     # Currency Rates
     on_currency_rates_click,
     on_toggle_currency_rates_auto,
@@ -272,17 +278,17 @@ settings_main = Window(
     ),
     Row(
         Button(
-            text=I18nFormat("btn-settings-currency-rates"),
-            id="currency_rates",
-            on_click=on_currency_rates_click,
+            text=I18nFormat("btn-settings-finances"),
+            id="finances",
+            on_click=on_finances_click,
         ),
         Button(
             text=I18nFormat(
                 "btn-settings-toggle",
-                enabled=F["currency_rates_auto"],
+                enabled=F["finances_sync_enabled"],
             ),
-            id="toggle_currency_rates_auto",
-            on_click=on_toggle_currency_rates_auto,
+            id="toggle_finances_sync",
+            on_click=on_toggle_finances_sync,
         ),
     ),
     Row(
@@ -1749,19 +1755,53 @@ tos_url_manual = Window(
 
 
 # ═══════════════════════════════════════════════════════════════
-# Курсы валют
+# Финансы
+# ═══════════════════════════════════════════════════════════════
+
+finances_settings = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-finances"),
+    Row(
+        Button(
+            text=I18nFormat("btn-finances-sync", enabled=F["sync_enabled"]),
+            id="toggle_sync",
+            on_click=on_toggle_finances_sync,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-finances-currency-rates"),
+            id="currency_rates",
+            on_click=on_finances_currency_rates_click,
+        ),
+    ),
+    Row(
+        Start(
+            text=I18nFormat("btn-finances-gateways"),
+            id="gateways",
+            state=RemnashopGateways.MAIN,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=DashboardSettings.MAIN,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=DashboardSettings.FINANCES,
+    getter=finances_settings_getter,
+)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Курс валют
 # ═══════════════════════════════════════════════════════════════
 
 currency_rates_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-currency-rates"),
-    Row(
-        Button(
-            text=I18nFormat("btn-currency-auto-toggle", enabled=F["auto_update"]),
-            id="toggle_auto_update",
-            on_click=on_toggle_currency_auto_update,
-        ),
-    ),
     Row(
         Button(
             text=Format("{usd_display}"),
@@ -1868,6 +1908,7 @@ router = Dialog(
     global_discount_mode,
     tos_settings,
     tos_url_manual,
+    finances_settings,
     currency_rates_settings,
     currency_rate_usd,
     currency_rate_eur,

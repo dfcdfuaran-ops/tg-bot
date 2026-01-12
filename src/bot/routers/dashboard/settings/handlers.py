@@ -1989,7 +1989,7 @@ async def on_accept_rates(
     dialog_manager.dialog_data.pop("current_rates", None)
     
     logger.info(f"{log(user)} Saved currency rates")
-    await dialog_manager.switch_to(DashboardSettings.MAIN)
+    await dialog_manager.switch_to(DashboardSettings.FINANCES)
 
 
 @inject
@@ -2005,7 +2005,7 @@ async def on_cancel_rates(
     dialog_manager.dialog_data.pop("current_rates", None)
     
     logger.info(f"{log(user)} Cancelled currency rates")
-    await dialog_manager.switch_to(DashboardSettings.MAIN)
+    await dialog_manager.switch_to(DashboardSettings.FINANCES)
 
 
 @inject
@@ -2038,6 +2038,70 @@ async def on_toggle_currency_auto_update(
             logger.warning(f"{log(user)} Failed to fetch CBR rates: {e}")
     
     logger.info(f"{log(user)} Toggle currency auto_update (not saved yet)")
+
+
+async def on_finances_click(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Обработчик нажатия на кнопку 'Финансы'."""
+    from src.bot.states import DashboardSettings
+    await dialog_manager.switch_to(state=DashboardSettings.FINANCES)
+
+
+async def on_finances_currency_rates_click(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Обработчик нажатия на кнопку 'Курс валют' в меню Финансы."""
+    from src.bot.states import DashboardSettings
+    await dialog_manager.switch_to(state=DashboardSettings.CURRENCY_RATES)
+
+
+async def on_finances_back(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Обработчик нажатия на кнопку 'Назад' в меню Финансы."""
+    from src.bot.states import DashboardSettings
+    await dialog_manager.switch_to(state=DashboardSettings.MAIN)
+
+
+@inject
+async def on_toggle_finances_sync(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Toggle синхронизации курсов валют с ЦБ РФ."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    settings = await settings_service.get()
+    
+    new_value = not settings.features.currency_rates.auto_update
+    settings.features.currency_rates.auto_update = new_value
+    
+    # Если включили синхронизацию - подтягиваем курсы из ЦБ РФ
+    if new_value:
+        try:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://www.cbr-xml-daily.ru/daily_json.js", timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json(content_type=None)
+                        usd_rate = data["Valute"]["USD"]["Value"]
+                        eur_rate = data["Valute"]["EUR"]["Value"]
+                        settings.features.currency_rates.usd_rate = round(usd_rate, 2)
+                        settings.features.currency_rates.eur_rate = round(eur_rate, 2)
+                        logger.info(f"{log(user)} Synced CBR rates: USD={usd_rate}, EUR={eur_rate}")
+        except Exception as e:
+            logger.warning(f"{log(user)} Failed to sync CBR rates: {e}")
+    
+    await settings_service.update(settings)
+    logger.info(f"{log(user)} Toggle finances sync to {new_value}")
 
 
 @inject

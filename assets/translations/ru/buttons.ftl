@@ -30,7 +30,14 @@ btn-settings-community = 👥 Сообщество
 btn-settings-tos = 📜 Соглашение
 btn-tos-set-url = Назначить источник: { $value }
 btn-settings-global-discount = 🏷️ Глобальная скидка
-btn-settings-currency-rates = 💱 Курсы валют
+btn-settings-finances = 💰 Финансы
+btn-settings-currency-rates = 💱 Курс валют
+btn-finances-sync = { $enabled ->
+    [1] 🟢 Синхронизация курса
+    *[0] 🔴 Синхронизация курса
+    }
+btn-finances-currency-rates = 💱 Курс валют
+btn-finances-gateways = 🌐 Платежные системы
 btn-currency-auto-toggle = { $enabled ->
     [1] 🟢 Автоматически
     *[0] 🔴 Автоматически
