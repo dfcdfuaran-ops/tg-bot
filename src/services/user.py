@@ -71,13 +71,18 @@ class UserService(BaseService):
         return UserDto.from_model(db_created_user)  # type: ignore[return-value]
 
     async def create_from_panel(self, remna_user: RemnaUserDto) -> UserDto:
+        # Формируем имя в формате "telegram_id (username)" если username есть
+        name = str(remna_user.telegram_id)
+        if remna_user.username:
+            name = f"{remna_user.telegram_id} ({remna_user.username})"
+        
         user = UserDto(
             telegram_id=remna_user.telegram_id,
             referral_code=generate_referral_code(
                 remna_user.telegram_id,  # type: ignore[arg-type]
                 secret=self.config.crypt_key.get_secret_value(),
             ),
-            name=str(remna_user.telegram_id),
+            name=name,
             role=UserRole.USER,
             language=self.config.default_locale,
         )
