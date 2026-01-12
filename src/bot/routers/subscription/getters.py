@@ -1220,6 +1220,7 @@ async def confirm_yoomoney_getter(
         "expire_time": i18n_format_expire_time(user.current_subscription.expire_at) if user.current_subscription else "",
         # Balance settings
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+        "is_balance_separate": 0 if await settings_service.is_balance_combined() else 1,
     }
 
 
@@ -1351,6 +1352,7 @@ async def confirm_yookassa_getter(
         "expire_time": i18n_format_expire_time(user.current_subscription.expire_at) if user.current_subscription else "",
         # Balance settings
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+        "is_balance_separate": 0 if await settings_service.is_balance_combined() else 1,
     }
 
 
