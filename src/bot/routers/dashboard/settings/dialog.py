@@ -1,7 +1,7 @@
 from aiogram.enums import ContentType
 from aiogram_dialog import Dialog, Window, StartMode
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button, Column, Row, Start, SwitchTo, When
+from aiogram_dialog.widgets.kbd import Button, Column, Row, Start, SwitchTo
 from aiogram_dialog.widgets.text import Format
 from magic_filter import F
 
@@ -1782,8 +1782,8 @@ tos_url_manual = Window(
 community_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-community", status=F["status"], url_display=F["url_display"]),
-    When(
-        F["edit_url_mode"] == 0,
+    # Кнопка "Назначить группу" если НЕ в режиме редактирования
+    (
         Row(
             Button(
                 text=I18nFormat("btn-settings-community-set-url"),
@@ -1791,17 +1791,19 @@ community_settings = Window(
                 on_click=on_set_community_url,
             ),
         ),
+        F["edit_url_mode"] == 0,
     ),
-    When(
-        F["edit_url_mode"] == 1,
+    # Сообщение и ввод если в режиме редактирования
+    (
         Format("📝 Введите ссылку на группу:"),
-    ),
-    When(
         F["edit_url_mode"] == 1,
+    ),
+    (
         MessageInput(
             func=on_community_url_input,
             content_types=[ContentType.TEXT],
         ),
+        F["edit_url_mode"] == 1,
     ),
     Row(
         Button(
