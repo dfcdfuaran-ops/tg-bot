@@ -78,22 +78,33 @@ async def sync_panel_to_bot_task(
                 bot_user = await user_service.get(telegram_id)
                 
                 if bot_user:
-                    # Обновляем имя пользователя из панели
+                    # Обновляем имя и username пользователя из панели
                     # description содержит "name: Имя\nusername: @username"
                     new_name = str(panel_user.telegram_id)
+                    new_username = None
                     if panel_user.description:
-                        # Извлекаем имя из description
+                        # Извлекаем имя и username из description
                         for line in panel_user.description.split('\n'):
                             if line.startswith('name:'):
                                 extracted_name = line.replace('name:', '').strip()
                                 if extracted_name:
                                     new_name = extracted_name
-                                break
+                            elif line.startswith('username:'):
+                                extracted_username = line.replace('username:', '').strip()
+                                if extracted_username:
+                                    new_username = extracted_username
                     
+                    needs_update = False
                     if bot_user.name != new_name:
                         bot_user.name = new_name
+                        needs_update = True
+                    if bot_user.username != new_username:
+                        bot_user.username = new_username
+                        needs_update = True
+                    
+                    if needs_update:
                         await user_service.update(bot_user)
-                        logger.debug(f"Updated name for user {telegram_id}: {new_name}")
+                        logger.debug(f"Updated user {telegram_id}: name={new_name}, username={new_username}")
                     
                     # Пользователь существует - синхронизируем
                     await remnawave_service.sync_user(panel_user, creating=False)
