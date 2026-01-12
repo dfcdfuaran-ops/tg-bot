@@ -1669,10 +1669,7 @@ global_discount_mode = Window(
 tos_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-tos"),
-    I18nFormat(
-        "text",
-        text=F["status_text"],
-    ),
+    Format("{status_text}"),
     Button(
         text=I18nFormat(
             "btn-setting-value",
