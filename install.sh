@@ -19,6 +19,7 @@ REPO_BRANCH="dev"
 
 # Статус обновлений
 UPDATE_AVAILABLE=0
+CHECK_UPDATE_PID=""
 
 # Цвета для вывода
 RED='\033[0;31m'
@@ -208,7 +209,13 @@ check_updates_available() {
             fi
         fi
     } &
-    disown 2>/dev/null || true
+    CHECK_UPDATE_PID=$!
+}
+
+wait_for_update_check() {
+    if [ -n "$CHECK_UPDATE_PID" ]; then
+        wait $CHECK_UPDATE_PID 2>/dev/null || true
+    fi
 }
 
 # Функция для проверки режима (установка или меню)
@@ -367,8 +374,8 @@ show_full_menu() {
     set +e  # Отключаем exit on error для функции меню
     local selected=0
     
-    # Ждём немного чтобы фоновый процесс проверки завершился
-    sleep 0.5
+    # Ждём завершения проверки обновлений
+    wait_for_update_check
     
     # Формируем опции меню с учётом статуса обновлений
     local update_status=""
