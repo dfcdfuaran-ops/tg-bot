@@ -1732,8 +1732,6 @@ tos_settings = Window(
     Button(
         text=I18nFormat(
             "btn-tos-set-url",
-            name="",
-            value=F["url_display"],
         ),
         id="tos_url",
         on_click=on_tos_url_click,
