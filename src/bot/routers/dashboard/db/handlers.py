@@ -1225,6 +1225,9 @@ async def on_sync_from_bot(
         )
 
         try:
+            # Даём время увидеть уведомление о подготовке
+            await asyncio.sleep(1)
+            
             # Удаляем уведомление о подготовке
             if preparing_notification:
                 await preparing_notification.delete()
@@ -1334,6 +1337,9 @@ async def on_sync_from_panel(
         )
 
         try:
+            # Даём время увидеть уведомление о подготовке
+            await asyncio.sleep(1)
+            
             # Удаляем уведомление о подготовке
             if preparing_notification:
                 await preparing_notification.delete()
