@@ -10,6 +10,7 @@ from src.bot.routers.dashboard.remnashop.referral.getters import (
     reward_getter,
     reward_strategy_getter,
     reward_type_getter,
+    invite_message_getter,
 )
 from src.bot.routers.dashboard.remnashop.referral.handlers import (
     on_accrual_strategy_select,
@@ -26,6 +27,9 @@ from src.bot.routers.dashboard.remnashop.referral.handlers import (
     on_reward_manual_input_cancel,
     on_submenu_cancel,
     on_submenu_accept,
+    on_invite_message_input,
+    on_invite_message_cancel,
+    on_invite_message_reset,
 )
 from src.bot.states import RemnashopReferral
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
@@ -66,6 +70,13 @@ referral = Window(
             text=I18nFormat("btn-referral-reward"),
             id="reward",
             state=RemnashopReferral.REWARD,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-referral-invite-message"),
+            id="invite_message",
+            state=RemnashopReferral.INVITE_MESSAGE,
         ),
     ),
     Row(
@@ -482,6 +493,31 @@ reward_manual_input = Window(
     state=RemnashopReferral.REWARD_MANUAL_INPUT,
 )
 
+# Окно настройки сообщения приглашения
+invite_message = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-referral-invite-message", current_message=F["current_message"]),
+    MessageInput(func=on_invite_message_input),
+    Row(
+        Button(
+            text=I18nFormat("btn-reset-default"),
+            id="reset",
+            on_click=on_invite_message_reset,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back",
+            state=RemnashopReferral.MAIN,
+            on_click=on_invite_message_cancel,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=RemnashopReferral.INVITE_MESSAGE,
+    getter=invite_message_getter,
+)
+
 router = Dialog(
     referral,
     level,
@@ -490,4 +526,5 @@ router = Dialog(
     reward_strategy,
     reward,
     reward_manual_input,
+    invite_message,
 )

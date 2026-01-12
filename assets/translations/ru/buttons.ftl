@@ -46,6 +46,14 @@ btn-finances-balance-mode-separate = { $selected ->
     [1] 🔘 Раздельно
     *[0] ⚪ Раздельно
     }
+btn-balance-mode-combined = { $selected ->
+    [1] 🔘 Сумма
+    *[0] ⚪ Сумма
+    }
+btn-balance-mode-separate = { $selected ->
+    [1] 🔘 Раздельно
+    *[0] ⚪ Раздельно
+    }
 btn-currency-auto-toggle = { $enabled ->
     [1] 🟢 Автоматически
     *[0] 🔴 Автоматически
@@ -1016,6 +1024,8 @@ btn-referral-reward-type = 🎀 Тип награды
 btn-referral-accrual-strategy = 📍 Условие начисления
 btn-referral-reward-strategy = ⚖️ Форма начисления
 btn-referral-reward = 🎁 Награда
+btn-referral-invite-message = ✉️ Настройка приглашения
+btn-reset-default = 🔄 Сбросить по умолчанию
 
 btn-referral-enable = { $is_enable -> 
     [1] 🟢 Включена

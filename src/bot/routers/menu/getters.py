@@ -51,6 +51,15 @@ async def menu_getter(
         ref_link = await referral_service.get_ref_link(user.referral_code)
         support_link = format_username_to_url(support_username, i18n.get("contact-support-help"))
         
+        # Get invite message from settings
+        settings = await settings_service.get()
+        invite_message_template = settings.referral.invite_message
+        # Format invite message with placeholders
+        invite_message = invite_message_template.format(
+            name=config.bot.name or "VPN",
+            url=ref_link,
+        )
+        
         # Get referral balance
         referral_balance = await referral_service.get_pending_rewards_amount(
             user.telegram_id,
@@ -111,7 +120,7 @@ async def menu_getter(
             "referral_balance": referral_balance,
             "referral_code": user.referral_code,
             "support": support_link,
-            "invite": i18n.get("referral-invite-message", url=ref_link),
+            "invite": invite_message,
             "has_subscription": user.has_subscription,
             "is_app": config.bot.is_mini_app,
             "is_referral_enable": await settings_service.is_referral_enable(),
@@ -121,6 +130,7 @@ async def menu_getter(
             "is_tos_enabled": await settings_service.is_tos_enabled(),
             "tos_url": (await settings_service.get()).rules_link.get_secret_value() or "https://telegra.ph/",
             "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+            "is_balance_separate": 1 if not await settings_service.is_balance_combined() else 0,
         }
 
         subscription = user.current_subscription
@@ -271,6 +281,13 @@ async def invite_getter(
         support_username, i18n.get("contact-support-withdraw-points")
     )
     
+    # Get invite message from settings
+    invite_message_template = settings.invite_message
+    invite_message = invite_message_template.format(
+        name=config.bot.name or "VPN",
+        url=ref_link,
+    )
+    
     # Get pending referral balance (not issued rewards)
     referral_balance = await referral_service.get_pending_rewards_amount(
         user.telegram_id,
@@ -371,7 +388,7 @@ async def invite_getter(
         "has_balance": (referral_balance > 0) and is_balance_separate,  # Показываем только в режиме SEPARATE
         "is_balance_separate": 1 if is_balance_separate else 0,  # Флаг раздельного режима баланса
         "referral_link": ref_link,
-        "invite": i18n.get("referral-invite-message", url=ref_link),
+        "invite": invite_message,
         "withdraw": support_link,
         "ref_max_level": max_level,
         "ref_reward_level_1_value": reward_level_1_value,
@@ -588,6 +605,8 @@ async def balance_gateways_getter(
     
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
     
     result = {
         "payment_methods": payment_methods,
@@ -602,6 +621,7 @@ async def balance_gateways_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
     }
     
     # Данные о текущей подписке (если есть)

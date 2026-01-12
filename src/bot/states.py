@@ -212,6 +212,7 @@ class RemnashopReferral(StatesGroup):
     REWARD_TYPE = State()
     ACCRUAL_STRATEGY = State()
     REWARD_STRATEGY = State()
+    INVITE_MESSAGE = State()
 
 
 class RemnashopGateways(StatesGroup):

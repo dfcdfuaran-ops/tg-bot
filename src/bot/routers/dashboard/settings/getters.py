@@ -40,11 +40,14 @@ async def balance_settings_getter(
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для настроек баланса."""
+    from src.core.enums import BalanceMode
+    
     # Загружаем текущие значения из БД
     settings = await settings_service.get()
     features = settings.features
     db_balance_min_amount = features.balance_min_amount
     db_balance_max_amount = features.balance_max_amount
+    balance_mode = features.balance_mode
     
     # Используем данные из dialog_data, если они есть, иначе используем значения из БД
     current = dialog_manager.dialog_data.get("current_balance")
@@ -65,6 +68,8 @@ async def balance_settings_getter(
         "enabled": 1 if current.get("enabled", True) else 0,
         "balance_min_amount": f"{int(balance_min_amount)} ₽" if balance_min_amount is not None else "Без ограничений",
         "balance_max_amount": f"{int(balance_max_amount)} ₽" if balance_max_amount is not None else "Без ограничений",
+        "balance_mode_combined": 1 if balance_mode == BalanceMode.COMBINED else 0,
+        "balance_mode_separate": 1 if balance_mode == BalanceMode.SEPARATE else 0,
     }
     
     # Добавляем данные для минимальной суммы
@@ -509,22 +514,17 @@ async def finances_settings_getter(
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для меню Финансы."""
-    from src.core.enums import BalanceMode
-    
     settings = await settings_service.get()
     rates = settings.features.currency_rates
     default_currency = await settings_service.get_default_currency()
     
     sync_enabled = rates.auto_update
-    balance_mode = settings.features.balance_mode
     
     return {
         "sync_enabled": 1 if sync_enabled else 0,
         "sync_status": "🟢 Включена" if sync_enabled else "🔴 Выключена",
         "default_currency": default_currency.symbol,
         "default_currency_name": default_currency.value,
-        "balance_mode_combined": 1 if balance_mode == BalanceMode.COMBINED else 0,
-        "balance_mode_separate": 1 if balance_mode == BalanceMode.SEPARATE else 0,
     }
 
 

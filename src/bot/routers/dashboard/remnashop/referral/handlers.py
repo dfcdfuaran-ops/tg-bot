@@ -511,3 +511,67 @@ async def on_referral_accept(
     
     # Закрываем диалог реферальной системы и возвращаемся к предыдущему меню
     await dialog_manager.done()
+
+
+# === Invite Message Handlers ===
+
+
+@inject
+async def on_invite_message_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Обработка ввода сообщения приглашения."""
+    dialog_manager.show_mode = ShowMode.EDIT
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    new_message = message.text.strip() if message.text else ""
+    
+    if not new_message:
+        await message.answer("⚠️ Сообщение не может быть пустым!")
+        return
+    
+    # Сохраняем новое сообщение
+    settings = await settings_service.get()
+    settings.referral.invite_message = new_message
+    await settings_service.update(settings)
+    
+    logger.info(f"{log(user)} Updated invite message")
+    
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    
+    await dialog_manager.switch_to(RemnashopReferral.MAIN)
+
+
+@inject
+async def on_invite_message_cancel(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Отмена редактирования сообщения приглашения."""
+    pass  # Просто возвращаемся в главное меню через SwitchTo
+
+
+@inject
+async def on_invite_message_reset(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Сброс сообщения приглашения на значение по умолчанию."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    default_message = "✨ {name} - Ваш приватный интернет!\n\n➡️ Подключиться: {url}"
+    
+    settings = await settings_service.get()
+    settings.referral.invite_message = default_message
+    await settings_service.update(settings)
+    
+    logger.info(f"{log(user)} Reset invite message to default")

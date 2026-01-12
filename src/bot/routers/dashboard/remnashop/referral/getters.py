@@ -265,3 +265,18 @@ async def reward_getter(
     
     return result
 
+
+@inject
+async def invite_message_getter(
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Геттер для настройки сообщения приглашения."""
+    settings = await settings_service.get_referral_settings()
+    
+    current_message = settings.invite_message
+    
+    return {
+        "current_message": current_message,
+    }
