@@ -2172,6 +2172,7 @@ async def on_toggle_currency_rates_auto(
 
 
 @inject
+@inject
 async def on_finances_cancel(
     callback: CallbackQuery,
     widget: Button,
@@ -2193,8 +2194,12 @@ async def on_finances_cancel(
         
         dialog_manager.dialog_data.pop("pending_finances", None)
         logger.info(f"{log(user)} Cancelled finances changes")
+    
+    # Навигируем обратно в главное меню настроек
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
 
 
+@inject
 @inject
 async def on_finances_accept(
     callback: CallbackQuery,
@@ -2208,3 +2213,6 @@ async def on_finances_accept(
     if "pending_finances" in dialog_manager.dialog_data:
         dialog_manager.dialog_data.pop("pending_finances", None)
         logger.info(f"{log(user)} Accepted finances changes")
+    
+    # Навигируем обратно в главное меню настроек
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
