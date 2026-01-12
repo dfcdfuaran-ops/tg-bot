@@ -69,6 +69,7 @@ from .handlers import (
     on_internal_squad_select,
     on_internal_squads_click,
     on_name_input,
+    on_plan_create,
     on_plan_delete,
     on_plan_move,
     on_plan_select,
@@ -85,10 +86,10 @@ plans = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-plans-main"),
     Row(
-        SwitchTo(
+        Button(
             I18nFormat("btn-plans-create"),
             id="create",
-            state=RemnashopPlans.CONFIGURATOR,
+            on_click=on_plan_create,
         ),
     ),
     ListGroup(

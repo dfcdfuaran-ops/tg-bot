@@ -61,39 +61,11 @@ async def configurator_getter(
         pass
 
     if plan is None:
-        # Создаем новый план с первым внутренним сквадом по умолчанию
-        default_internal_squads = [first_internal_squad] if first_internal_squad else []
-        
-        # Создаём только цены в RUB - остальные валюты будут конвертироваться автоматически
+        # Создаем пустой план без предзаполненных значений
         plan = PlanDto(
-            internal_squads=default_internal_squads,
-            external_squad=None,  # Внешний сквад по умолчанию пустой
-            durations=[
-                PlanDurationDto(
-                    days=7,
-                    prices=[
-                        PlanPriceDto(currency=Currency.RUB, price=Decimal(50)),
-                    ],
-                ),
-                PlanDurationDto(
-                    days=30,
-                    prices=[
-                        PlanPriceDto(currency=Currency.RUB, price=Decimal(100)),
-                    ],
-                ),
-                PlanDurationDto(
-                    days=365,
-                    prices=[
-                        PlanPriceDto(currency=Currency.RUB, price=Decimal(1000)),
-                    ],
-                ),
-                PlanDurationDto(
-                    days=-1,
-                    prices=[
-                        PlanPriceDto(currency=Currency.RUB, price=Decimal(10000)),
-                    ],
-                ),
-            ],
+            internal_squads=[],
+            external_squad=None,
+            durations=[],
         )
         adapter.save(plan)
 

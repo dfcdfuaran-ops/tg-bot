@@ -30,6 +30,31 @@ from src.services.subscription import SubscriptionService
 from src.services.user import UserService
 
 
+async def on_plan_create(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к созданию нового плана с очисткой всех данных."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    logger.info(f"{log(user)} Started creating new plan")
+    
+    # Очищаем все данные предыдущего плана
+    adapter = DialogDataAdapter(dialog_manager)
+    adapter.clear()
+    
+    # Очищаем все служебные флаги
+    dialog_manager.dialog_data.pop("is_edit", None)
+    dialog_manager.dialog_data.pop("original_plan", None)
+    dialog_manager.dialog_data.pop("pending_plan_name", None)
+    dialog_manager.dialog_data.pop("pending_plan_description", None)
+    dialog_manager.dialog_data.pop("pending_plan_type", None)
+    dialog_manager.dialog_data.pop("pending_internal_squads", None)
+    dialog_manager.dialog_data.pop("pending_external_squad", None)
+    
+    await dialog_manager.switch_to(state=RemnashopPlans.CONFIGURATOR)
+
+
 @inject
 async def on_plan_select(
     callback: CallbackQuery,
