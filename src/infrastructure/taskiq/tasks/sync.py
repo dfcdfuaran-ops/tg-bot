@@ -195,7 +195,7 @@ async def sync_panel_to_bot_task(
                     logger.debug(f"Created user {telegram_id} with subscription from panel data")
                     
             except Exception as e:
-                logger.error(f"Error processing panel user {panel_user.uuid}: {e}")
+                logger.error(f"Error processing panel user {panel_user_short.uuid}: {e}")
                 logger.exception(e)
                 errors_count += 1
         
