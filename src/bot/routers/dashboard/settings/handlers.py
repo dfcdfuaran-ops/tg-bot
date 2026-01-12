@@ -2077,7 +2077,7 @@ async def on_toggle_finances_sync(
     dialog_manager: DialogManager,
     settings_service: FromDishka[SettingsService],
 ) -> None:
-    """Toggle синхронизации курсов валют с ЦБ РФ."""
+    """Toggle синхронизации курсов валют с ЦБ РФ (внутри меню Финансы)."""
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     settings = await settings_service.get()
     
@@ -2096,9 +2096,9 @@ async def on_toggle_finances_sync(
                         eur_rate = data["Valute"]["EUR"]["Value"]
                         settings.features.currency_rates.usd_rate = round(usd_rate, 2)
                         settings.features.currency_rates.eur_rate = round(eur_rate, 2)
-                        logger.info(f"{log(user)} Synced CBR rates: USD={usd_rate}, EUR={eur_rate}")
+                        logger.info(f"{log(user)} Fetched CBR rates: USD={usd_rate}, EUR={eur_rate}")
         except Exception as e:
-            logger.warning(f"{log(user)} Failed to sync CBR rates: {e}")
+            logger.warning(f"{log(user)} Failed to fetch CBR rates: {e}")
     
     await settings_service.update(settings)
     logger.info(f"{log(user)} Toggle finances sync to {new_value}")
@@ -2135,4 +2135,4 @@ async def on_toggle_currency_rates_auto(
             logger.warning(f"{log(user)} Failed to fetch CBR rates: {e}")
     
     await settings_service.update(settings)
-    logger.info(f"{log(user)} Toggle currency auto_update to {new_value}")
+    logger.info(f"{log(user)} Toggle finances sync from main menu to {new_value}")

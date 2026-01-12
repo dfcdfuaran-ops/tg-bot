@@ -15,7 +15,7 @@ from aiogram_dialog.widgets.text import Format
 from magic_filter import F
 
 from src.bot.keyboards import main_menu_button
-from src.bot.states import DashboardRemnashop, RemnashopGateways
+from src.bot.states import DashboardRemnashop, RemnashopGateways, DashboardSettings
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.enums import BannerName, Currency
 
@@ -79,10 +79,9 @@ gateways = Window(
         Start(
             text=I18nFormat("btn-back"),
             id="back",
-            state=DashboardRemnashop.MAIN,
+            state=DashboardSettings.FINANCES,
             mode=StartMode.RESET_STACK,
         ),
-        *main_menu_button,
     ),
     IgnoreUpdate(),
     state=RemnashopGateways.MAIN,
