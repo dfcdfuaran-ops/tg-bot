@@ -32,22 +32,13 @@ async def on_lost_context(
         except Exception as e:
             logger.warning(f"{log(user)} Failed to answer callback query: {e}")
     
-    # Определяем message_id для редактирования или удаления
+    # Определяем message_id для редактирования
     target_message_id = None
     if callback_query and callback_query.message:
         target_message_id = callback_query.message.message_id
-        
-        # Удаляем несколько предыдущих сообщений (кроме того, которое будем редактировать)
-        for i in range(1, 10):  # Удаляем 9 предыдущих сообщений для полной очистки
-            try:
-                await bot.delete_message(
-                    chat_id=user.telegram_id,
-                    message_id=target_message_id - i
-                )
-            except Exception:
-                pass  # Игнорируем ошибки (сообщение может быть уже удалено)
     
     # Автоматически перезапускаем диалог в главное меню
+    # ВАЖНО: Всегда используем ShowMode.EDIT если есть message_id для редактирования существующего сообщения
     try:
         bg_manager = bg_manager_factory.bg(
             bot=bot,
@@ -68,7 +59,7 @@ async def on_lost_context(
     except Exception as e:
         logger.error(f"{log(user)} Failed to restart dialog after lost context: {e}")
         
-        # Если не удалось отредактировать, пробуем удалить старое сообщение и отправить новое
+        # Fallback: если редактирование не сработало и есть message_id, пробуем удалить старое сообщение и отправить новое
         if target_message_id:
             try:
                 await bot.delete_message(
