@@ -52,6 +52,24 @@ show_spinner() {
   tput cnorm 2>/dev/null || true
 }
 
+# Спинер с таймером (отсчёт секунд)
+show_spinner_timer() {
+  local seconds=$1
+  local msg="$2"
+  local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+  local i=0
+  tput civis 2>/dev/null || true
+  
+  for ((remaining=$seconds; remaining>0; remaining--)); do
+    printf "\r${GREEN}%s${NC}  %s (%d сек)" "${spin[$i]}" "$msg" "$remaining"
+    i=$(( (i+1) % 10 ))
+    sleep 1
+  done
+  
+  printf "\r${GREEN}✅${NC} %s\n" "$msg"
+  tput cnorm 2>/dev/null || true
+}
+
 # Спинер без сообщения (просто ждём процесс)
 show_spinner_silent() {
   local pid=$!
@@ -670,6 +688,10 @@ manage_update_bot() {
                 } &
                 show_spinner "Применение сохранённых параметров"
             fi
+            
+            # Запуск бота с таймером на 60 секунд
+            show_spinner_timer 60 "Запуск бота"
+            
             echo
             echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
             
