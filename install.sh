@@ -572,9 +572,10 @@ manage_update_bot() {
             {
                 cd "$TEMP_REPO" || return
                 
-                # Список файлов для копирования в PROJECT_DIR (только конфигурация)
+                # Список файлов для копирования в PROJECT_DIR (только конфигурация, без docker-compose.yml)
                 INCLUDE_FILES=(
-                    "docker-compose.yml"
+                    ".env.example"
+                    "README.md"
                     "assets"
                 )
                 
@@ -598,12 +599,13 @@ manage_update_bot() {
             show_spinner "Остановка сервисов"
             
             {
-                # Собираем образ из временной папки
-                cd "$BUILD_TEMP_DIR" || return
-                docker build --no-cache -t remnashop:local . >/dev/null 2>&1
-                
-                # Запускаем контейнеры из PROJECT_DIR
+                # Собираем образ из временной папки через docker compose
                 cd "$PROJECT_DIR" || return
+                export BUILD_CONTEXT="$BUILD_TEMP_DIR"
+                docker compose build --no-cache >/dev/null 2>&1
+                unset BUILD_CONTEXT
+                
+                # Запускаем контейнеры с собранным образом
                 docker compose up -d >/dev/null 2>&1
             } &
             show_spinner "Пересборка и запуск сервисов"
