@@ -640,13 +640,12 @@ async def payment_method_getter(
     eur_rate = rates.eur_rate
     stars_rate = rates.stars_rate
     
-    # Add balance payment option - ВСЕГДА ПЕРВЫМ
+    # Добавляем оплату с баланса ВСЕГДА ПЕРВОЙ (даже если баланса недостаточно)
     currency = await settings_service.get_default_currency()
     base_price = duration.get_price(currency, usd_rate, eur_rate, stars_rate)
     total_price = base_price + extra_devices_cost if extra_devices_cost > 0 else base_price
     price = pricing_service.calculate(user, total_price, currency, global_discount, context="subscription")
     
-    # Добавляем оплату с баланса ВСЕГДА, даже если баланса недостаточно
     payment_methods.append(
         {
             "gateway_type": PaymentGatewayType.BALANCE,
