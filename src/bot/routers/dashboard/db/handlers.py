@@ -1289,10 +1289,22 @@ async def on_sync_from_bot(
         
         return
 
-    await notification_service.notify_user(
+    # Первый клик - показываем уведомление с просьбой нажать еще раз
+    confirm_notification = await notification_service.notify_user(
         user=user,
-        payload=MessagePayload(i18n_key="ntf-double-click-confirm"),
+        payload=MessagePayload.not_deleted(
+            i18n_key="ntf-double-click-confirm",
+            add_close_button=False,
+        ),
     )
+    
+    # Автоматически удаляем уведомление через 3 секунды
+    if confirm_notification:
+        await asyncio.sleep(3)
+        try:
+            await confirm_notification.delete()
+        except Exception:
+            pass
 
 
 @inject
@@ -1338,7 +1350,7 @@ async def on_sync_from_panel(
 
         try:
             # Даём время увидеть уведомление о подготовке
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
             
             # Удаляем уведомление о подготовке
             if preparing_notification:
@@ -1355,7 +1367,6 @@ async def on_sync_from_panel(
 
             # Запускаем задачу синхронизации
             task = await sync_panel_to_bot_task.kiq(user.telegram_id)
-            # Ожидаем результата не нужно, так как задача отправит уведомление сама
 
             # Удаляем уведомление о синхронизации
             if sync_notification:
@@ -1377,7 +1388,19 @@ async def on_sync_from_panel(
         
         return
 
-    await notification_service.notify_user(
+    # Первый клик - показываем уведомление с просьбой нажать еще раз
+    confirm_notification = await notification_service.notify_user(
         user=user,
-        payload=MessagePayload(i18n_key="ntf-double-click-confirm"),
+        payload=MessagePayload.not_deleted(
+            i18n_key="ntf-double-click-confirm",
+            add_close_button=False,
+        ),
     )
+    
+    # Автоматически удаляем уведомление через 3 секунды
+    if confirm_notification:
+        await asyncio.sleep(3)
+        try:
+            await confirm_notification.delete()
+        except Exception:
+            pass
