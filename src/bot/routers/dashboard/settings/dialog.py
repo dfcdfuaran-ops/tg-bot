@@ -1670,8 +1670,8 @@ tos_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-tos"),
     I18nFormat(
-        "msg-tos-status",
-        status=F["status_text"],
+        "text",
+        text=F["status_text"],
     ),
     Button(
         text=I18nFormat(
