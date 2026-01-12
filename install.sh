@@ -556,52 +556,40 @@ manage_update_bot() {
             # Сохраняем критические переменные перед обновлением
             ENV_BACKUP_FILE=$(preserve_env_vars "$ENV_FILE")
             
-            # Копируем новые файлы, исключая развёрнутые файлы
+            # Создаём временную папку для сборки
+            BUILD_TEMP_DIR=$(mktemp -d)
+            trap "rm -rf '$BUILD_TEMP_DIR'" RETURN
+            
+            # Копируем ВСЕ файлы во временную папку для сборки образа
+            {
+                cp -r "$TEMP_REPO"/* "$BUILD_TEMP_DIR/"
+                cp "$TEMP_REPO"/.deployignore "$BUILD_TEMP_DIR/" 2>/dev/null || true
+                cp "$TEMP_REPO"/.gitignore "$BUILD_TEMP_DIR/" 2>/dev/null || true
+            } &
+            show_spinner "Подготовка файлов для сборки"
+            
+            # Копируем только необходимые файлы конфигурации в PROJECT_DIR
             {
                 cd "$TEMP_REPO" || return
                 
-                # Список исключений (всё что в .deployignore)
-                EXCLUDES=(
-                    ".git"
-                    ".github"
-                    ".gitignore"
-                    ".gitattributes"
-                    ".env.example"
-                    ".deployignore"
-                    "Dockerfile"
-                    "install.sh"
-                    "manage.sh"
-                    "server-setup.sh"
-                    "original_install.sh"
-                    "src"
-                    "scripts"
-                    "Makefile"
-                    "pyproject.toml"
-                    "uv.lock"
-                    "README.md"
-                    "docs"
+                # Список файлов для копирования в PROJECT_DIR (только конфигурация)
+                INCLUDE_FILES=(
+                    "docker-compose.yml"
+                    "assets"
                 )
                 
-                # Копируем файлы с исключениями
-                find . -type f | while read -r file; do
-                    # Пропускаем исключённые файлы
-                    skip=0
-                    for exclude in "${EXCLUDES[@]}"; do
-                        if [[ "$file" == "./$exclude"* ]]; then
-                            skip=1
-                            break
+                for item in "${INCLUDE_FILES[@]}"; do
+                    if [ -e "$item" ]; then
+                        if [ -d "$item" ]; then
+                            mkdir -p "$PROJECT_DIR/$item" 2>/dev/null || true
+                            cp -r "$item"/* "$PROJECT_DIR/$item/" 2>/dev/null || true
+                        else
+                            cp -f "$item" "$PROJECT_DIR/" 2>/dev/null || true
                         fi
-                    done
-                    
-                    if [ $skip -eq 0 ]; then
-                        target_file="${file#./}"
-                        target_dir="$PROJECT_DIR/$(dirname "$target_file")"
-                        mkdir -p "$target_dir" 2>/dev/null || true
-                        cp -f "$file" "$target_dir/" 2>/dev/null || true
                     fi
                 done
             } &
-            show_spinner "Загрузка файлов обновления"
+            show_spinner "Обновление конфигурации"
             
             {
                 cd "$PROJECT_DIR" || return
@@ -610,8 +598,12 @@ manage_update_bot() {
             show_spinner "Остановка сервисов"
             
             {
+                # Собираем образ из временной папки
+                cd "$BUILD_TEMP_DIR" || return
+                docker build --no-cache -t remnashop:local . >/dev/null 2>&1
+                
+                # Запускаем контейнеры из PROJECT_DIR
                 cd "$PROJECT_DIR" || return
-                docker compose build --no-cache >/dev/null 2>&1
                 docker compose up -d >/dev/null 2>&1
             } &
             show_spinner "Пересборка и запуск сервисов"
