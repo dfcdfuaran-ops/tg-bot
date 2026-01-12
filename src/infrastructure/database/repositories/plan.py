@@ -43,5 +43,8 @@ class PlanRepository(BaseRepository):
             order_by=Plan.order_index.asc(),
         )
 
+    async def get_by_tag(self, tag: str) -> Optional[Plan]:
+        return await self._get_one(Plan, Plan.tag == tag)
+
     async def get_max_index(self) -> Optional[int]:
         return await self.session.scalar(select(func.max(Plan.order_index)))

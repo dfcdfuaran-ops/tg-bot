@@ -457,6 +457,7 @@ class PaymentGatewayService(BaseService):
             from src.services.user import UserService
             from src.services.settings import SettingsService
             from src.services.notification import NotificationService
+            from src.services.plan import PlanService
             
             # Получаем сервисы из DI
             # Создаем SettingsService (нужен для NotificationService)
@@ -507,6 +508,14 @@ class PaymentGatewayService(BaseService):
                 uow=self.uow,
                 user_service=user_service,
             )
+            plan_service = PlanService(
+                config=self.config,
+                bot=self.bot,
+                redis_client=self.redis_client,
+                redis_repository=self.redis_repository,
+                translator_hub=self.translator_hub,
+                uow=self.uow,
+            )
             remnawave_service = RemnawaveService(
                 config=self.config,
                 bot=self.bot,
@@ -517,6 +526,7 @@ class PaymentGatewayService(BaseService):
                 user_service=user_service,
                 subscription_service=subscription_service,
                 notification_service=notification_service,
+                plan_service=plan_service,
             )
             
             # Получаем количество устройств из имени плана

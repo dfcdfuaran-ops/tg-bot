@@ -139,6 +139,14 @@ class PlanService(BaseService):
 
         return PlanDto.from_model(db_plan)
 
+    async def get_by_tag(self, tag: str) -> Optional[PlanDto]:
+        db_plan = await self.uow.repository.plans.get_by_tag(tag)
+
+        if not db_plan:
+            logger.debug(f"Plan with tag '{tag}' not found")
+
+        return PlanDto.from_model(db_plan)
+
     async def get_all(self) -> list[PlanDto]:
         db_plans = await self.uow.repository.plans.get_all()
         return PlanDto.from_model_list(db_plans)

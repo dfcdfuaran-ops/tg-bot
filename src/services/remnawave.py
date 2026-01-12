@@ -61,6 +61,7 @@ from src.infrastructure.taskiq.tasks.notifications import (
     send_system_notification_task,
 )
 from src.services.notification import NotificationService
+from src.services.plan import PlanService
 from src.services.subscription import SubscriptionService
 from src.services.user import UserService
 
@@ -71,6 +72,7 @@ class RemnawaveService(BaseService):
     remnawave: RemnawaveSDK
     user_service: UserService
     subscription_service: SubscriptionService
+    plan_service: PlanService
 
     def __init__(
         self,
@@ -84,12 +86,14 @@ class RemnawaveService(BaseService):
         user_service: UserService,
         subscription_service: SubscriptionService,
         notification_service: NotificationService,
+        plan_service: PlanService,
     ) -> None:
         super().__init__(config, bot, redis_client, redis_repository, translator_hub)
         self.remnawave = remnawave
         self.user_service = user_service
         self.subscription_service = subscription_service
         self.notification_service = notification_service
+        self.plan_service = plan_service
 
     async def try_connection(self) -> None:
         response = await self.remnawave.system.get_stats()
@@ -784,6 +788,51 @@ class RemnawaveService(BaseService):
         
         # Update subscription (whether it was found as current or as non-IMPORTED)
         if subscription:
+            # Проверяем, изменился ли тег и нужно ли переключить план
+            old_tag = subscription.tag
+            new_tag = remna_subscription.tag
+            
+            if old_tag != new_tag and new_tag:
+                # Тег изменился, ищем план с таким тегом
+                matching_plan = await self.plan_service.get_by_tag(new_tag)
+                
+                if matching_plan and matching_plan.is_active:
+                    # Нашли активный план с таким тегом - переключаем подписку
+                    logger.info(
+                        f"Tag changed from '{old_tag}' to '{new_tag}' for user '{user.telegram_id}'. "
+                        f"Switching subscription to plan '{matching_plan.name}' (ID: {matching_plan.id})"
+                    )
+                    
+                    # Создаём снимок плана с текущей длительностью подписки
+                    duration_days = -1  # unlimited по умолчанию
+                    if subscription.expire_at:
+                        remaining = subscription.expire_at - datetime_now()
+                        duration_days = max(1, remaining.days)
+                    
+                    new_plan_snapshot = PlanSnapshotDto.from_plan(matching_plan, duration_days)
+                    
+                    # Обновляем подписку с новым планом
+                    subscription.plan = new_plan_snapshot
+                    subscription.tag = new_tag
+                    subscription.traffic_limit = matching_plan.traffic_limit
+                    subscription.device_limit = matching_plan.device_limit
+                    subscription.traffic_limit_strategy = matching_plan.traffic_limit_strategy
+                    subscription.internal_squads = matching_plan.internal_squads.copy()
+                    subscription.external_squad = matching_plan.external_squad.copy() if matching_plan.external_squad else None
+                    
+                    logger.info(
+                        f"Subscription plan switched to '{matching_plan.name}' for user '{user.telegram_id}'"
+                    )
+                else:
+                    if matching_plan:
+                        logger.debug(
+                            f"Found plan with tag '{new_tag}' but it's inactive, skipping switch"
+                        )
+                    else:
+                        logger.debug(
+                            f"No plan found with tag '{new_tag}', keeping current plan"
+                        )
+            
             logger.info(f"Synchronizing subscription for '{user.telegram_id}'")
             subscription = SubscriptionService.apply_sync(
                 target=subscription,
