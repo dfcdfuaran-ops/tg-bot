@@ -459,3 +459,39 @@ async def global_discount_mode_getter(
         "mode_max_selected": 0 if stack_discounts else 1,
         "mode_stack_selected": 1 if stack_discounts else 0,
     }
+
+
+@inject
+async def tos_settings_getter(
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Геттер для настроек соглашения (Terms of Service)."""
+    settings = await settings_service.get()
+    tos_url = settings.rules_link.get_secret_value()
+    
+    # Используем данные из dialog_data, если они есть, иначе используем значения из БД
+    current = dialog_manager.dialog_data.get("current_tos")
+    
+    if not current:
+        # Первое открытие - загружаем из БД
+        current = {
+            "enabled": settings.features.tos_enabled,
+            "url": tos_url,
+        }
+    
+    url = current.get("url", "")
+    enabled = current.get("enabled", True)
+    
+    # Форматируем URL для отображения (показываем первые 50 символов)
+    if url:
+        url_display = url[:50] + "..." if len(url) > 50 else url
+    else:
+        url_display = "Не установлено"
+    
+    return {
+        "enabled": 1 if enabled else 0,
+        "url": url,
+        "url_display": url_display,
+    }

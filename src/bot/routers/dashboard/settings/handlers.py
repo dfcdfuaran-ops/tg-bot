@@ -733,9 +733,25 @@ async def on_tos_click(
     callback: CallbackQuery,
     widget: Button,
     dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
 ) -> None:
-    """Переход в настройки соглашения (пока не реализовано)."""
-    pass
+    """Переход в настройки соглашения."""
+    # Загружаем текущие настройки при входе
+    settings = await settings_service.get()
+    tos_url = settings.rules_link.get_secret_value()
+    
+    # Сохраняем начальные и текущие значения
+    dialog_manager.dialog_data["initial_tos"] = {
+        "enabled": settings.features.tos_enabled,
+        "url": tos_url,
+    }
+    
+    dialog_manager.dialog_data["current_tos"] = {
+        "enabled": settings.features.tos_enabled,
+        "url": tos_url,
+    }
+    
+    await dialog_manager.switch_to(DashboardSettings.TOS)
 
 
 @inject
@@ -1730,4 +1746,101 @@ async def on_accept_balance(
     dialog_manager.dialog_data.pop("current_balance", None)
     
     # Возвращаемся в главное меню настроек
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
+
+@inject
+async def on_tos_url_click(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к вводу URL соглашения."""
+    await dialog_manager.switch_to(DashboardSettings.TOS_URL_MANUAL)
+
+
+@inject
+async def on_tos_url_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+) -> None:
+    """Обработка ввода URL соглашения."""
+    dialog_manager.show_mode = ShowMode.EDIT
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    current = dialog_manager.dialog_data.get("current_tos", {})
+    
+    url = message.text.strip()
+    
+    # Базовая валидация URL
+    if not url.startswith(("http://", "https://")):
+        await message.answer("⚠️ URL должен начинаться с http:// или https://")
+        return
+    
+    current["url"] = url
+    dialog_manager.dialog_data["current_tos"] = current
+    
+    logger.info(f"{log(user)} Set ToS URL to '{url}' (not saved yet)")
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    await dialog_manager.switch_to(DashboardSettings.TOS)
+
+
+@inject
+async def on_toggle_tos_enabled(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Toggle включения/выключения кнопки соглашения."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    current = dialog_manager.dialog_data.get("current_tos", {})
+    current["enabled"] = not current.get("enabled", True)
+    dialog_manager.dialog_data["current_tos"] = current
+    logger.info(f"{log(user)} Toggle ToS enabled (not saved yet)")
+
+
+@inject
+async def on_accept_tos(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Сохранение настроек соглашения."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    current = dialog_manager.dialog_data.get("current_tos", {})
+    
+    # Обновляем URL соглашения
+    if "url" in current:
+        settings = await settings_service.get()
+        from pydantic import SecretStr
+        settings.rules_link = SecretStr(current.get("url", ""))
+        await settings_service.update(settings)
+        
+        logger.info(f"{log(user)} Updated ToS URL to '{current.get('url')}'")
+    
+    # Очищаем временные данные
+    dialog_manager.dialog_data.pop("initial_tos", None)
+    dialog_manager.dialog_data.pop("current_tos", None)
+    
+    logger.info(f"{log(user)} Accepted ToS settings")
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
+
+
+@inject
+async def on_cancel_tos(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Отмена изменений настроек соглашения."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    # Восстанавливаем начальные значения
+    initial = dialog_manager.dialog_data.get("initial_tos", {})
+    dialog_manager.dialog_data["current_tos"] = initial.copy()
+    
+    logger.info(f"{log(user)} Cancelled ToS settings")
     await dialog_manager.switch_to(DashboardSettings.MAIN)

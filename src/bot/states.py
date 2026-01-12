@@ -144,6 +144,10 @@ class DashboardSettings(StatesGroup):
     GLOBAL_DISCOUNT_MANUAL = State()
     GLOBAL_DISCOUNT_APPLY_TO = State()  # Меню "Влияние"
     GLOBAL_DISCOUNT_MODE = State()  # Меню "Режим"
+    
+    # Соглашение (ToS)
+    TOS = State()
+    TOS_URL_MANUAL = State()
 
 
 class DashboardUsers(StatesGroup):

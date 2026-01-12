@@ -17,6 +17,7 @@ from .getters import (
     global_discount_settings_getter,
     global_discount_apply_to_getter,
     global_discount_mode_getter,
+    tos_settings_getter,
 )
 from .handlers import (
     on_accept_transfers,
@@ -106,6 +107,12 @@ from .handlers import (
     on_accept_global_discount_apply_to,
     on_cancel_global_discount_mode,
     on_accept_global_discount_mode,
+    # ToS (Terms of Service)
+    on_tos_url_click,
+    on_tos_url_input,
+    on_toggle_tos_enabled,
+    on_accept_tos,
+    on_cancel_tos,
 )
 
 
@@ -1658,6 +1665,56 @@ global_discount_mode = Window(
 )
 
 
+# Соглашение (Terms of Service)
+tos_settings = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-tos"),
+    Button(
+        text=I18nFormat(
+            "btn-setting-value",
+            name="Источник",
+            value=F["url_display"],
+        ),
+        id="tos_url",
+        on_click=on_tos_url_click,
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            on_click=on_cancel_tos,
+        ),
+        Button(
+            text=I18nFormat("btn-accept"),
+            id="accept",
+            on_click=on_accept_tos,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=DashboardSettings.TOS,
+    getter=tos_settings_getter,
+)
+
+
+# Ввод URL соглашения
+tos_url_manual = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-tos-url"),
+    MessageInput(
+        func=on_tos_url_input,
+        content_types=[ContentType.TEXT],
+    ),
+    SwitchTo(
+        text=I18nFormat("btn-cancel"),
+        id="back",
+        state=DashboardSettings.TOS,
+    ),
+    IgnoreUpdate(),
+    state=DashboardSettings.TOS_URL_MANUAL,
+    getter=tos_settings_getter,
+)
+
+
 router = Dialog(
     settings_main,
     balance_settings,
@@ -1681,4 +1738,6 @@ router = Dialog(
     global_discount_manual,
     global_discount_apply_to,
     global_discount_mode,
+    tos_settings,
+    tos_url_manual,
 )
