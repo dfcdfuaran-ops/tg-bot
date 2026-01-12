@@ -182,6 +182,10 @@ async def subscription_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     result = {
         "has_active_subscription": has_active,
         "is_not_unlimited": not is_unlimited,
@@ -202,6 +206,7 @@ async def subscription_getter(
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Для кнопки "Мои устройства"
         "has_device_limit": bool(
             user.current_subscription 
