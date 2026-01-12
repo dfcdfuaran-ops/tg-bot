@@ -71,11 +71,17 @@ class UserService(BaseService):
         return UserDto.from_model(db_created_user)  # type: ignore[return-value]
 
     async def create_from_panel(self, remna_user: RemnaUserDto) -> UserDto:
-        # Формируем имя в формате "telegram_id (description)" если description есть
-        # description в панели содержит имя пользователя из Telegram
+        # Формируем имя в формате "telegram_id (имя)"
+        # description в панели содержит "name: Имя\nusername: @username"
         name = str(remna_user.telegram_id)
         if remna_user.description:
-            name = f"{remna_user.telegram_id} ({remna_user.description})"
+            # Извлекаем имя из description
+            for line in remna_user.description.split('\n'):
+                if line.startswith('name:'):
+                    extracted_name = line.replace('name:', '').strip()
+                    if extracted_name:
+                        name = f"{remna_user.telegram_id} ({extracted_name})"
+                    break
         
         user = UserDto(
             telegram_id=remna_user.telegram_id,
