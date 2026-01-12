@@ -159,7 +159,7 @@ menu = Window(
             text=I18nFormat("btn-menu-tos"),
             id="tos",
             url=Format("{tos_url}"),
-            when=F["is_tos_enabled"] & F["tos_url"],
+            when=F["is_tos_enabled"] and (F["tos_url"] != ""),
         ),
     ),
     # [Панель управления]
