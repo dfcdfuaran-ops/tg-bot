@@ -119,7 +119,7 @@ async def menu_getter(
             "community_url": config.bot.community_url or "",
             "is_community_enabled": await settings_service.is_community_enabled() and bool(config.bot.community_url),
             "is_tos_enabled": await settings_service.is_tos_enabled(),
-            "tos_url": (await settings_service.get()).rules_link or "https://telegra.ph/",
+            "tos_url": (await settings_service.get()).rules_link.get_secret_value() or "https://telegra.ph/",
             "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
         }
 
