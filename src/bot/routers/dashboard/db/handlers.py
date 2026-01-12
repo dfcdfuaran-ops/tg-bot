@@ -1184,6 +1184,7 @@ async def on_sync_manage(
     )
 
 
+@inject
 async def on_sync_from_bot(
     callback: CallbackQuery,
     button,
@@ -1212,22 +1213,19 @@ async def on_sync_from_bot(
         return
 
     # Требуем двойной клик для подтверждения
-    if is_double_click(manager, key="sync_from_bot_confirm", cooldown=10):
+    if is_double_click(manager, key="sync_from_bot_confirm", cooldown=5):
         await redis_repository.set(key, value=True, ex=3600)
 
         # Шаг 1: Подготовка данных
         preparing_notification = await notification_service.notify_user(
             user=user,
             payload=MessagePayload.not_deleted(
-                i18n_key="ntf-sync-preparing",
+                i18n_key="ntf-remnawave-sync-preparing",
                 add_close_button=False,
             ),
         )
 
         try:
-            # Даём время увидеть уведомление о подготовке
-            await asyncio.sleep(2)
-            
             # Удаляем уведомление о подготовке
             if preparing_notification:
                 await preparing_notification.delete()
@@ -1236,12 +1234,12 @@ async def on_sync_from_bot(
             sync_notification = await notification_service.notify_user(
                 user=user,
                 payload=MessagePayload.not_deleted(
-                    i18n_key="ntf-importer-sync-started",
+                    i18n_key="ntf-remnawave-sync-started",
                     add_close_button=False,
                 ),
             )
 
-            # Запускаем задачу синхронизации
+            # Запускаем задачу синхронизации и ждём результат
             task = await sync_bot_to_panel_task.kiq()
             result = await task.wait_result()
             sync_result = result.return_value
@@ -1253,7 +1251,10 @@ async def on_sync_from_bot(
             if not sync_result:
                 await notification_service.notify_user(
                     user=user,
-                    payload=MessagePayload(i18n_key="ntf-importer-users-not-found"),
+                    payload=MessagePayload(
+                        i18n_key="ntf-remnawave-sync-no-users",
+                        add_close_button=True,
+                    ),
                 )
                 return
 
@@ -1261,7 +1262,7 @@ async def on_sync_from_bot(
             await notification_service.notify_user(
                 user=user,
                 payload=MessagePayload(
-                    i18n_key="ntf-importer-sync-bot-to-panel-completed",
+                    i18n_key="ntf-remnawave-sync-bot-to-panel-completed",
                     i18n_kwargs={
                         "total_bot_users": sync_result.get("total_bot_users", 0),
                         "created": sync_result.get("created", 0),
@@ -1278,10 +1279,17 @@ async def on_sync_from_bot(
         except Exception as e:
             logger.exception(f"Sync bot to panel failed: {e}")
             if preparing_notification:
-                await preparing_notification.delete()
+                try:
+                    await preparing_notification.delete()
+                except Exception:
+                    pass
             await notification_service.notify_user(
                 user=user,
-                payload=MessagePayload(i18n_key="ntf-importer-users-not-found"),
+                payload=MessagePayload(
+                    i18n_key="ntf-remnawave-sync-failed",
+                    i18n_kwargs={"error": str(e)},
+                    add_close_button=True,
+                ),
             )
         finally:
             # Снимаем блокировку
@@ -1290,21 +1298,10 @@ async def on_sync_from_bot(
         return
 
     # Первый клик - показываем уведомление с просьбой нажать еще раз
-    confirm_notification = await notification_service.notify_user(
+    await notification_service.notify_user(
         user=user,
-        payload=MessagePayload.not_deleted(
-            i18n_key="ntf-double-click-confirm",
-            add_close_button=False,
-        ),
+        payload=MessagePayload(i18n_key="ntf-remnawave-sync-confirm"),
     )
-    
-    # Автоматически удаляем уведомление через 3 секунды
-    if confirm_notification:
-        await asyncio.sleep(3)
-        try:
-            await confirm_notification.delete()
-        except Exception:
-            pass
 
 
 @inject
@@ -1336,22 +1333,19 @@ async def on_sync_from_panel(
         return
 
     # Требуем двойной клик для подтверждения
-    if is_double_click(manager, key="sync_from_panel_confirm", cooldown=10):
+    if is_double_click(manager, key="sync_from_panel_confirm", cooldown=5):
         await redis_repository.set(key, value=True, ex=3600)
 
         # Шаг 1: Подготовка данных
         preparing_notification = await notification_service.notify_user(
             user=user,
             payload=MessagePayload.not_deleted(
-                i18n_key="ntf-sync-preparing",
+                i18n_key="ntf-remnawave-sync-preparing",
                 add_close_button=False,
             ),
         )
 
         try:
-            # Даём время увидеть уведомление о подготовке
-            await asyncio.sleep(2)
-            
             # Удаляем уведомление о подготовке
             if preparing_notification:
                 await preparing_notification.delete()
@@ -1360,27 +1354,62 @@ async def on_sync_from_panel(
             sync_notification = await notification_service.notify_user(
                 user=user,
                 payload=MessagePayload.not_deleted(
-                    i18n_key="ntf-importer-sync-started",
+                    i18n_key="ntf-remnawave-sync-started",
                     add_close_button=False,
                 ),
             )
 
-            # Запускаем задачу синхронизации
+            # Запускаем задачу синхронизации и ждём результат
             task = await sync_panel_to_bot_task.kiq(user.telegram_id)
+            result = await task.wait_result()
+            sync_result = result.return_value
 
             # Удаляем уведомление о синхронизации
             if sync_notification:
                 await sync_notification.delete()
+
+            if not sync_result:
+                await notification_service.notify_user(
+                    user=user,
+                    payload=MessagePayload(
+                        i18n_key="ntf-remnawave-sync-no-users",
+                        add_close_button=True,
+                    ),
+                )
+                return
+
+            # Шаг 3: Показываем уведомление с результатами и кнопкой "Закрыть"
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(
+                    i18n_key="ntf-remnawave-sync-panel-to-bot-completed",
+                    i18n_kwargs={
+                        "total_panel_users": sync_result.get("total_panel_users", 0),
+                        "created": sync_result.get("created", 0),
+                        "synced": sync_result.get("synced", 0),
+                        "skipped": sync_result.get("skipped", 0),
+                        "errors": sync_result.get("errors", 0),
+                    },
+                    add_close_button=True,
+                ),
+            )
             
-            logger.info(f"{log(user)} Sync panel to bot started")
+            logger.info(f"{log(user)} Sync panel to bot completed: {sync_result}")
             
         except Exception as e:
             logger.exception(f"Sync panel to bot failed: {e}")
             if preparing_notification:
-                await preparing_notification.delete()
+                try:
+                    await preparing_notification.delete()
+                except Exception:
+                    pass
             await notification_service.notify_user(
                 user=user,
-                payload=MessagePayload(i18n_key="ntf-sync-failed", i18n_kwargs={"error": str(e)}),
+                payload=MessagePayload(
+                    i18n_key="ntf-remnawave-sync-failed",
+                    i18n_kwargs={"error": str(e)},
+                    add_close_button=True,
+                ),
             )
         finally:
             # Снимаем блокировку
@@ -1389,18 +1418,7 @@ async def on_sync_from_panel(
         return
 
     # Первый клик - показываем уведомление с просьбой нажать еще раз
-    confirm_notification = await notification_service.notify_user(
+    await notification_service.notify_user(
         user=user,
-        payload=MessagePayload.not_deleted(
-            i18n_key="ntf-double-click-confirm",
-            add_close_button=False,
-        ),
+        payload=MessagePayload(i18n_key="ntf-remnawave-sync-confirm"),
     )
-    
-    # Автоматически удаляем уведомление через 3 секунды
-    if confirm_notification:
-        await asyncio.sleep(3)
-        try:
-            await confirm_notification.delete()
-        except Exception:
-            pass

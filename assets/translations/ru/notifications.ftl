@@ -682,6 +682,36 @@ ntf-sync-panel-to-bot-completed =
     <b>Ошибок:</b> { $errors }
     </blockquote>
 
+# Remnawave Sync notifications
+ntf-remnawave-sync-confirm = <i>⚠️ Нажмите еще раз для подтверждения импорта.</i>
+ntf-remnawave-sync-preparing = <i>🔄 Подготовка данных к импорту...</i>
+ntf-remnawave-sync-started = <i>🔄 Синхронизация данных...</i>
+ntf-remnawave-sync-no-users = <i>❌ Не найдено пользователей для импорта.</i>
+ntf-remnawave-sync-failed =
+    <i>❌ Ошибка импорта:</i>
+
+    <blockquote>{ $error }</blockquote>
+ntf-remnawave-sync-bot-to-panel-completed =
+    <b>✅ Импорт из Бота в Remnawave завершен</b>
+
+    <blockquote>
+    <b>Всего в боте:</b> { $total_bot_users }
+    <b>Создано:</b> { $created }
+    <b>Обновлено:</b> { $updated }
+    <b>Пропущено:</b> { $skipped }
+    <b>Ошибок:</b> { $errors }
+    </blockquote>
+ntf-remnawave-sync-panel-to-bot-completed =
+    <b>✅ Импорт из Remnawave в Бота завершен</b>
+
+    <blockquote>
+    <b>Всего в панели:</b> { $total_panel_users }
+    <b>Создано:</b> { $created }
+    <b>Синхронизировано:</b> { $synced }
+    <b>Пропущено:</b> { $skipped }
+    <b>Ошибок:</b> { $errors }
+    </blockquote>
+
 ntf-subscription-processing = <i>⏳ Оформляем вашу подписку, пожалуйста подождите...</i>
 
 # Promocodes

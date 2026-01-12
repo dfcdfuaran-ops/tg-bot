@@ -3,13 +3,8 @@ from dishka.integrations.taskiq import FromDishka, inject
 from loguru import logger
 from remnapy import RemnawaveSDK
 
-from src.core.enums import SubscriptionStatus
-from src.core.utils.formatters import format_limits_to_plan_type
-from src.core.utils.message_payload import MessagePayload
 from src.core.utils.time import datetime_now
-from src.infrastructure.database.models.dto import PlanSnapshotDto, SubscriptionDto, UserDto
 from src.infrastructure.taskiq.broker import broker
-from src.services.notification import NotificationService
 from src.services.plan import PlanService
 from src.services.remnawave import RemnawaveService
 from src.services.subscription import SubscriptionService
@@ -25,12 +20,13 @@ async def sync_panel_to_bot_task(
     subscription_service: FromDishka[SubscriptionService],
     plan_service: FromDishka[PlanService],
     remnawave_service: FromDishka[RemnawaveService],
-    notification_service: FromDishka[NotificationService],
-) -> None:
+) -> dict | None:
     """
     Синхронизация данных из панели Remnawave в бота.
     Создает новых пользователей в боте если их нет.
     Обновляет данные подписок в боте данными из панели.
+    
+    Возвращает dict с результатами синхронизации.
     """
     logger.info(f"Starting panel to bot sync, initiated by admin {admin_telegram_id}")
     
@@ -121,36 +117,20 @@ async def sync_panel_to_bot_task(
                 logger.exception(e)
                 errors_count += 1
         
-        # Уведомляем администратора о результате
-        admin = await user_service.get(admin_telegram_id)
-        await notification_service.notify_user(
-            user=admin,
-            payload=MessagePayload(
-                i18n_key="ntf-sync-panel-to-bot-completed",
-                i18n_kwargs={
-                    "total_panel_users": len(all_panel_users),
-                    "created": created_count,
-                    "synced": synced_count,
-                    "skipped": skipped_count,
-                    "errors": errors_count,
-                },
-                add_close_button=True,
-            ),
-        )
-        
         logger.info(
             f"Panel to bot sync completed: total={len(all_panel_users)}, "
             f"created={created_count}, synced={synced_count}, "
             f"skipped={skipped_count}, errors={errors_count}"
         )
         
+        return {
+            "total_panel_users": len(all_panel_users),
+            "created": created_count,
+            "synced": synced_count,
+            "skipped": skipped_count,
+            "errors": errors_count,
+        }
+        
     except Exception as e:
         logger.exception(f"Panel to bot sync failed: {e}")
-        admin = await user_service.get(admin_telegram_id)
-        await notification_service.notify_user(
-            user=admin,
-            payload=MessagePayload(
-                i18n_key="ntf-sync-failed",
-                i18n_kwargs={"error": str(e)},
-            ),
-        )
+        raise
