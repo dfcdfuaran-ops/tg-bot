@@ -825,7 +825,7 @@ async def on_accept_community(
     dialog_manager.dialog_data.pop("current_community", None)
     
     logger.info(f"{log(user)} Accepted Community settings")
-    await dialog_manager.back()
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
 
 
 @inject
@@ -842,7 +842,7 @@ async def on_cancel_community(
     dialog_manager.dialog_data["current_community"] = initial.copy()
     
     logger.info(f"{log(user)} Cancelled Community settings")
-    await dialog_manager.back()
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
 
 
 @inject
