@@ -811,17 +811,22 @@ class RemnawaveService(BaseService):
                     
                     new_plan_snapshot = PlanSnapshotDto.from_plan(matching_plan, duration_days)
                     
+                    # Сохраняем дополнительные устройства
+                    extra_devices = subscription.extra_devices or 0
+                    
                     # Обновляем подписку с новым планом
                     subscription.plan = new_plan_snapshot
                     subscription.tag = new_tag
                     subscription.traffic_limit = matching_plan.traffic_limit
-                    subscription.device_limit = matching_plan.device_limit
+                    # Лимит устройств = лимит плана + дополнительные устройства
+                    subscription.device_limit = matching_plan.device_limit + extra_devices
                     subscription.traffic_limit_strategy = matching_plan.traffic_limit_strategy
                     subscription.internal_squads = matching_plan.internal_squads.copy()
                     subscription.external_squad = matching_plan.external_squad.copy() if matching_plan.external_squad else None
                     
                     logger.info(
-                        f"Subscription plan switched to '{matching_plan.name}' for user '{user.telegram_id}'"
+                        f"Subscription plan switched to '{matching_plan.name}' for user '{user.telegram_id}'. "
+                        f"Device limit: {matching_plan.device_limit} + {extra_devices} extra = {subscription.device_limit}"
                     )
                 else:
                     if matching_plan:
