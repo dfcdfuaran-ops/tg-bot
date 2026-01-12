@@ -271,8 +271,8 @@ async def on_gateways_cancel(
     
     logger.info(f"{log(user)} Cancelled all gateway changes")
     
-    # Возвращаемся на одно меню назад
-    await dialog_manager.back()
+    # Закрываем диалог и возвращаемся в родительское меню
+    await dialog_manager.done()
 
 
 @inject
