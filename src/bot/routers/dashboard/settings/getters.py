@@ -527,6 +527,9 @@ async def currency_rates_getter(
     stars_rate = current.get("stars_rate", 1.5)
     auto_update = current.get("auto_update", False)
     
+    # Сохраняем в dialog_data для доступа из обработчиков
+    dialog_manager.dialog_data["current_rates"] = current
+    
     return {
         "auto_update": 1 if auto_update else 0,
         "usd_rate": usd_rate,
