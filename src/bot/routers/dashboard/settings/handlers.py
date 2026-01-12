@@ -1777,11 +1777,11 @@ async def on_tos_url_input(
         warning_msg = await message.answer("⚠️ URL должен начинаться с http:// или https://")
         # Удаляем сообщение через 5 секунд
         async def delete_warning():
-            await asyncio.sleep(5)
             try:
+                await asyncio.sleep(5)
                 await warning_msg.delete()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.debug(f"Failed to delete warning message: {e}")
         asyncio.create_task(delete_warning())
         return
     
