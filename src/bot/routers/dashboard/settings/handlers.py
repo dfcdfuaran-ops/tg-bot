@@ -715,7 +715,7 @@ async def on_community_click(
     widget: Button,
     dialog_manager: DialogManager,
     settings_service: FromDishka[SettingsService],
-    config: AppConfig,
+    config: FromDishka[AppConfig],
 ) -> None:
     """Переход в настройки сообщества."""
     # Загружаем текущие настройки при входе
