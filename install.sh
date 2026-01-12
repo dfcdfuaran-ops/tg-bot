@@ -58,12 +58,21 @@ show_spinner_timer() {
   local msg="$2"
   local spin=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
   local i=0
+  local delay=0.08
+  local elapsed=0
   tput civis 2>/dev/null || true
   
-  for ((remaining=$seconds; remaining>0; remaining--)); do
+  while [ $elapsed -lt $seconds ]; do
+    local remaining=$((seconds - elapsed))
     printf "\r${GREEN}%s${NC}  %s (%d сек)" "${spin[$i]}" "$msg" "$remaining"
-    i=$(( (i+1) % 10 ))
-    sleep 1
+    
+    # Крутим спинер несколько раз перед следующим обновлением секунды
+    for ((j=0; j<12; j++)); do
+      sleep $delay
+      i=$(( (i+1) % 10 ))
+    done
+    
+    ((elapsed++))
   done
   
   printf "\r${GREEN}✅${NC} %s\n" "$msg"
