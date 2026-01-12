@@ -918,7 +918,7 @@ async def on_external_squad_select(
         plan.external_squad = None
         logger.info(f"{log(user)} Unset external squad '{selected_squad}'")
     else:
-        # Select - set as single item list
+        # Select - set as list with single item
         plan.external_squad = [selected_squad]
         logger.info(f"{log(user)} Set external squad '{selected_squad}'")
 

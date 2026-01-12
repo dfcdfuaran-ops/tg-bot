@@ -38,15 +38,7 @@ class PlanSnapshotDto(TrackableDto):
 
     @classmethod
     def from_plan(cls, plan: "PlanDto", duration_days: int) -> "PlanSnapshotDto":
-        # external_squad is a list in PlanDto, we wrap it or keep as list
-        external_squad = None
-        if plan.external_squad:
-            if isinstance(plan.external_squad, list):
-                external_squad = plan.external_squad if plan.external_squad else None
-            else:
-                # Single UUID, wrap in list
-                external_squad = [plan.external_squad]
-        
+        # external_squad is already a list in PlanDto
         return cls(
             id=plan.id,
             name=plan.name,
@@ -57,7 +49,7 @@ class PlanSnapshotDto(TrackableDto):
             duration=duration_days,
             traffic_limit_strategy=plan.traffic_limit_strategy,
             internal_squads=plan.internal_squads.copy(),
-            external_squad=external_squad,
+            external_squad=plan.external_squad.copy() if plan.external_squad else None,
         )
 
     @classmethod
@@ -93,7 +85,7 @@ class PlanDto(TrackableDto):
     traffic_limit_strategy: TrafficLimitStrategy = TrafficLimitStrategy.NO_RESET
     allowed_user_ids: list[int] = []
     internal_squads: list[UUID] = []
-    external_squad: Optional[UUID] = None
+    external_squad: Optional[list[UUID]] = None
 
     durations: list["PlanDurationDto"] = []
 
