@@ -1853,3 +1853,155 @@ async def on_cancel_tos(
     
     logger.info(f"{log(user)} Cancelled ToS settings")
     await dialog_manager.switch_to(DashboardSettings.MAIN)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Курсы валют
+# ═══════════════════════════════════════════════════════════════
+
+@inject
+async def on_currency_rates_click(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Переход в настройки курсов валют."""
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    
+    dialog_manager.dialog_data["initial_rates"] = {
+        "usd_rate": rates.usd_rate,
+        "eur_rate": rates.eur_rate,
+        "stars_rate": rates.stars_rate,
+    }
+    
+    dialog_manager.dialog_data["current_rates"] = {
+        "usd_rate": rates.usd_rate,
+        "eur_rate": rates.eur_rate,
+        "stars_rate": rates.stars_rate,
+    }
+    
+    await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATES)
+
+
+@inject
+async def on_usd_rate_click(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к редактированию курса USD."""
+    await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATE_USD)
+
+
+@inject
+async def on_eur_rate_click(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к редактированию курса EUR."""
+    await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATE_EUR)
+
+
+@inject
+async def on_stars_rate_click(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к редактированию курса Stars."""
+    await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATE_STARS)
+
+
+@inject
+async def on_currency_rate_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+    rate_type: str,
+) -> None:
+    """Обработка ввода курса валюты."""
+    dialog_manager.show_mode = ShowMode.EDIT
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    try:
+        rate = float(message.text.strip().replace(",", "."))
+        if rate <= 0:
+            raise ValueError("Rate must be positive")
+    except ValueError:
+        logger.warning(f"{log(user)} Invalid rate value: {message.text}")
+        await message.answer("⚠️ Введите положительное число")
+        return
+    
+    current = dialog_manager.dialog_data.get("current_rates", {})
+    current[rate_type] = rate
+    dialog_manager.dialog_data["current_rates"] = current
+    
+    logger.info(f"{log(user)} Set {rate_type} to {rate}")
+    await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATES)
+
+
+async def on_usd_rate_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+) -> None:
+    await on_currency_rate_input(message, widget, dialog_manager, "usd_rate")
+
+
+async def on_eur_rate_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+) -> None:
+    await on_currency_rate_input(message, widget, dialog_manager, "eur_rate")
+
+
+async def on_stars_rate_input(
+    message: Message,
+    widget: MessageInput,
+    dialog_manager: DialogManager,
+) -> None:
+    await on_currency_rate_input(message, widget, dialog_manager, "stars_rate")
+
+
+@inject
+async def on_accept_rates(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Сохранение курсов валют."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    current = dialog_manager.dialog_data.get("current_rates", {})
+    
+    settings = await settings_service.get()
+    settings.features.currency_rates.usd_rate = current.get("usd_rate", 90.0)
+    settings.features.currency_rates.eur_rate = current.get("eur_rate", 100.0)
+    settings.features.currency_rates.stars_rate = current.get("stars_rate", 1.5)
+    await settings_service.update(settings)
+    
+    dialog_manager.dialog_data.pop("initial_rates", None)
+    dialog_manager.dialog_data.pop("current_rates", None)
+    
+    logger.info(f"{log(user)} Saved currency rates")
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
+
+
+@inject
+async def on_cancel_rates(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Отмена изменений курсов валют."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    dialog_manager.dialog_data.pop("initial_rates", None)
+    dialog_manager.dialog_data.pop("current_rates", None)
+    
+    logger.info(f"{log(user)} Cancelled currency rates")
+    await dialog_manager.switch_to(DashboardSettings.MAIN)

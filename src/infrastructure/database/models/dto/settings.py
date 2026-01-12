@@ -115,6 +115,13 @@ class GlobalDiscountSettingsDto(TrackableDto):
     apply_to_transfer_commission: bool = False  # Применять к комиссии переводов
 
 
+class CurrencyRatesDto(TrackableDto):
+    """Курсы валют относительно рубля."""
+    usd_rate: float = 90.0  # 1 USD = X RUB
+    eur_rate: float = 100.0  # 1 EUR = X RUB
+    stars_rate: float = 1.5  # 1 Star = X RUB
+
+
 class FeatureSettingsDto(TrackableDto):
     """Настройки функционала - включение/выключение различных функций."""
     community_enabled: bool = True  # Кнопка "Сообщество" в главном меню
@@ -129,6 +136,7 @@ class FeatureSettingsDto(TrackableDto):
     transfers: TransferSettingsDto = TransferSettingsDto()  # Настройки переводов
     inactive_notifications: InactiveUserNotificationDto = InactiveUserNotificationDto()  # Уведомления о неподключенных
     global_discount: GlobalDiscountSettingsDto = GlobalDiscountSettingsDto()  # Глобальная скидка
+    currency_rates: CurrencyRatesDto = CurrencyRatesDto()  # Курсы валют
 
 
 class SettingsDto(TrackableDto):

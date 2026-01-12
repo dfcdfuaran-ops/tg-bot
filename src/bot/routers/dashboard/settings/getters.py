@@ -499,3 +499,29 @@ async def tos_settings_getter(
         "url_display": url_display,
         "status_text": status_text,
     }
+
+
+@inject
+async def currency_rates_getter(
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Геттер для настроек курсов валют."""
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    
+    current = dialog_manager.dialog_data.get("current_rates")
+    
+    if not current:
+        current = {
+            "usd_rate": rates.usd_rate,
+            "eur_rate": rates.eur_rate,
+            "stars_rate": rates.stars_rate,
+        }
+    
+    return {
+        "usd_rate": current.get("usd_rate", 90.0),
+        "eur_rate": current.get("eur_rate", 100.0),
+        "stars_rate": current.get("stars_rate", 1.5),
+    }

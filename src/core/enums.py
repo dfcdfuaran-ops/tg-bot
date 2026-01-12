@@ -234,6 +234,7 @@ class PaymentGatewayType(UpperStrEnum):
 
 class Currency(UpperStrEnum):
     USD = auto()
+    EUR = auto()
     XTR = auto()
     RUB = auto()
 
@@ -241,6 +242,7 @@ class Currency(UpperStrEnum):
     def symbol(self) -> str:
         symbols = {
             "USD": "$",
+            "EUR": "€",
             "XTR": "★",
             "RUB": "₽",
         }

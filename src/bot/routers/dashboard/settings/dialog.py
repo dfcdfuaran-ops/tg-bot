@@ -19,6 +19,7 @@ from .getters import (
     global_discount_apply_to_getter,
     global_discount_mode_getter,
     tos_settings_getter,
+    currency_rates_getter,
 )
 from .handlers import (
     on_accept_transfers,
@@ -114,6 +115,16 @@ from .handlers import (
     on_toggle_tos_enabled,
     on_accept_tos,
     on_cancel_tos,
+    # Currency Rates
+    on_currency_rates_click,
+    on_usd_rate_click,
+    on_eur_rate_click,
+    on_stars_rate_click,
+    on_usd_rate_input,
+    on_eur_rate_input,
+    on_stars_rate_input,
+    on_accept_rates,
+    on_cancel_rates,
 )
 
 
@@ -255,6 +266,13 @@ settings_main = Window(
             ),
             id="toggle_global_discount",
             on_click=on_toggle_global_discount,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-settings-currency-rates"),
+            id="currency_rates",
+            on_click=on_currency_rates_click,
         ),
     ),
     Row(
@@ -1720,6 +1738,106 @@ tos_url_manual = Window(
 )
 
 
+# ═══════════════════════════════════════════════════════════════
+# Курсы валют
+# ═══════════════════════════════════════════════════════════════
+
+currency_rates_settings = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-currency-rates"),
+    Row(
+        Button(
+            text=I18nFormat(
+                "btn-setting-value",
+                name="$ USD",
+                value=F["usd_rate"],
+            ),
+            id="usd_rate",
+            on_click=on_usd_rate_click,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat(
+                "btn-setting-value",
+                name="€ EUR",
+                value=F["eur_rate"],
+            ),
+            id="eur_rate",
+            on_click=on_eur_rate_click,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat(
+                "btn-setting-value",
+                name="★ Stars",
+                value=F["stars_rate"],
+            ),
+            id="stars_rate",
+            on_click=on_stars_rate_click,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            on_click=on_cancel_rates,
+        ),
+        Button(
+            text=I18nFormat("btn-accept"),
+            id="accept",
+            on_click=on_accept_rates,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=DashboardSettings.CURRENCY_RATES,
+    getter=currency_rates_getter,
+)
+
+currency_rate_usd = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-currency-rate-input", currency="USD", symbol="$"),
+    SwitchTo(
+        text=I18nFormat("btn-cancel"),
+        id="back",
+        state=DashboardSettings.CURRENCY_RATES,
+    ),
+    MessageInput(func=on_usd_rate_input, content_types=ContentType.TEXT),
+    IgnoreUpdate(),
+    state=DashboardSettings.CURRENCY_RATE_USD,
+    getter=currency_rates_getter,
+)
+
+currency_rate_eur = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-currency-rate-input", currency="EUR", symbol="€"),
+    SwitchTo(
+        text=I18nFormat("btn-cancel"),
+        id="back",
+        state=DashboardSettings.CURRENCY_RATES,
+    ),
+    MessageInput(func=on_eur_rate_input, content_types=ContentType.TEXT),
+    IgnoreUpdate(),
+    state=DashboardSettings.CURRENCY_RATE_EUR,
+    getter=currency_rates_getter,
+)
+
+currency_rate_stars = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-currency-rate-input", currency="Stars", symbol="★"),
+    SwitchTo(
+        text=I18nFormat("btn-cancel"),
+        id="back",
+        state=DashboardSettings.CURRENCY_RATES,
+    ),
+    MessageInput(func=on_stars_rate_input, content_types=ContentType.TEXT),
+    IgnoreUpdate(),
+    state=DashboardSettings.CURRENCY_RATE_STARS,
+    getter=currency_rates_getter,
+)
+
+
 router = Dialog(
     settings_main,
     balance_settings,
@@ -1745,4 +1863,8 @@ router = Dialog(
     global_discount_mode,
     tos_settings,
     tos_url_manual,
+    currency_rates_settings,
+    currency_rate_usd,
+    currency_rate_eur,
+    currency_rate_stars,
 )

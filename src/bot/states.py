@@ -148,6 +148,12 @@ class DashboardSettings(StatesGroup):
     # Соглашение (ToS)
     TOS = State()
     TOS_URL_MANUAL = State()
+    
+    # Курсы валют
+    CURRENCY_RATES = State()
+    CURRENCY_RATE_USD = State()
+    CURRENCY_RATE_EUR = State()
+    CURRENCY_RATE_STARS = State()
 
 
 class DashboardUsers(StatesGroup):

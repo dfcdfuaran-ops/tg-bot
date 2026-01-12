@@ -2019,7 +2019,7 @@ msg-dashboard-settings-tos =
     • Статус: { $status }
     • Источник: { $source }
     </blockquote>
-    
+
     🔽 Укажите ссылку на документ с правилами.
 
 msg-dashboard-settings-tos-url =
@@ -2028,6 +2028,19 @@ msg-dashboard-settings-tos-url =
     <blockquote>
     Введите ссылку (в формате https://telegram.org/tos).
     </blockquote>
+
+# Currency Rates Settings
+msg-dashboard-settings-currency-rates =
+    <b>💱 Курсы валют</b>
+
+    Укажите курс обмена относительно рубля.
+    Цены в тарифах будут автоматически пересчитываться.
+
+msg-dashboard-settings-currency-rate-input =
+    <b>💱 Курс { $currency }</b>
+
+    Введите курс { $symbol } к рублю (например: 90.5).
+    1 { $symbol } = X ₽
 
 # Payment Link for Extra Devices
 msg-add-device-payment-link = <b>💳 Ссылка для оплаты</b>
