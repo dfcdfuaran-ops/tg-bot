@@ -332,7 +332,7 @@ show_simple_menu() {
 show_full_menu() {
     set +e  # Отключаем exit on error для функции меню
     local selected=0
-    local options=("🔄  Переустановить" "📦  Проверить обновления" "⚙️   Изменить настройки" "📋  Просмотр логов" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
+    local options=("🔄  Переустановить" "📦  Проверить обновления" "🔃  Перезагрузить бота" "⚙️   Изменить настройки" "📋  Просмотр логов" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
     local num_options=${#options[@]}
     
     # Сохраняем текущие настройки терминала
@@ -360,8 +360,8 @@ show_full_menu() {
                 echo "  ${options[$i]}"
             fi
             
-            # Разделители после пунктов 1 и 5
-            if [ $i -eq 1 ] || [ $i -eq 5 ]; then
+            # Разделители после пунктов 1 и 6
+            if [ $i -eq 1 ] || [ $i -eq 6 ]; then
                 echo -e "${BLUE}----------------------------------${NC}"
             fi
         done
@@ -439,25 +439,30 @@ show_full_menu() {
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    2)  # Изменить настройки
+                    2)  # Перезагрузить бота
+                        manage_restart_bot
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    3)  # Изменить настройки
                         manage_change_settings
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    3)  # Просмотр логов
+                    4)  # Просмотр логов
                         manage_view_logs
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    4)  # Очистить данные
+                    5)  # Очистить данные
                         manage_cleanup_database
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    5)  # Удалить бота
+                    6)  # Удалить бота
                         manage_uninstall_bot
                         ;;
-                    6)  # Выход
+                    7)  # Выход
                         clear
                         exit 0
                         ;;
@@ -622,6 +627,32 @@ manage_update_bot() {
     fi
     
     echo
+    tput civis 2>/dev/null || true
+    echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+    read -p ""
+}
+
+# Функция перезагрузки бота
+manage_restart_bot() {
+    clear
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${GREEN}      🔃 ПЕРЕЗАГРУЗКА TG-SELL-BOT${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo
+    echo -e "${YELLOW}Бот будет перезагружен...${NC}"
+    echo
+    
+    {
+        cd "$PROJECT_DIR" || return
+        docker compose down >/dev/null 2>&1
+        docker compose up -d >/dev/null 2>&1
+    } &
+    show_spinner "Перезагрузка бота"
+    
+    echo
+    echo -e "${GREEN}✅ Бот успешно перезагружен${NC}"
+    echo
+    echo -e "${BLUE}========================================${NC}"
     tput civis 2>/dev/null || true
     echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
     read -p ""
