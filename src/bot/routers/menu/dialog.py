@@ -15,7 +15,7 @@ from aiogram_dialog.widgets.kbd import (
     Url,
     WebApp,
 )
-from aiogram_dialog.widgets.text import Const, Format
+from aiogram_dialog.widgets.text import Format
 from magic_filter import F
 
 from src.bot.keyboards import connect_buttons, get_back_and_main_menu_buttons, main_menu_button
@@ -158,7 +158,7 @@ menu = Window(
         Url(
             text=I18nFormat("btn-menu-tos"),
             id="tos",
-            url=Const("https://telegra.ph/Usloviya-servisa-DFC-Online-11-29"),
+            url=Format("{tos_url}"),
             when=F["is_tos_enabled"],
         ),
     ),

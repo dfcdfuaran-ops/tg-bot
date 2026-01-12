@@ -1,3 +1,4 @@
+import asyncio
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, ShowMode, StartMode
 from aiogram_dialog.widgets.input import MessageInput
@@ -1773,7 +1774,15 @@ async def on_tos_url_input(
     
     # Базовая валидация URL
     if not url.startswith(("http://", "https://")):
-        await message.answer("⚠️ URL должен начинаться с http:// или https://")
+        warning_msg = await message.answer("⚠️ URL должен начинаться с http:// или https://")
+        # Удаляем сообщение через 5 секунд
+        async def delete_warning():
+            await asyncio.sleep(5)
+            try:
+                await warning_msg.delete()
+            except Exception:
+                pass
+        asyncio.create_task(delete_warning())
         return
     
     current["url"] = url
