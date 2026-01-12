@@ -698,8 +698,9 @@ manage_update_bot() {
                 show_spinner "Применение сохранённых параметров"
             fi
             
-            # Запуск бота с таймером на 60 секунд
-            show_spinner_timer 60 "Запуск бота"
+            # Запуск бота
+            (sleep 35) &
+            show_spinner "Запуск бота"
             
             echo
             echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
