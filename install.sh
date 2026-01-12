@@ -635,10 +635,6 @@ manage_update_bot() {
         elif [ -z "$update_key" ] || [ "$(printf '%d' "'$update_key")" -eq 13 ] || [ "$(printf '%d' "'$update_key")" -eq 10 ]; then
             # Enter - начало обновления
             clear
-            echo -e "${BLUE}========================================${NC}"
-            echo -e "${GREEN}       🔄 ОБНОВЛЕНИЕ TG-SELL-BOT${NC}"
-            echo -e "${BLUE}========================================${NC}"
-            echo
             
             # Сохраняем критические переменные перед обновлением
             ENV_BACKUP_FILE=$(preserve_env_vars "$ENV_FILE")
@@ -700,13 +696,16 @@ manage_update_bot() {
             
             # Сохраняем хеш обновления в .env
             update_env_var "$ENV_FILE" "LAST_UPDATE_HASH" "$REMOTE_HASH"
+            
+            echo
+            tput civis 2>/dev/null || true
+            echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+            read -p ""
+            
+            # Перезапускаем скрипт чтобы вернуться в главное меню
+            exec "$0"
         fi
     fi
-    
-    echo
-    tput civis 2>/dev/null || true
-    echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-    read -p ""
 }
 
 # Функция перезагрузки бота
