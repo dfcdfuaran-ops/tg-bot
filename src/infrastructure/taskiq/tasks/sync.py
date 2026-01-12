@@ -64,11 +64,8 @@ async def sync_panel_to_bot_task(
         errors_count = 0
         skipped_count = 0
         
-        for panel_user_short in all_panel_users:
+        for panel_user in all_panel_users:
             try:
-                # Получаем полные данные пользователя (с traffic_limit, device_limit и т.д.)
-                panel_user = await remnawave.users.get_user(panel_user_short.uuid)
-                
                 # Проверяем, есть ли telegram_id у пользователя панели
                 if not panel_user.telegram_id:
                     skipped_count += 1
@@ -77,125 +74,22 @@ async def sync_panel_to_bot_task(
                     
                 telegram_id = int(panel_user.telegram_id)
                 
-                # Пробуем найти пользователя в боте
+                # Проверяем, есть ли пользователь в боте
                 bot_user = await user_service.get(telegram_id)
                 
                 if bot_user:
-                    # Пользователь есть в боте - обновляем/создаём подписку
-                    subscription = await subscription_service.get_current(bot_user)
-                    
-                    if subscription:
-                        # Обновляем данные подписки из панели
-                        subscription.user_remna_id = panel_user.uuid
-                        subscription.url = panel_user.subscription_url
-                        subscription.status = panel_user.status
-                        subscription.expire_at = panel_user.expire_at
-                        subscription.traffic_limit = panel_user.traffic_limit
-                        subscription.device_limit = panel_user.device_limit
-                        subscription.tag = panel_user.tag
-                        subscription.internal_squads = panel_user.internal_squads
-                        subscription.external_squad = panel_user.external_squad
-                        
-                        await subscription_service.update(subscription)
-                        synced_count += 1
-                        logger.debug(f"Updated subscription for user {telegram_id} from panel")
-                    else:
-                        # Создаём новую подписку для существующего пользователя
-                        # Ищем план по тегу, если есть
-                        plan = None
-                        if panel_user.tag:
-                            plan = await plan_service.get_by_tag(panel_user.tag)
-                        
-                        # Если план не найден, создаём временный
-                        if not plan:
-                            plan = PlanSnapshotDto(
-                                id=0,
-                                name=f"IMPORTED_{panel_user.tag or 'UNKNOWN'}",
-                                tag=panel_user.tag or "IMPORTED",
-                                type=format_limits_to_plan_type(
-                                    traffic=panel_user.traffic_limit,
-                                    devices=panel_user.device_limit,
-                                ),
-                                traffic_limit=panel_user.traffic_limit,
-                                device_limit=panel_user.device_limit,
-                                duration=-1,
-                                traffic_limit_strategy=panel_user.traffic_limit_strategy,
-                                internal_squads=panel_user.internal_squads,
-                                external_squad=panel_user.external_squad,
-                            )
-                        
-                        expired = panel_user.expire_at and panel_user.expire_at < datetime_now()
-                        status = SubscriptionStatus.EXPIRED if expired else panel_user.status
-                        
-                        new_subscription = SubscriptionDto(
-                            user_remna_id=panel_user.uuid,
-                            status=status,
-                            is_trial=False,
-                            traffic_limit=panel_user.traffic_limit,
-                            device_limit=panel_user.device_limit,
-                            traffic_limit_strategy=panel_user.traffic_limit_strategy,
-                            tag=panel_user.tag,
-                            internal_squads=panel_user.internal_squads,
-                            external_squad=panel_user.external_squad,
-                            expire_at=panel_user.expire_at,
-                            url=panel_user.subscription_url,
-                            plan=plan,
-                        )
-                        
-                        await subscription_service.create(bot_user, new_subscription)
-                        synced_count += 1
-                        logger.debug(f"Created subscription for existing user {telegram_id} from panel")
+                    # Пользователь существует - синхронизируем
+                    await remnawave_service.sync_user(panel_user, creating=False)
+                    synced_count += 1
+                    logger.debug(f"Synced user {telegram_id}")
                 else:
-                    # Пользователя нет в боте - создаем нового с подпиской
-                    created_user = await user_service.create_from_panel(panel_user)
-                    
-                    # Ищем план по тегу
-                    plan = None
-                    if panel_user.tag:
-                        plan = await plan_service.get_by_tag(panel_user.tag)
-                    
-                    # Если план не найден, создаём временный
-                    if not plan:
-                        plan = PlanSnapshotDto(
-                            id=0,
-                            name=f"IMPORTED_{panel_user.tag or 'UNKNOWN'}",
-                            tag=panel_user.tag or "IMPORTED",
-                            type=format_limits_to_plan_type(
-                                traffic=panel_user.traffic_limit,
-                                devices=panel_user.device_limit,
-                            ),
-                            traffic_limit=panel_user.traffic_limit,
-                            device_limit=panel_user.device_limit,
-                            duration=-1,
-                            traffic_limit_strategy=panel_user.traffic_limit_strategy,
-                            internal_squads=panel_user.internal_squads,
-                            external_squad=panel_user.external_squad,
-                        )
-                    
-                    expired = panel_user.expire_at and panel_user.expire_at < datetime_now()
-                    status = SubscriptionStatus.EXPIRED if expired else panel_user.status
-                    
-                    new_subscription = SubscriptionDto(
-                        user_remna_id=panel_user.uuid,
-                        status=status,
-                        is_trial=False,
-                        traffic_limit=panel_user.traffic_limit,
-                        device_limit=panel_user.device_limit,
-                        traffic_limit_strategy=panel_user.traffic_limit_strategy,
-                        tag=panel_user.tag,
-                        internal_squads=panel_user.internal_squads,
-                        external_squad=panel_user.external_squad,
-                        expire_at=panel_user.expire_at,
-                        url=panel_user.subscription_url,
-                        plan=plan,
-                    )
-                    
-                    await subscription_service.create(created_user, new_subscription)
+                    # Создаём нового пользователя и синхронизируем
+                    await remnawave_service.sync_user(panel_user, creating=True)
                     created_count += 1
-                    logger.debug(f"Created user {telegram_id} with subscription from panel data")
+                    logger.debug(f"Created user {telegram_id}")
                     
             except Exception as e:
-                logger.error(f"Error processing panel user {panel_user_short.uuid}: {e}")
+                logger.error(f"Error processing panel user {panel_user.uuid}: {e}")
                 logger.exception(e)
                 errors_count += 1
         
