@@ -560,6 +560,8 @@ async def balance_gateways_getter(
     i18n: FromDishka[TranslatorRunner],
     **kwargs: Any,
 ) -> dict[str, Any]:
+    from src.core.enums import PaymentGatewayType
+    
     gateways = await payment_gateway_service.filter_active()
     
     payment_methods = [
@@ -568,6 +570,7 @@ async def balance_gateways_getter(
             "name": gateway.type.value,
         }
         for gateway in gateways
+        if gateway.type != PaymentGatewayType.BALANCE  # Исключаем оплату с баланса при пополнении баланса
     ]
     
     from src.core.enums import ReferralRewardType
