@@ -1677,7 +1677,7 @@ tos_settings = Window(
     Button(
         text=I18nFormat(
             "btn-tos-set-url",
-            name=Const("Назначить источник"),
+            name="",
             value=F["url_display"],
         ),
         id="tos_url",
