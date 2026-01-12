@@ -56,7 +56,7 @@ async def menu_getter(
         invite_message_template = settings.referral.invite_message
         # Format invite message with placeholders
         invite_message = invite_message_template.format(
-            name=config.bot.name or "VPN",
+            name="VPN",
             url=ref_link,
         )
         
@@ -284,7 +284,7 @@ async def invite_getter(
     # Get invite message from settings
     invite_message_template = settings.invite_message
     invite_message = invite_message_template.format(
-        name=config.bot.name or "VPN",
+        name="VPN",
         url=ref_link,
     )
     
