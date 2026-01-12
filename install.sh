@@ -134,12 +134,13 @@ preserve_env_vars() {
     echo "$temp_storage"
 }
 
-# Функция для восстановления критических переменных в .env
+# Функция для восстановления переменных в .env после обновления
 restore_env_vars() {
     local env_file="$1"
     local temp_storage="$2"
     
-    # Переменные которые НЕ следует перезаписывать (пароли, ключи)
+    # Переменные которые НЕ следует перезаписывать (пароли, криптографические ключи)
+    # Переменные которые БУДУТ восстановлены: APP_DOMAIN, BOT_TOKEN, BOT_DEV_ID, и другие пользовательские данные
     local protected_vars=(
         "APP_CRYPT_KEY"
         "DB_PASSWORD"
@@ -166,7 +167,7 @@ restore_env_vars() {
                         fi
                     done
                     
-                    # Обновляем только незащищённые переменные
+                    # Обновляем только незащищённые переменные (включая домен, токен и ID)
                     if [ $is_protected -eq 0 ]; then
                         update_env_var "$env_file" "$var_name" "$var_value"
                     fi
