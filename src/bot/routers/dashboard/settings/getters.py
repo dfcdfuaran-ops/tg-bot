@@ -555,6 +555,7 @@ async def currency_rates_getter(
     
     return {
         "auto_update": 1 if auto_update else 0,
+        "sync_enabled": 1 if auto_update else 0,
         "usd_rate": usd_rate,
         "eur_rate": eur_rate,
         "stars_rate": stars_rate,

@@ -1890,8 +1890,17 @@ async def on_usd_rate_click(
     callback: CallbackQuery,
     widget: Button,
     dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
 ) -> None:
     """Переход к редактированию курса USD."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    settings = await settings_service.get()
+    
+    if settings.features.currency_rates.auto_update:
+        logger.warning(f"{log(user)} Attempted to edit USD rate while sync is enabled")
+        await callback.answer("❌ Отключите синхронизацию курса для редактирования", show_alert=True)
+        return
+    
     await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATE_USD)
 
 
@@ -1900,8 +1909,17 @@ async def on_eur_rate_click(
     callback: CallbackQuery,
     widget: Button,
     dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
 ) -> None:
     """Переход к редактированию курса EUR."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    settings = await settings_service.get()
+    
+    if settings.features.currency_rates.auto_update:
+        logger.warning(f"{log(user)} Attempted to edit EUR rate while sync is enabled")
+        await callback.answer("❌ Отключите синхронизацию курса для редактирования", show_alert=True)
+        return
+    
     await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATE_EUR)
 
 
@@ -1910,8 +1928,17 @@ async def on_stars_rate_click(
     callback: CallbackQuery,
     widget: Button,
     dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
 ) -> None:
     """Переход к редактированию курса Stars."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    settings = await settings_service.get()
+    
+    if settings.features.currency_rates.auto_update:
+        logger.warning(f"{log(user)} Attempted to edit Stars rate while sync is enabled")
+        await callback.answer("❌ Отключите синхронизацию курса для редактирования", show_alert=True)
+        return
+    
     await dialog_manager.switch_to(DashboardSettings.CURRENCY_RATE_STARS)
 
 
