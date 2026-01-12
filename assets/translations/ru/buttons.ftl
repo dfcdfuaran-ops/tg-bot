@@ -12,7 +12,7 @@ btn-dashboard-importer = 📥 X-UI Импорт
 # Database Management
 btn-dashboard-db = 🗄 Управление БД
 btn-db-save = 💾 Сохранить
-btn-db-load = 📥 Загрузить
+btn-db-load = 📦 Загрузить
 btn-db-convert = 🔄 Конвертировать
 btn-db-sync = 🔄 Синхронизация
 btn-db-sync-from-bot = 📤 Импорт из Бота в Remnawave

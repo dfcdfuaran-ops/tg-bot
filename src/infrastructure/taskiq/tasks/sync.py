@@ -134,6 +134,7 @@ async def sync_panel_to_bot_task(
                     "skipped": skipped_count,
                     "errors": errors_count,
                 },
+                add_close_button=True,
             ),
         )
         

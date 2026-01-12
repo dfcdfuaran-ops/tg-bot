@@ -1285,21 +1285,68 @@ async def on_sync_from_panel(
     button,
     manager: DialogManager,
     notification_service: FromDishka[NotificationService],
+    redis_repository: FromDishka[RedisRepository],
 ):
-    """Синхронизация: данные из панели Remnawave -> бот."""
-    from src.bot.states import DashboardDB
+    """
+    Синхронизация: данные из панели Remnawave -> бот.
+    - Создаёт новых пользователей в боте если их нет
+    - Обновляет существующих с приоритетом данных из панели
+    """
+    from src.core.storage.keys import SyncRunningKey
     from src.infrastructure.taskiq.tasks.sync import sync_panel_to_bot_task
+    from src.core.utils.validators import is_double_click
     
     user = manager.middleware_data.get(USER_KEY)
-    
+    key = SyncRunningKey()
+
+    # Проверяем, не запущена ли уже синхронизация
+    if await redis_repository.get(key, bool, False):
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(i18n_key="ntf-importer-sync-already-running"),
+        )
+        return
+
+    # Требуем двойной клик для подтверждения
+    if is_double_click(manager, key="sync_from_panel_confirm", cooldown=10):
+        await redis_repository.set(key, value=True, ex=3600)
+
+        # Показываем уведомление о начале синхронизации
+        sync_notification = await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload.not_deleted(
+                i18n_key="ntf-importer-sync-started",
+                add_close_button=False,
+            ),
+        )
+
+        try:
+            # Запускаем задачу синхронизации
+            task = await sync_panel_to_bot_task.kiq(user.telegram_id)
+            # Ожидаем результата не нужно, так как задача отправит уведомление сама
+            # result = await task.wait_result()
+
+            # Удаляем уведомление о процессе
+            if sync_notification:
+                await sync_notification.delete()
+            
+            logger.info(f"{log(user)} Sync panel to bot started")
+            
+        except Exception as e:
+            logger.exception(f"Sync panel to bot failed: {e}")
+            if sync_notification:
+                await sync_notification.delete()
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(i18n_key="ntf-sync-failed", i18n_kwargs={"error": str(e)}),
+            )
+        finally:
+            # Снимаем блокировку
+            await redis_repository.delete(key)
+        
+        return
+
     await notification_service.notify_user(
         user=user,
-        payload=MessagePayload(i18n_key="ntf-sync-started"),
+        payload=MessagePayload(i18n_key="ntf-double-click-confirm"),
     )
-    
-    # Запускаем задачу синхронизации
-    await sync_panel_to_bot_task.kiq(user.telegram_id)
-    
-    manager.dialog_data["sync_status"] = "in_progress"
-    manager.dialog_data["sync_direction"] = "panel_to_bot"
-    await manager.switch_to(DashboardDB.SYNC_PROGRESS)
