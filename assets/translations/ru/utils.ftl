@@ -75,8 +75,6 @@ frg-user =
         *[0] {""}
     }
     </blockquote>
-    *[0] </blockquote>
-    }
 
 frg-user-info =
     <blockquote>
