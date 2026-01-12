@@ -139,6 +139,17 @@ restore_env_vars() {
     local env_file="$1"
     local temp_storage="$2"
     
+    # Переменные которые НЕ следует перезаписывать (пароли, ключи)
+    local protected_vars=(
+        "APP_CRYPT_KEY"
+        "DB_PASSWORD"
+        "POSTGRES_PASSWORD"
+        "REDIS_PASSWORD"
+        "SECRET_KEY"
+        "JWT_SECRET"
+        "API_KEY"
+    )
+    
     if [ -f "$temp_storage" ]; then
         # Читаем сохранённые переменные и обновляем их в .env
         while IFS='=' read -r var_name var_value; do
@@ -146,7 +157,19 @@ restore_env_vars() {
                 # Пропускаем пустые строки
                 var_name=$(echo "$var_name" | xargs)
                 if [ -n "$var_name" ]; then
-                    update_env_var "$env_file" "$var_name" "$var_value"
+                    # Проверяем не входит ли переменная в защищённый список
+                    is_protected=0
+                    for protected in "${protected_vars[@]}"; do
+                        if [ "$var_name" = "$protected" ]; then
+                            is_protected=1
+                            break
+                        fi
+                    done
+                    
+                    # Обновляем только незащищённые переменные
+                    if [ $is_protected -eq 0 ]; then
+                        update_env_var "$env_file" "$var_name" "$var_value"
+                    fi
                 fi
             fi
         done < "$temp_storage"
@@ -921,6 +944,7 @@ manage_uninstall_bot() {
     echo
     echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
     read -p ""
+    clear
     exit 0
 }
 
