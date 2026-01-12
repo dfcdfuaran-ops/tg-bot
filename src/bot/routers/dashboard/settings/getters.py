@@ -530,13 +530,18 @@ async def currency_rates_getter(
     # Сохраняем в dialog_data для доступа из обработчиков
     dialog_manager.dialog_data["current_rates"] = current
     
+    def format_rate(rate: float) -> str:
+        """Форматирует курс, убирая ненужные нули."""
+        formatted = f"{rate:.2f}".rstrip('0').rstrip('.')
+        return formatted
+    
     return {
         "auto_update": 1 if auto_update else 0,
         "usd_rate": usd_rate,
         "eur_rate": eur_rate,
         "stars_rate": stars_rate,
         # Форматированные строки для кнопок
-        "usd_display": f"{usd_rate:.2f} ₽ = 1 $",
-        "eur_display": f"{eur_rate:.2f} ₽ = 1 €",
-        "stars_display": f"{stars_rate:.2f} ₽ = 1 ★",
+        "usd_display": f"{format_rate(usd_rate)} ₽ = 1 $",
+        "eur_display": f"{format_rate(eur_rate)} ₽ = 1 €",
+        "stars_display": f"{format_rate(stars_rate)} ₽ = 1 ★",
     }
