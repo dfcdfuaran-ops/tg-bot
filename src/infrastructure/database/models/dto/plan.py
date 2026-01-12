@@ -93,7 +93,7 @@ class PlanDto(TrackableDto):
     traffic_limit_strategy: TrafficLimitStrategy = TrafficLimitStrategy.NO_RESET
     allowed_user_ids: list[int] = []
     internal_squads: list[UUID] = []
-    external_squad: Optional[list[UUID]] = None
+    external_squad: Optional[UUID] = None
 
     durations: list["PlanDurationDto"] = []
 
