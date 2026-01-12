@@ -332,7 +332,7 @@ show_simple_menu() {
 show_full_menu() {
     set +e  # Отключаем exit on error для функции меню
     local selected=0
-    local options=("🔄  Переустановить" "📦  Проверить обновления" "🔃  Перезагрузить бота" "⬇️   Выключить бота" "⬆️   Включить бота" "⚙️   Изменить настройки" "📋  Просмотр логов" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
+    local options=("�  Обновить" "⚙️   Изменить настройки" "📋  Просмотр логов" "🔃  Перезагрузить бота" "⬇️   Выключить бота" "⬆️   Включить бота" "🔄  Переустановить" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
     local num_options=${#options[@]}
     
     # Сохраняем текущие настройки терминала
@@ -360,8 +360,8 @@ show_full_menu() {
                 echo "  ${options[$i]}"
             fi
             
-            # Разделители после пунктов 1 и 6
-            if [ $i -eq 1 ] || [ $i -eq 6 ]; then
+            # Разделители после пунктов 2, 5 и 8
+            if [ $i -eq 2 ] || [ $i -eq 5 ] || [ $i -eq 8 ]; then
                 echo -e "${BLUE}----------------------------------${NC}"
             fi
         done
@@ -417,7 +417,38 @@ show_full_menu() {
                 stty "$original_stty" 2>/dev/null || true
                 
                 case $selected in
-                    0)  # Переустановить
+                    0)  # Обновить
+                        manage_update_bot
+                        # Возвращаемся в raw mode
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    1)  # Изменить настройки
+                        manage_change_settings
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    2)  # Просмотр логов
+                        manage_view_logs
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    3)  # Перезагрузить бота
+                        manage_restart_bot
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    4)  # Выключить бота
+                        manage_stop_bot
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    5)  # Включить бота
+                        manage_start_bot
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    6)  # Переустановить
                         clear
                         echo -e "${BLUE}========================================${NC}"
                         echo -e "${GREEN}       🔄 ПЕРЕУСТАНОВКА TG-SELL-BOT${NC}"
@@ -430,37 +461,6 @@ show_full_menu() {
                             exec "$0" --install
                         fi
                         # Возвращаемся в raw mode
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    1)  # Проверить обновления
-                        manage_update_bot
-                        # Возвращаемся в raw mode
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    2)  # Перезагрузить бота
-                        manage_restart_bot
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    3)  # Выключить бота
-                        manage_stop_bot
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    4)  # Включить бота
-                        manage_start_bot
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    5)  # Изменить настройки
-                        manage_change_settings
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    6)  # Просмотр логов
-                        manage_view_logs
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;

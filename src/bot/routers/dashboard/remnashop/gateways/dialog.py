@@ -77,8 +77,14 @@ gateways = Window(
     ),
     Row(
         Start(
-            text=I18nFormat("btn-back"),
-            id="back",
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            state=DashboardSettings.FINANCES,
+            mode=StartMode.RESET_STACK,
+        ),
+        Start(
+            text=I18nFormat("btn-accept"),
+            id="accept",
             state=DashboardSettings.FINANCES,
             mode=StartMode.RESET_STACK,
         ),

@@ -66,6 +66,10 @@ class SettingsService(BaseService):
 
         if settings.features.changed_data:
             settings.features = settings.features
+        
+        # Проверяем вложенные объекты в features
+        if settings.features.currency_rates.changed_data:
+            settings.features = settings.features
 
         changed_data = settings.prepare_changed_data()
         db_updated_settings = await self.uow.repository.settings.update(**changed_data)
