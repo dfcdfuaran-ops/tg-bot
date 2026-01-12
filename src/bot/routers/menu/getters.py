@@ -340,6 +340,10 @@ async def invite_getter(
         ReferralRewardType.MONEY,
     )
 
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+
     # Prepare referral reward display for info text
     max_level = settings.level.value
     reward_config = settings.reward.config
@@ -354,7 +358,7 @@ async def invite_getter(
         "user_name": user.name,
         "referral_code": user.referral_code,
         "balance": user.balance,
-        "referral_balance": referral_balance,
+        "referral_balance": referral_balance if is_balance_separate else 0,  # Скрываем в режиме COMBINED
         "discount_value": discount_value,
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
@@ -364,7 +368,8 @@ async def invite_getter(
         "referrals": referrals,
         "payments": payments,
         "is_points_reward": settings.reward.is_money,
-        "has_balance": True if referral_balance > 0 else False,
+        "has_balance": (referral_balance > 0) and is_balance_separate,  # Показываем только в режиме SEPARATE
+        "is_balance_separate": 1 if is_balance_separate else 0,  # Флаг раздельного режима баланса
         "referral_link": ref_link,
         "invite": i18n.get("referral-invite-message", url=ref_link),
         "withdraw": support_link,
@@ -469,6 +474,10 @@ async def balance_menu_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Проверяем, включены ли переводы
     feature_settings = await settings_service.get_feature_settings()
     is_transfers_enabled = feature_settings.transfers.enabled
@@ -483,10 +492,11 @@ async def balance_menu_getter(
         "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
-        "has_referral_balance": referral_balance > 0,
+        "has_referral_balance": referral_balance > 0 and is_balance_separate,  # Показываем только в режиме SEPARATE
         "is_points_reward": settings.reward.is_money,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
         "is_transfers_enabled": 1 if is_transfers_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,  # Флаг раздельного режима баланса
     }
 
     subscription = user.current_subscription

@@ -2200,6 +2200,44 @@ async def on_finances_cancel(
 
 
 @inject
+async def on_balance_mode_combined(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Установить режим баланса 'Сумма' (без отдельного бонусного баланса)."""
+    from src.core.enums import BalanceMode
+    
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    settings = await settings_service.get()
+    settings.features.balance_mode = BalanceMode.COMBINED
+    settings.features = settings.features  # Trigger change tracking
+    await settings_service.update(settings)
+    
+    logger.info(f"{log(user)} Set balance mode to COMBINED")
+
+
+@inject
+async def on_balance_mode_separate(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Установить режим баланса 'Раздельно' (отдельный бонусный баланс)."""
+    from src.core.enums import BalanceMode
+    
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    settings = await settings_service.get()
+    settings.features.balance_mode = BalanceMode.SEPARATE
+    settings.features = settings.features  # Trigger change tracking
+    await settings_service.update(settings)
+    
+    logger.info(f"{log(user)} Set balance mode to SEPARATE")
+
+
+@inject
 @inject
 async def on_finances_accept(
     callback: CallbackQuery,

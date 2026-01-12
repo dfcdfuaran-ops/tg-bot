@@ -123,6 +123,8 @@ from .handlers import (
     on_finances_currency_rates_click,
     on_finances_back,
     on_toggle_finances_sync,
+    on_balance_mode_combined,
+    on_balance_mode_separate,
     # Currency Rates
     on_currency_rates_click,
     on_toggle_currency_rates_auto,
@@ -1763,6 +1765,18 @@ tos_url_manual = Window(
 finances_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-finances", default_currency=F["default_currency"], default_currency_name=F["default_currency_name"]),
+    Row(
+        Button(
+            text=I18nFormat("btn-finances-balance-mode-combined", selected=F["balance_mode_combined"]),
+            id="balance_mode_combined",
+            on_click=on_balance_mode_combined,
+        ),
+        Button(
+            text=I18nFormat("btn-finances-balance-mode-separate", selected=F["balance_mode_separate"]),
+            id="balance_mode_separate",
+            on_click=on_balance_mode_separate,
+        ),
+    ),
     Row(
         Button(
             text=I18nFormat("btn-finances-sync", enabled=F["sync_enabled"]),

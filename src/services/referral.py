@@ -200,16 +200,37 @@ class ReferralService(BaseService):
         type: ReferralRewardType,
         amount: int,
     ) -> ReferralRewardDto:
+        # Проверяем режим баланса для денежных наград
+        is_combined = await self.settings_service.is_balance_combined()
+        is_money_reward = type == ReferralRewardType.MONEY
+        
+        # В режиме COMBINED денежные награды сразу зачисляются на баланс
+        should_issue_immediately = is_combined and is_money_reward
+        
         reward = await self.uow.repository.referrals.create_reward(
             ReferralReward(
                 referral_id=referral_id,
                 user_telegram_id=user_telegram_id,
                 type=type,
                 amount=amount,
-                is_issued=False,
+                is_issued=should_issue_immediately,  # В режиме COMBINED сразу issued
             )
         )
-        logger.info(f"ReferralReward '{referral_id} created, user '{user_telegram_id}'")
+        
+        # В режиме COMBINED зачисляем награду на баланс пользователя
+        if should_issue_immediately:
+            user = await self.user_service.get(user_telegram_id)
+            if user:
+                await self.user_service.add_to_balance(user, amount)
+                logger.info(
+                    f"ReferralReward '{referral_id}' created and immediately issued to balance "
+                    f"for user '{user_telegram_id}' (COMBINED mode)"
+                )
+            else:
+                logger.warning(f"User '{user_telegram_id}' not found for immediate balance credit")
+        else:
+            logger.info(f"ReferralReward '{referral_id}' created, user '{user_telegram_id}'")
+        
         return ReferralRewardDto.from_model(reward)  # type: ignore[return-value]
 
     async def create_direct_reward(

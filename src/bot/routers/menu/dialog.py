@@ -343,6 +343,7 @@ balance = Window(
             text=I18nFormat("btn-menu-invite-withdraw-balance"),
             id="activate_bonuses",
             state=MainMenu.BONUS_ACTIVATE,
+            when=F["has_referral_balance"],  # Показываем только если есть бонусы и режим SEPARATE
         ),
     ),
     *main_menu_button,

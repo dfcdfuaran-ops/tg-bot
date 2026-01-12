@@ -5,6 +5,7 @@ from pydantic import Field, SecretStr
 from src.core.constants import T_ME
 from src.core.enums import (
     AccessMode,
+    BalanceMode,
     Currency,
     ReferralAccrualStrategy,
     ReferralLevel,
@@ -128,6 +129,7 @@ class FeatureSettingsDto(TrackableDto):
     community_enabled: bool = True  # Кнопка "Сообщество" в главном меню
     tos_enabled: bool = True  # Кнопка "Соглашение" в главном меню
     balance_enabled: bool = True  # Функционал баланса
+    balance_mode: BalanceMode = BalanceMode.SEPARATE  # Режим баланса (раздельный/объединённый)
     balance_min_amount: Optional[int] = 10  # Минимальная сумма пополнения баланса
     balance_max_amount: Optional[int] = 100000  # Максимальная сумма пополнения баланса
     notifications_enabled: bool = True  # Отправка уведомлений пользователям

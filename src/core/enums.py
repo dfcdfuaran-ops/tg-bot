@@ -31,6 +31,12 @@ class ReferralRewardStrategy(UpperStrEnum):
     PERCENT = auto()
 
 
+class BalanceMode(UpperStrEnum):
+    """Режим баланса для реферальных наград."""
+    COMBINED = auto()  # Награды сразу на основной баланс
+    SEPARATE = auto()  # Раздельный баланс с активацией бонусов
+
+
 class BroadcastStatus(UpperStrEnum):
     PROCESSING = auto()
     COMPLETED = auto()

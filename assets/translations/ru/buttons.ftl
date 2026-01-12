@@ -38,6 +38,14 @@ btn-finances-sync = { $enabled ->
     }
 btn-finances-currency-rates = 💱 Курс валют
 btn-finances-gateways = 🌐 Платежные системы
+btn-finances-balance-mode-combined = { $selected ->
+    [1] 🔘 Сумма
+    *[0] ⚪ Сумма
+    }
+btn-finances-balance-mode-separate = { $selected ->
+    [1] 🔘 Раздельно
+    *[0] ⚪ Раздельно
+    }
 btn-currency-auto-toggle = { $enabled ->
     [1] 🟢 Автоматически
     *[0] 🔴 Автоматически

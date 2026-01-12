@@ -200,6 +200,18 @@ class SettingsService(BaseService):
         settings = await self.get()
         return settings.features.balance_enabled
 
+    async def get_balance_mode(self) -> "BalanceMode":
+        """Get balance mode (COMBINED or SEPARATE)."""
+        from src.core.enums import BalanceMode
+        settings = await self.get()
+        return settings.features.balance_mode
+
+    async def is_balance_combined(self) -> bool:
+        """Check if balance mode is COMBINED (no separate bonus balance)."""
+        from src.core.enums import BalanceMode
+        settings = await self.get()
+        return settings.features.balance_mode == BalanceMode.COMBINED
+
     async def toggle_feature(self, feature_name: str) -> bool:
         """Toggle a feature setting. Returns the new value."""
         settings = await self.get()
