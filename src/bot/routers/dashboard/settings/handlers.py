@@ -755,8 +755,7 @@ async def on_set_community_url(
     dialog_manager: DialogManager,
 ) -> None:
     """Переход к вводу URL сообщества."""
-    dialog_manager.dialog_data["edit_community_url"] = True
-    await dialog_manager.update_dialog()
+    await dialog_manager.switch_to(DashboardSettings.COMMUNITY_URL_MANUAL)
 
 
 @inject
@@ -799,10 +798,7 @@ async def on_community_url_input(
         await message.delete()
     except Exception:
         pass
-    
-    # Очищаем режим редактирования и обновляем окно
-    dialog_manager.dialog_data["edit_community_url"] = False
-    await dialog_manager.update_dialog()
+    await dialog_manager.switch_to(DashboardSettings.COMMUNITY)
 
 
 @inject

@@ -1782,28 +1782,12 @@ tos_url_manual = Window(
 community_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-community", status=F["status"], url_display=F["url_display"]),
-    # Кнопка "Назначить группу" если НЕ в режиме редактирования
-    (
-        Row(
-            Button(
-                text=I18nFormat("btn-settings-community-set-url"),
-                id="set_url",
-                on_click=on_set_community_url,
-            ),
+    Row(
+        Button(
+            text=I18nFormat("btn-settings-community-set-url"),
+            id="set_url",
+            on_click=on_set_community_url,
         ),
-        F["edit_url_mode"] == 0,
-    ),
-    # Сообщение и ввод если в режиме редактирования
-    (
-        Format("📝 Введите ссылку на группу:"),
-        F["edit_url_mode"] == 1,
-    ),
-    (
-        MessageInput(
-            func=on_community_url_input,
-            content_types=[ContentType.TEXT],
-        ),
-        F["edit_url_mode"] == 1,
     ),
     Row(
         Button(

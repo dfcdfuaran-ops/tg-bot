@@ -540,15 +540,11 @@ async def community_settings_getter(
     # Статус для отображения с эмодзи
     status = "Включено 🟢" if enabled else "Выключено 🔴"
     
-    # Проверяем, находимся ли в режиме редактирования URL
-    edit_url_mode = dialog_manager.dialog_data.get("edit_community_url", False)
-    
     return {
         "enabled": 1 if enabled else 0,
         "url": url,
         "url_display": url_display,
         "status": status,
-        "edit_url_mode": 1 if edit_url_mode else 0,
     }
 
 
