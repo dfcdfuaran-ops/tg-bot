@@ -306,6 +306,10 @@ async def plans_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     result = {
         "plans": formatted_plans,
         # Данные пользователя для шапки
@@ -319,6 +323,7 @@ async def plans_getter(
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
     }
 
     # Данные о текущей подписке (если есть)
@@ -461,6 +466,10 @@ async def duration_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)
     
@@ -488,6 +497,7 @@ async def duration_getter(
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные о стоимости доп. устройств
         "extra_devices_monthly_cost": extra_devices_monthly_cost,
         "has_extra_devices_cost": 1 if extra_devices_monthly_cost > 0 else 0,
@@ -678,6 +688,10 @@ async def payment_method_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Получаем информацию о текущих дополнительных устройствах пользователя
     # Это будет показано в скобках если они есть
     # Но это не для NEW подписки, только для RENEW когда у пользователя уже есть подписка
@@ -721,6 +735,7 @@ async def payment_method_getter(
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные о стоимости доп. устройств
         "extra_devices_monthly_cost": extra_devices_monthly_cost,
         "extra_devices_cost": extra_devices_cost,
@@ -809,6 +824,10 @@ async def confirm_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Получаем стоимость доп. устройств из dialog_data (сохранена при создании платежа)
     extra_devices_cost = dialog_manager.dialog_data.get("extra_devices_cost", 0)
     base_subscription_price = dialog_manager.dialog_data.get("base_subscription_price", 0)
@@ -885,6 +904,7 @@ async def confirm_getter(
         "extra_devices": extra_devices,
         "expire_time": expire_time,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные о стоимости доп. устройств
         "extra_devices_monthly_cost": extra_devices_monthly_cost,
         "extra_devices_cost": extra_devices_cost,
@@ -1003,6 +1023,11 @@ async def confirm_balance_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     result["is_balance_enabled"] = 1 if is_balance_enabled else 0
+    
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    result["is_balance_separate"] = 1 if is_balance_separate else 0
 
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)
@@ -1488,6 +1513,10 @@ async def success_payment_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Вычисляем лимиты устройств
     extra_devices = subscription.extra_devices or 0
     # device_limit_number - базовый лимит из тарифа
@@ -1520,6 +1549,7 @@ async def success_payment_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Для ADD_DEVICE
         "device_count": device_count,
     }
@@ -1679,6 +1709,10 @@ async def add_device_select_count_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Вычисляем лимиты устройств
     subscription = user.current_subscription
     extra_devices = subscription.extra_devices or 0 if subscription else 0
@@ -1696,6 +1730,7 @@ async def add_device_select_count_getter(
         "balance": user.balance,
         "referral_balance": referral_balance,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
         "plan_name": subscription.plan.name if subscription else "",
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
@@ -1783,6 +1818,10 @@ async def add_device_payment_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Вычисляем лимиты устройств
     subscription = user.current_subscription
     extra_devices = subscription.extra_devices or 0 if subscription else 0
@@ -1829,6 +1868,7 @@ async def add_device_payment_getter(
         "balance": user.balance,
         "referral_balance": referral_balance,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
         "plan_name": subscription.plan.name if subscription else "",
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
@@ -1938,6 +1978,10 @@ async def add_device_confirm_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Вычисляем лимиты устройств
     subscription = user.current_subscription
     extra_devices = subscription.extra_devices or 0 if subscription else 0
@@ -1961,6 +2005,7 @@ async def add_device_confirm_getter(
         "new_balance": new_balance,
         "referral_balance": referral_balance,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
         "plan_name": subscription.plan.name if subscription else "",
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
@@ -2163,6 +2208,10 @@ async def add_device_success_getter(
     # Проверяем, включен ли функционал баланса
     is_balance_enabled = await settings_service.is_balance_enabled()
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Вычисляем лимиты устройств (получаем обновленные данные)
     subscription = fresh_user.current_subscription
     extra_devices = subscription.extra_devices or 0 if subscription else 0
@@ -2185,6 +2234,7 @@ async def add_device_success_getter(
         "balance": fresh_user.balance,
         "referral_balance": referral_balance,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
         "plan_name": subscription.plan.name if subscription else "",
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
