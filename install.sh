@@ -556,26 +556,13 @@ manage_update_bot() {
             # Сохраняем критические переменные перед обновлением
             ENV_BACKUP_FILE=$(preserve_env_vars "$ENV_FILE")
             
-            # Создаём временную папку для сборки
-            BUILD_TEMP_DIR=$(mktemp -d)
-            trap "rm -rf '$BUILD_TEMP_DIR'" RETURN
-            
-            # Копируем ВСЕ файлы во временную папку для сборки образа
-            {
-                cp -r "$TEMP_REPO"/* "$BUILD_TEMP_DIR/"
-                cp "$TEMP_REPO"/.deployignore "$BUILD_TEMP_DIR/" 2>/dev/null || true
-                cp "$TEMP_REPO"/.gitignore "$BUILD_TEMP_DIR/" 2>/dev/null || true
-            } &
-            show_spinner "Подготовка файлов для сборки"
-            
             # Копируем только необходимые файлы конфигурации в PROJECT_DIR
             {
                 cd "$TEMP_REPO" || return
                 
-                # Список файлов для копирования в PROJECT_DIR (только конфигурация, без docker-compose.yml)
+                # Список файлов для копирования в PROJECT_DIR (только конфигурация)
                 INCLUDE_FILES=(
-                    ".env.example"
-                    "README.md"
+                    "docker-compose.yml"
                     "assets"
                 )
                 
@@ -599,13 +586,12 @@ manage_update_bot() {
             show_spinner "Остановка сервисов"
             
             {
-                # Собираем образ из временной папки через docker compose
-                cd "$PROJECT_DIR" || return
-                export BUILD_CONTEXT="$BUILD_TEMP_DIR"
-                docker compose build --no-cache >/dev/null 2>&1
-                unset BUILD_CONTEXT
+                # Собираем образ из временной папки с исходниками
+                cd "$TEMP_REPO" || return
+                docker build --no-cache -t remnashop:local . >/dev/null 2>&1
                 
-                # Запускаем контейнеры с собранным образом
+                # Запускаем контейнеры из PROJECT_DIR
+                cd "$PROJECT_DIR" || return
                 docker compose up -d >/dev/null 2>&1
             } &
             show_spinner "Пересборка и запуск сервисов"
