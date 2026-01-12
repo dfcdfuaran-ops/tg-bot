@@ -659,6 +659,10 @@ async def payment_method_getter(
     )
     
     for gateway in gateways:
+        # Пропускаем BALANCE так как он уже добавлен выше
+        if gateway.type == PaymentGatewayType.BALANCE:
+            continue
+            
         gateway_base_price = duration.get_price(gateway.currency, usd_rate, eur_rate, stars_rate)
         # Добавляем стоимость доп. устройств (если есть)
         gateway_total_price = gateway_base_price + extra_devices_cost if extra_devices_cost > 0 else gateway_base_price
@@ -1843,6 +1847,10 @@ async def add_device_payment_getter(
     
     # Добавляем другие способы оплаты
     for gateway in gateways:
+        # Пропускаем BALANCE так как он уже добавлен выше
+        if gateway.type == PaymentGatewayType.BALANCE:
+            continue
+            
         # Получаем валюту для конкретного шлюза
         gateway_currency = Currency.from_gateway_type(gateway.type)
         payment_methods.append({
