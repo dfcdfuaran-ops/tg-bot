@@ -814,19 +814,39 @@ class RemnawaveService(BaseService):
                     # Сохраняем дополнительные устройства
                     extra_devices = subscription.extra_devices or 0
                     
+                    # Новый лимит устройств = лимит плана + дополнительные устройства
+                    new_device_limit = matching_plan.device_limit + extra_devices
+                    
                     # Обновляем подписку с новым планом
                     subscription.plan = new_plan_snapshot
                     subscription.tag = new_tag
                     subscription.traffic_limit = matching_plan.traffic_limit
-                    # Лимит устройств = лимит плана + дополнительные устройства
-                    subscription.device_limit = matching_plan.device_limit + extra_devices
+                    subscription.device_limit = new_device_limit
                     subscription.traffic_limit_strategy = matching_plan.traffic_limit_strategy
                     subscription.internal_squads = matching_plan.internal_squads.copy()
                     subscription.external_squad = matching_plan.external_squad.copy() if matching_plan.external_squad else None
                     
+                    # Обновляем лимит устройств в Remnawave панели
+                    try:
+                        await self.remnawave.users.update_user(
+                            UpdateUserRequestDto(
+                                uuid=remna_user.uuid,
+                                hwid_device_limit=format_device_count(new_device_limit),
+                                traffic_limit_bytes=format_gb_to_bytes(matching_plan.traffic_limit),
+                                traffic_limit_strategy=matching_plan.traffic_limit_strategy,
+                            )
+                        )
+                        logger.info(
+                            f"Updated RemnaUser '{user.telegram_id}' in panel with new device limit: {new_device_limit}"
+                        )
+                    except Exception as e:
+                        logger.warning(
+                            f"Failed to update RemnaUser '{user.telegram_id}' in panel: {e}"
+                        )
+                    
                     logger.info(
                         f"Subscription plan switched to '{matching_plan.name}' for user '{user.telegram_id}'. "
-                        f"Device limit: {matching_plan.device_limit} + {extra_devices} extra = {subscription.device_limit}"
+                        f"Device limit: {matching_plan.device_limit} + {extra_devices} extra = {new_device_limit}"
                     )
                 else:
                     if matching_plan:
