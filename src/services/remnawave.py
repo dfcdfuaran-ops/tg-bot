@@ -824,6 +824,9 @@ class RemnawaveService(BaseService):
             logger.warning(f"No local user found for telegram_id '{remna_user.telegram_id}'")
             return
 
+        # Получаем информацию о плане из текущей подписки пользователя
+        plan_name = user.current_subscription.plan.name if user.current_subscription and user.current_subscription.plan else "Unknown"
+
         i18n_kwargs = {
             "is_trial": False,
             "user_id": str(user.telegram_id),
@@ -831,6 +834,7 @@ class RemnawaveService(BaseService):
             "username": user.username or False,
             "subscription_id": str(remna_user.uuid),
             "subscription_status": remna_user.status,
+            "plan_name": plan_name,
             "traffic_used": i18n_format_bytes_to_unit(
                 remna_user.used_traffic_bytes,
                 min_unit=ByteUnitKey.MEGABYTE,
