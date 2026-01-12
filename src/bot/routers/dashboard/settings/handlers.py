@@ -1979,6 +1979,7 @@ async def on_accept_rates(
     current = dialog_manager.dialog_data.get("current_rates", {})
     
     settings = await settings_service.get()
+    settings.features.currency_rates.auto_update = current.get("auto_update", False)
     settings.features.currency_rates.usd_rate = current.get("usd_rate", 90.0)
     settings.features.currency_rates.eur_rate = current.get("eur_rate", 100.0)
     settings.features.currency_rates.stars_rate = current.get("stars_rate", 1.5)
@@ -2005,3 +2006,69 @@ async def on_cancel_rates(
     
     logger.info(f"{log(user)} Cancelled currency rates")
     await dialog_manager.switch_to(DashboardSettings.MAIN)
+
+
+@inject
+async def on_toggle_currency_auto_update(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Toggle автообновления курсов валют внутри настроек курсов."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    current = dialog_manager.dialog_data.get("current_rates", {})
+    current["auto_update"] = not current.get("auto_update", False)
+    dialog_manager.dialog_data["current_rates"] = current
+    
+    # Если включили автообновление - подтягиваем курсы из ЦБ РФ
+    if current["auto_update"]:
+        try:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://www.cbr-xml-daily.ru/daily_json.js", timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        usd_rate = data["Valute"]["USD"]["Value"]
+                        eur_rate = data["Valute"]["EUR"]["Value"]
+                        current["usd_rate"] = round(usd_rate, 2)
+                        current["eur_rate"] = round(eur_rate, 2)
+                        dialog_manager.dialog_data["current_rates"] = current
+                        logger.info(f"{log(user)} Fetched CBR rates: USD={usd_rate}, EUR={eur_rate}")
+        except Exception as e:
+            logger.warning(f"{log(user)} Failed to fetch CBR rates: {e}")
+    
+    logger.info(f"{log(user)} Toggle currency auto_update (not saved yet)")
+
+
+@inject
+async def on_toggle_currency_rates_auto(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Toggle автообновления курсов валют из главного меню настроек."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    settings = await settings_service.get()
+    
+    new_value = not settings.features.currency_rates.auto_update
+    settings.features.currency_rates.auto_update = new_value
+    
+    # Если включили автообновление - подтягиваем курсы из ЦБ РФ
+    if new_value:
+        try:
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://www.cbr-xml-daily.ru/daily_json.js", timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        usd_rate = data["Valute"]["USD"]["Value"]
+                        eur_rate = data["Valute"]["EUR"]["Value"]
+                        settings.features.currency_rates.usd_rate = round(usd_rate, 2)
+                        settings.features.currency_rates.eur_rate = round(eur_rate, 2)
+                        logger.info(f"{log(user)} Fetched CBR rates: USD={usd_rate}, EUR={eur_rate}")
+        except Exception as e:
+            logger.warning(f"{log(user)} Failed to fetch CBR rates: {e}")
+    
+    await settings_service.update(settings)
+    logger.info(f"{log(user)} Toggle currency auto_update to {new_value}")

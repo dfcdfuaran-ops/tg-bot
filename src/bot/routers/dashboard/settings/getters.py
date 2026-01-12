@@ -29,6 +29,7 @@ async def settings_main_getter(
         "community_enabled": 1 if features.community_enabled else 0,
         "tos_enabled": 1 if features.tos_enabled else 0,
         "global_discount_enabled": 1 if features.global_discount.enabled else 0,
+        "currency_rates_auto": 1 if features.currency_rates.auto_update else 0,
     }
 
 
@@ -515,13 +516,24 @@ async def currency_rates_getter(
     
     if not current:
         current = {
+            "auto_update": rates.auto_update,
             "usd_rate": rates.usd_rate,
             "eur_rate": rates.eur_rate,
             "stars_rate": rates.stars_rate,
         }
     
+    usd_rate = current.get("usd_rate", 90.0)
+    eur_rate = current.get("eur_rate", 100.0)
+    stars_rate = current.get("stars_rate", 1.5)
+    auto_update = current.get("auto_update", False)
+    
     return {
-        "usd_rate": current.get("usd_rate", 90.0),
-        "eur_rate": current.get("eur_rate", 100.0),
-        "stars_rate": current.get("stars_rate", 1.5),
+        "auto_update": 1 if auto_update else 0,
+        "usd_rate": usd_rate,
+        "eur_rate": eur_rate,
+        "stars_rate": stars_rate,
+        # Форматированные строки для кнопок
+        "usd_display": f"{usd_rate:.2f} ₽ = 1 $",
+        "eur_display": f"{eur_rate:.2f} ₽ = 1 €",
+        "stars_display": f"{stars_rate:.2f} ₽ = 1 ★",
     }

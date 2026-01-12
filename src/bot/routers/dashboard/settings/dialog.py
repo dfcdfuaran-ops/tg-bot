@@ -117,6 +117,8 @@ from .handlers import (
     on_cancel_tos,
     # Currency Rates
     on_currency_rates_click,
+    on_toggle_currency_rates_auto,
+    on_toggle_currency_auto_update,
     on_usd_rate_click,
     on_eur_rate_click,
     on_stars_rate_click,
@@ -273,6 +275,14 @@ settings_main = Window(
             text=I18nFormat("btn-settings-currency-rates"),
             id="currency_rates",
             on_click=on_currency_rates_click,
+        ),
+        Button(
+            text=I18nFormat(
+                "btn-settings-toggle",
+                enabled=F["currency_rates_auto"],
+            ),
+            id="toggle_currency_rates_auto",
+            on_click=on_toggle_currency_rates_auto,
         ),
     ),
     Row(
@@ -1747,33 +1757,28 @@ currency_rates_settings = Window(
     I18nFormat("msg-dashboard-settings-currency-rates"),
     Row(
         Button(
-            text=I18nFormat(
-                "btn-setting-value",
-                name="$ USD",
-                value=F["usd_rate"],
-            ),
+            text=I18nFormat("btn-currency-auto-toggle", enabled=F["auto_update"]),
+            id="toggle_auto_update",
+            on_click=on_toggle_currency_auto_update,
+        ),
+    ),
+    Row(
+        Button(
+            text=Format("{usd_display}"),
             id="usd_rate",
             on_click=on_usd_rate_click,
         ),
     ),
     Row(
         Button(
-            text=I18nFormat(
-                "btn-setting-value",
-                name="€ EUR",
-                value=F["eur_rate"],
-            ),
+            text=Format("{eur_display}"),
             id="eur_rate",
             on_click=on_eur_rate_click,
         ),
     ),
     Row(
         Button(
-            text=I18nFormat(
-                "btn-setting-value",
-                name="★ Stars",
-                value=F["stars_rate"],
-            ),
+            text=Format("{stars_display}"),
             id="stars_rate",
             on_click=on_stars_rate_click,
         ),

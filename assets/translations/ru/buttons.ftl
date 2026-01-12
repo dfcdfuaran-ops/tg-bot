@@ -31,6 +31,10 @@ btn-settings-tos = 📜 Соглашение
 btn-tos-set-url = Назначить источник: { $value }
 btn-settings-global-discount = 🏷️ Глобальная скидка
 btn-settings-currency-rates = 💱 Курсы валют
+btn-currency-auto-toggle = { $enabled ->
+    [1] 🟢 Автоматически
+    *[0] 🔴 Автоматически
+    }
 btn-settings-toggle = { $enabled ->
     [1] 🟢
     *[0] 🔴

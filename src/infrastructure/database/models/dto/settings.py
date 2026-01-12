@@ -117,6 +117,7 @@ class GlobalDiscountSettingsDto(TrackableDto):
 
 class CurrencyRatesDto(TrackableDto):
     """Курсы валют относительно рубля."""
+    auto_update: bool = False  # Автоматическое обновление курсов из ЦБ РФ
     usd_rate: float = 90.0  # 1 USD = X RUB
     eur_rate: float = 100.0  # 1 EUR = X RUB
     stars_rate: float = 1.5  # 1 Star = X RUB
