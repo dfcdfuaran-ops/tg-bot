@@ -172,3 +172,63 @@ class PricingService(BaseService):
 
         logger.debug(f"Final amount after currency rules: '{amount}'")
         return amount
+
+    def convert_currency(
+        self, 
+        amount_rub: Decimal, 
+        target_currency: Currency,
+        usd_rate: float = 90.0,
+        eur_rate: float = 100.0,
+        stars_rate: float = 1.5,
+    ) -> Decimal:
+        """Конвертирует сумму в рублях в указанную валюту."""
+        logger.debug(f"Converting {amount_rub} RUB to {target_currency}")
+        
+        if amount_rub <= 0:
+            return Decimal(0)
+        
+        match target_currency:
+            case Currency.RUB:
+                result = amount_rub
+            case Currency.USD:
+                result = amount_rub / Decimal(str(usd_rate))
+            case Currency.EUR:
+                result = amount_rub / Decimal(str(eur_rate))
+            case Currency.XTR:
+                result = amount_rub / Decimal(str(stars_rate))
+            case _:
+                result = amount_rub
+        
+        result = self.apply_currency_rules(result, target_currency)
+        logger.debug(f"Converted amount: {result} {target_currency}")
+        return result
+
+    def convert_to_rub(
+        self,
+        amount: Decimal,
+        source_currency: Currency,
+        usd_rate: float = 90.0,
+        eur_rate: float = 100.0,
+        stars_rate: float = 1.5,
+    ) -> Decimal:
+        """Конвертирует сумму из указанной валюты в рубли."""
+        logger.debug(f"Converting {amount} {source_currency} to RUB")
+        
+        if amount <= 0:
+            return Decimal(0)
+        
+        match source_currency:
+            case Currency.RUB:
+                result = amount
+            case Currency.USD:
+                result = amount * Decimal(str(usd_rate))
+            case Currency.EUR:
+                result = amount * Decimal(str(eur_rate))
+            case Currency.XTR:
+                result = amount * Decimal(str(stars_rate))
+            case _:
+                result = amount
+        
+        result = result.to_integral_value(rounding=ROUND_DOWN)
+        logger.debug(f"Converted amount: {result} RUB")
+        return result
