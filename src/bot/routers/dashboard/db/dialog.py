@@ -42,10 +42,10 @@ db_management = Window(
         ),
     ),
     Row(
-        Button(
+        SwitchTo(
             text=I18nFormat("btn-db-sync-from-panel"),
             id="remnawave_import",
-            on_click=on_sync_from_panel,
+            state=DashboardDB.SYNC,
         ),
     ),
     Row(
@@ -116,19 +116,14 @@ db_sync_window = Window(
     I18nFormat("msg-db-sync"),
     Column(
         Button(
-            text=I18nFormat("btn-db-sync-from-bot"),
-            id="sync_from_bot",
-            on_click=on_sync_from_bot,
-        ),
-        Button(
-            text=I18nFormat("btn-db-sync-from-panel"),
+            text=I18nFormat("btn-db-sync-remnawave-to-bot"),
             id="sync_from_panel",
             on_click=on_sync_from_panel,
         ),
         Button(
-            text=Const("⚙️ Управление"),
-            id="sync_manage",
-            on_click=on_sync_manage,
+            text=I18nFormat("btn-db-sync-bot-to-remnawave"),
+            id="sync_from_bot",
+            on_click=on_sync_from_bot,
         ),
     ),
     Row(
