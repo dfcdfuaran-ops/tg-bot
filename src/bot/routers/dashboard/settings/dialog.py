@@ -1669,10 +1669,14 @@ global_discount_mode = Window(
 tos_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-tos"),
+    I18nFormat(
+        "msg-tos-status",
+        status=F["status_text"],
+    ),
     Button(
         text=I18nFormat(
             "btn-setting-value",
-            name="Источник",
+            name="Назначить источник",
             value=F["url_display"],
         ),
         id="tos_url",
