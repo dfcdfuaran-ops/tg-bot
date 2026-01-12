@@ -491,7 +491,7 @@ async def tos_settings_getter(
         url_display = "Не установлено"
     
     # Статус для отображения в шапке
-    status_text = "✅ Включено" if enabled else "❌ Выключено"
+    status_text = "🟢 Включено" if enabled else "🔴 Выключено"
     
     return {
         "enabled": 1 if enabled else 0,

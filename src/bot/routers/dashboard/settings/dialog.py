@@ -1670,7 +1670,8 @@ global_discount_mode = Window(
 tos_settings = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-dashboard-settings-tos"),
-    Format("{status_text}"),
+    Format("📋 <b>Соглашение с пользователем</b>\n\n• Статус: {status_text}\n• Источник:"),
+    Format("\n🔽 Укажите ссылку на документ с правилами."),
     Button(
         text=I18nFormat(
             "btn-setting-value",
