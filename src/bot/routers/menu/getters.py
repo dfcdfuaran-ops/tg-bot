@@ -1,5 +1,6 @@
 from typing import Any
 import html
+from pathlib import Path
 
 from aiogram_dialog import DialogManager
 from dishka import FromDishka
@@ -23,6 +24,23 @@ from src.services.referral import ReferralService
 from src.services.remnawave import RemnawaveService
 from src.services.settings import SettingsService
 from src.services.subscription import SubscriptionService
+
+
+def _get_community_url_from_env() -> str:
+    """Читает BOT_COMMUNITY_URL из .env файла."""
+    env_path = Path("/opt/tg-sell-bot/.env")
+    if not env_path.exists():
+        return ""
+    
+    try:
+        with open(env_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.startswith('BOT_COMMUNITY_URL='):
+                    return line.replace('BOT_COMMUNITY_URL=', '').strip()
+    except Exception as e:
+        logger.error(f"Error reading BOT_COMMUNITY_URL from .env: {e}")
+    
+    return ""
 
 
 @inject
@@ -125,8 +143,9 @@ async def menu_getter(
             "is_app": config.bot.is_mini_app,
             "is_referral_enable": await settings_service.is_referral_enable(),
             # Настройки функционала
-            "community_url": config.bot.community_url or "",
-            "is_community_enabled": await settings_service.is_community_enabled() and bool(config.bot.community_url),
+            # Читаем URL сообщества из .env файла напрямую
+            "community_url": _get_community_url_from_env() or "",
+            "is_community_enabled": await settings_service.is_community_enabled() and bool(_get_community_url_from_env()),
             "is_tos_enabled": await settings_service.is_tos_enabled(),
             "tos_url": (await settings_service.get()).rules_link.get_secret_value() or "https://telegra.ph/",
             "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
