@@ -42,10 +42,10 @@ db_management = Window(
         ),
     ),
     Row(
-        SwitchTo(
-            text=I18nFormat("btn-db-sync"),
-            id="sync",
-            state=DashboardDB.SYNC,
+        Button(
+            text=I18nFormat("btn-db-sync-from-panel"),
+            id="remnawave_import",
+            on_click=on_sync_from_panel,
         ),
     ),
     Row(

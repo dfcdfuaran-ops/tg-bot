@@ -16,7 +16,7 @@ btn-db-load = 📥 Загрузить
 btn-db-convert = 🔄 Конвертировать
 btn-db-sync = 🔄 Синхронизация
 btn-db-sync-from-bot = 📤 Из Телеграм бота → Панель
-btn-db-sync-from-panel = 📥 Из Панели → Телеграм бот
+btn-db-sync-from-panel = 📥 Remnawave Импорт
 
 # Settings
 btn-dashboard-settings = ⚙️ Настройки
