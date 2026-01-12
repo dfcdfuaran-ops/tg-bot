@@ -2027,7 +2027,7 @@ async def on_toggle_currency_auto_update(
             async with aiohttp.ClientSession() as session:
                 async with session.get("https://www.cbr-xml-daily.ru/daily_json.js", timeout=aiohttp.ClientTimeout(total=10)) as resp:
                     if resp.status == 200:
-                        data = await resp.json()
+                        data = await resp.json(content_type=None)
                         usd_rate = data["Valute"]["USD"]["Value"]
                         eur_rate = data["Valute"]["EUR"]["Value"]
                         current["usd_rate"] = round(usd_rate, 2)
@@ -2061,7 +2061,7 @@ async def on_toggle_currency_rates_auto(
             async with aiohttp.ClientSession() as session:
                 async with session.get("https://www.cbr-xml-daily.ru/daily_json.js", timeout=aiohttp.ClientTimeout(total=10)) as resp:
                     if resp.status == 200:
-                        data = await resp.json()
+                        data = await resp.json(content_type=None)
                         usd_rate = data["Valute"]["USD"]["Value"]
                         eur_rate = data["Valute"]["EUR"]["Value"]
                         settings.features.currency_rates.usd_rate = round(usd_rate, 2)
