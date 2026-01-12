@@ -900,6 +900,10 @@ class RemnawaveService(BaseService):
 
         # Получаем информацию о плане из текущей подписки пользователя
         plan_name = user.current_subscription.plan.name if user.current_subscription and user.current_subscription.plan else "Unknown"
+        
+        # Убеждаемся что plan_name никогда не None
+        if not plan_name:
+            plan_name = "Unknown"
 
         i18n_kwargs = {
             "is_trial": False,
