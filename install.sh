@@ -421,7 +421,7 @@ show_full_menu() {
             else
                 # Для пункта "Обновить" добавляем статус если доступно обновление
                 if [ $i -eq 2 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
-                    echo "  ${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
+                    echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
                 else
                     echo "  ${options[$i]}"
                 fi
