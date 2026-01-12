@@ -117,8 +117,28 @@ async def on_active_toggle(
         )
         return
 
+    # Сохраняем изменения только в dialog_data, а не в БД
+    if "pending_changes" not in sub_manager.manager.dialog_data:
+        sub_manager.manager.dialog_data["pending_changes"] = {}
+    
+    if gateway_id not in sub_manager.manager.dialog_data["pending_changes"]:
+        # Сохраняем исходное состояние при первом изменении
+        sub_manager.manager.dialog_data["pending_changes"][gateway_id] = {
+            "is_active": gateway.is_active
+        }
+    
+    # Переключаем состояние в памяти
     gateway.is_active = not gateway.is_active
-    logger.info(f"{log(user)} Toggled active state for gateway '{gateway_id}'")
+    logger.info(f"{log(user)} Toggled active state for gateway '{gateway_id}' (pending)")
+    
+    # Сохраняем текущее состояние (не исходное!)
+    if "current_state" not in sub_manager.manager.dialog_data:
+        sub_manager.manager.dialog_data["current_state"] = {}
+    sub_manager.manager.dialog_data["current_state"][gateway_id] = {
+        "is_active": gateway.is_active
+    }
+    
+    # Временно обновляем в БД для отображения (но можем откатить)
     await payment_gateway_service.update(gateway)
 
 
@@ -189,7 +209,13 @@ async def on_default_currency_select(
     settings_service: FromDishka[SettingsService],
 ) -> None:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
-    logger.info(f"{log(user)} Set default currency '{selected_currency}'")
+    
+    # Сохраняем исходную валюту при первом изменении
+    if "pending_currency" not in dialog_manager.dialog_data:
+        current_currency = await settings_service.get_default_currency()
+        dialog_manager.dialog_data["pending_currency"] = current_currency
+    
+    logger.info(f"{log(user)} Set default currency '{selected_currency}' (pending)")
     await settings_service.set_default_currency(selected_currency)
 
 
@@ -204,8 +230,126 @@ async def on_gateway_move(
     user: UserDto = sub_manager.middleware_data[USER_KEY]
     gateway_id = int(sub_manager.item_id)
 
+    # Сохраняем изменения placement в pending
+    if "pending_placement" not in sub_manager.manager.dialog_data:
+        # Получаем и сохраняем текущий порядок всех шлюзов
+        gateways = await payment_gateway_service.get_all(sorted=True)
+        sub_manager.manager.dialog_data["pending_placement"] = {
+            gw.id: gw.order_index for gw in gateways
+        }
+
     moved = await payment_gateway_service.move_gateway_up(gateway_id)
     if moved:
-        logger.info(f"{log(user)} Moved plan '{gateway_id}' up successfully")
+        logger.info(f"{log(user)} Moved plan '{gateway_id}' up successfully (pending)")
     else:
         logger.warning(f"{log(user)} Failed to move plan '{gateway_id}' up")
+
+
+@inject
+async def on_gateways_cancel(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    payment_gateway_service: FromDishka[PaymentGatewayService],
+) -> None:
+    """Отменить все изменения и вернуться к исходному состоянию"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    # Восстанавливаем исходное состояние из pending_changes
+    if "pending_changes" in dialog_manager.dialog_data:
+        for gateway_id, original_state in dialog_manager.dialog_data["pending_changes"].items():
+            gateway = await payment_gateway_service.get(gateway_id)
+            if gateway:
+                gateway.is_active = original_state["is_active"]
+                await payment_gateway_service.update(gateway)
+                logger.info(f"{log(user)} Reverted gateway '{gateway_id}' to original state")
+        
+        # Очищаем pending_changes
+        dialog_manager.dialog_data.pop("pending_changes", None)
+        dialog_manager.dialog_data.pop("current_state", None)
+    
+    logger.info(f"{log(user)} Cancelled all gateway changes")
+
+
+@inject
+async def on_gateways_accept(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Принять все изменения"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    # Изменения уже в БД, просто очищаем pending_changes
+    if "pending_changes" in dialog_manager.dialog_data:
+        dialog_manager.dialog_data.pop("pending_changes", None)
+        dialog_manager.dialog_data.pop("current_state", None)
+        logger.info(f"{log(user)} Accepted all gateway changes")
+
+
+@inject
+async def on_placement_cancel(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    payment_gateway_service: FromDishka[PaymentGatewayService],
+) -> None:
+    """Отменить изменения порядка шлюзов"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    if "pending_placement" in dialog_manager.dialog_data:
+        # Восстанавливаем исходный порядок
+        for gateway_id, original_order in dialog_manager.dialog_data["pending_placement"].items():
+            gateway = await payment_gateway_service.get(gateway_id)
+            if gateway:
+                gateway.order_index = original_order
+                await payment_gateway_service.update(gateway)
+        
+        dialog_manager.dialog_data.pop("pending_placement", None)
+        logger.info(f"{log(user)} Cancelled placement changes")
+
+
+@inject
+async def on_placement_accept(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Принять изменения порядка шлюзов"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    if "pending_placement" in dialog_manager.dialog_data:
+        dialog_manager.dialog_data.pop("pending_placement", None)
+        logger.info(f"{log(user)} Accepted placement changes")
+
+
+@inject
+async def on_currency_cancel(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Отменить изменение валюты по умолчанию"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    if "pending_currency" in dialog_manager.dialog_data:
+        # Восстанавливаем исходную валюту
+        original_currency = dialog_manager.dialog_data["pending_currency"]
+        await settings_service.set_default_currency(original_currency)
+        dialog_manager.dialog_data.pop("pending_currency", None)
+        logger.info(f"{log(user)} Cancelled currency change")
+
+
+@inject
+async def on_currency_accept(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Принять изменение валюты по умолчанию"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    if "pending_currency" in dialog_manager.dialog_data:
+        dialog_manager.dialog_data.pop("pending_currency", None)
+        logger.info(f"{log(user)} Accepted currency change")

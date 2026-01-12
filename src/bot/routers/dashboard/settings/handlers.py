@@ -2108,6 +2108,12 @@ async def on_toggle_finances_sync(
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     settings = await settings_service.get()
     
+    # Сохраняем исходное состояние при первом изменении
+    if "pending_finances" not in dialog_manager.dialog_data:
+        dialog_manager.dialog_data["pending_finances"] = {
+            "sync_enabled": settings.features.currency_rates.auto_update
+        }
+    
     new_value = not settings.features.currency_rates.auto_update
     settings.features.currency_rates.auto_update = new_value
     
@@ -2128,7 +2134,7 @@ async def on_toggle_finances_sync(
             logger.warning(f"{log(user)} Failed to fetch CBR rates: {e}")
     
     await settings_service.update(settings)
-    logger.info(f"{log(user)} Toggle finances sync to {new_value}")
+    logger.info(f"{log(user)} Toggle finances sync to {new_value} (pending)")
 
 
 @inject
@@ -2163,3 +2169,42 @@ async def on_toggle_currency_rates_auto(
     
     await settings_service.update(settings)
     logger.info(f"{log(user)} Toggle finances sync from main menu to {new_value}")
+
+
+@inject
+async def on_finances_cancel(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Отменить изменения в меню Финансы"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    # Восстанавливаем исходные значения если они были изменены
+    if "pending_finances" in dialog_manager.dialog_data:
+        original_state = dialog_manager.dialog_data["pending_finances"]
+        settings = await settings_service.get()
+        
+        # Восстанавливаем sync если он был изменен
+        if "sync_enabled" in original_state:
+            settings.features.currency_rates.auto_update = original_state["sync_enabled"]
+            await settings_service.update(settings)
+        
+        dialog_manager.dialog_data.pop("pending_finances", None)
+        logger.info(f"{log(user)} Cancelled finances changes")
+
+
+@inject
+async def on_finances_accept(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Принять изменения в меню Финансы"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    # Изменения уже сохранены, просто очищаем pending_finances
+    if "pending_finances" in dialog_manager.dialog_data:
+        dialog_manager.dialog_data.pop("pending_finances", None)
+        logger.info(f"{log(user)} Accepted finances changes")

@@ -316,9 +316,9 @@ availability-type = { $availability_type ->
 }
 
 gateway-type = { $gateway_type ->
-    [TELEGRAM_STARS] Telegram Stars
+    [TELEGRAM_STARS] ⭐ Telegram Stars
     [YOOKASSA] 💳 ЮKassa
-    [YOOMONEY] ЮMoney
+    [YOOMONEY] 💳 ЮMoney
     [CRYPTOMUS] 🔐 Cryptomus
     [HELEKET] 💎 Heleket
     [URLPAY] UrlPay

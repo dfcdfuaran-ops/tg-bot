@@ -18,14 +18,6 @@ from src.bot.keyboards import main_menu_button
 from src.bot.states import DashboardRemnashop, RemnashopGateways, DashboardSettings
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.enums import BannerName, Currency
-
-from .getters import (
-    currency_getter,
-    field_getter,
-    gateway_getter,
-    gateways_getter,
-    placement_getter,
-)
 from .handlers import (
     on_active_toggle,
     on_default_currency_select,
@@ -34,6 +26,20 @@ from .handlers import (
     on_gateway_move,
     on_gateway_select,
     on_gateway_test,
+    on_gateways_cancel,
+    on_gateways_accept,
+    on_placement_cancel,
+    on_placement_accept,
+    on_currency_cancel,
+    on_currency_accept,
+)
+
+from .getters import (
+    currency_getter,
+    field_getter,
+    gateway_getter,
+    gateways_getter,
+    placement_getter,
 )
 
 gateways = Window(
@@ -76,15 +82,15 @@ gateways = Window(
         ),
     ),
     Row(
-        Start(
+        Button(
             text=I18nFormat("btn-cancel"),
             id="cancel",
-            state=DashboardSettings.FINANCES,
-            mode=StartMode.RESET_STACK,
+            on_click=on_gateways_cancel,
         ),
         Start(
             text=I18nFormat("btn-accept"),
             id="accept",
+            on_click=on_gateways_accept,
             state=DashboardSettings.FINANCES,
             mode=StartMode.RESET_STACK,
         ),
@@ -162,10 +168,16 @@ default_currency = Window(
         ),
     ),
     Row(
+        Button(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            on_click=on_currency_cancel,
+        ),
         SwitchTo(
-            text=I18nFormat("btn-back"),
-            id="back",
+            text=I18nFormat("btn-accept"),
+            id="accept",
             state=RemnashopGateways.MAIN,
+            on_click=on_currency_accept,
         ),
     ),
     IgnoreUpdate(),
@@ -193,10 +205,16 @@ placement = Window(
         items="gateways",
     ),
     Row(
+        Button(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            on_click=on_placement_cancel,
+        ),
         SwitchTo(
-            text=I18nFormat("btn-back"),
-            id="back",
+            text=I18nFormat("btn-accept"),
+            id="accept",
             state=RemnashopGateways.MAIN,
+            on_click=on_placement_accept,
         ),
     ),
     IgnoreUpdate(),

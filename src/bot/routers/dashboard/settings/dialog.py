@@ -98,6 +98,8 @@ from .handlers import (
     on_global_discount_value_cancel,
     on_global_discount_value_accept,
     on_cancel_global_discount,
+    on_finances_cancel,
+    on_finances_accept,
     on_accept_global_discount,
     on_toggle_stack_discounts,
     on_toggle_apply_to_subscription,
@@ -1783,10 +1785,16 @@ finances_settings = Window(
         ),
     ),
     Row(
+        Button(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            on_click=on_finances_cancel,
+        ),
         SwitchTo(
-            text=I18nFormat("btn-back"),
-            id="back",
+            text=I18nFormat("btn-accept"),
+            id="accept",
             state=DashboardSettings.MAIN,
+            on_click=on_finances_accept,
         ),
     ),
     IgnoreUpdate(),
