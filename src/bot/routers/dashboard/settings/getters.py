@@ -512,18 +512,17 @@ async def tos_settings_getter(
 async def community_settings_getter(
     dialog_manager: DialogManager,
     settings_service: FromDishka[SettingsService],
-    config: AppConfig,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для настроек сообщества."""
     settings = await settings_service.get()
-    community_url = config.bot.community_url or ""
+    community_url = settings.features.community_url or ""
     
     # Используем данные из dialog_data, если они есть
     current = dialog_manager.dialog_data.get("current_community")
     
     if not current:
-        # Первое открытие - загружаем текущие значения
+        # Первое открытие - загружаем текущие значения из БД
         current = {
             "enabled": settings.features.community_enabled,
             "url": community_url,
@@ -538,8 +537,8 @@ async def community_settings_getter(
     else:
         url_display = "Не установлено"
     
-    # Статус для отображения
-    status = "ВКЛ" if enabled else "ВЫКЛ"
+    # Статус для отображения с эмодзи
+    status = "Включено 🟢" if enabled else "Выключено 🔴"
     
     return {
         "enabled": 1 if enabled else 0,

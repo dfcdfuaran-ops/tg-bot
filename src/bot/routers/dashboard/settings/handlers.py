@@ -715,12 +715,11 @@ async def on_community_click(
     widget: Button,
     dialog_manager: DialogManager,
     settings_service: FromDishka[SettingsService],
-    config: FromDishka[AppConfig],
 ) -> None:
     """Переход в настройки сообщества."""
     # Загружаем текущие настройки при входе
     settings = await settings_service.get()
-    community_url = config.bot.community_url or ""
+    community_url = settings.features.community_url or ""
     
     # Сохраняем начальные и текущие значения
     dialog_manager.dialog_data["initial_community"] = {
@@ -813,40 +812,13 @@ async def on_accept_community(
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     current = dialog_manager.dialog_data.get("current_community", {})
     
-    # Обновляем URL сообщества в .env файле
+    # Обновляем URL сообщества в БД
     if "url" in current:
-        import os
-        from pathlib import Path
+        settings = await settings_service.get()
+        settings.features.community_url = current.get("url", "")
+        await settings_service.update(settings)
         
-        env_path = Path("/opt/tg-sell-bot/.env")
-        if env_path.exists():
-            with open(env_path, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-            
-            # Ищем и обновляем BOT_COMMUNITY_URL
-            updated = False
-            for i, line in enumerate(lines):
-                if line.startswith('BOT_COMMUNITY_URL='):
-                    lines[i] = f"BOT_COMMUNITY_URL={current.get('url', '')}\n"
-                    updated = True
-                    break
-            
-            # Если строка не найдена, добавляем её
-            if not updated:
-                # Найдем секцию бота
-                for i, line in enumerate(lines):
-                    if 'КОНФИГУРАЦИЯ БОТА' in line or line.startswith('BOT_TOKEN='):
-                        # Вставляем после BOT_SUPPORT_USERNAME или в конец секции бота
-                        for j in range(i, len(lines)):
-                            if lines[j].startswith('BOT_MINI_APP='):
-                                lines.insert(j+1, f"BOT_COMMUNITY_URL={current.get('url', '')}\n")
-                                break
-                        break
-            
-            with open(env_path, 'w', encoding='utf-8') as f:
-                f.writelines(lines)
-            
-            logger.info(f"{log(user)} Updated Community URL to '{current.get('url')}' in .env")
+        logger.info(f"{log(user)} Updated Community URL to '{current.get('url')}'")
     
     # Очищаем временные данные
     dialog_manager.dialog_data.pop("initial_community", None)

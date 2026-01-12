@@ -128,6 +128,7 @@ class CurrencyRatesDto(TrackableDto):
 class FeatureSettingsDto(TrackableDto):
     """Настройки функционала - включение/выключение различных функций."""
     community_enabled: bool = True  # Кнопка "Сообщество" в главном меню
+    community_url: Optional[str] = None  # URL Telegram группы сообщества
     tos_enabled: bool = True  # Кнопка "Соглашение" в главном меню
     balance_enabled: bool = True  # Функционал баланса
     balance_mode: BalanceMode = BalanceMode.SEPARATE  # Режим баланса (раздельный/объединённый)
