@@ -670,6 +670,17 @@ ntf-importer-sync-bot-to-panel-completed =
     <b>Ошибок:</b> { $errors }
     </blockquote>
 
+ntf-sync-panel-to-bot-completed =
+    <b>📥 Синхронизация завершена</b>
+
+    <blockquote>
+    <b>Всего в панели:</b> { $total_panel_users }
+    <b>Создано:</b> { $created }
+    <b>Синхронизировано:</b> { $synced }
+    <b>Пропущено:</b> { $skipped }
+    <b>Ошибок:</b> { $errors }
+    </blockquote>
+
 ntf-subscription-processing = <i>⏳ Оформляем вашу подписку, пожалуйста подождите...</i>
 
 # Promocodes
