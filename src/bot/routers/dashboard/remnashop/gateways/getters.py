@@ -15,9 +15,11 @@ from src.services.settings import SettingsService
 async def gateways_getter(
     dialog_manager: DialogManager,
     payment_gateway_service: FromDishka[PaymentGatewayService],
+    settings_service: FromDishka[SettingsService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     gateways: list[PaymentGatewayDto] = await payment_gateway_service.get_all()
+    default_currency = await settings_service.get_default_currency()
 
     formatted_gateways = [
         {
@@ -30,6 +32,8 @@ async def gateways_getter(
 
     return {
         "gateways": formatted_gateways,
+        "default_currency": default_currency.symbol,
+        "default_currency_name": default_currency.value,
     }
 
 
