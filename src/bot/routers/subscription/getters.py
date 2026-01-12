@@ -640,24 +640,24 @@ async def payment_method_getter(
     eur_rate = rates.eur_rate
     stars_rate = rates.stars_rate
     
-    # Add balance payment option if user has enough balance
+    # Add balance payment option - ВСЕГДА ПЕРВЫМ
     currency = await settings_service.get_default_currency()
     base_price = duration.get_price(currency, usd_rate, eur_rate, stars_rate)
     total_price = base_price + extra_devices_cost if extra_devices_cost > 0 else base_price
     price = pricing_service.calculate(user, total_price, currency, global_discount, context="subscription")
     
-    if user.balance >= price.final_amount and price.final_amount > 0:
-        payment_methods.append(
-            {
-                "gateway_type": PaymentGatewayType.BALANCE,
-                "price": price.final_amount,
-                "original_price": price.original_amount,
-                "currency": currency.symbol,
-                "user_balance": user.balance,
-                "discount_percent": price.discount_percent,
-                "has_discount": 1 if price.discount_percent > 0 else 0,
-            }
-        )
+    # Добавляем оплату с баланса ВСЕГДА, даже если баланса недостаточно
+    payment_methods.append(
+        {
+            "gateway_type": PaymentGatewayType.BALANCE,
+            "price": price.final_amount,
+            "original_price": price.original_amount,
+            "currency": currency.symbol,
+            "user_balance": user.balance,
+            "discount_percent": price.discount_percent,
+            "has_discount": 1 if price.discount_percent > 0 else 0,
+        }
+    )
     
     for gateway in gateways:
         gateway_base_price = duration.get_price(gateway.currency, usd_rate, eur_rate, stars_rate)
@@ -1832,16 +1832,15 @@ async def add_device_payment_getter(
     
     payment_methods = []
     
-    # Добавляем оплату с баланса если достаточно средств
-    if user.balance >= total_price:
-        payment_methods.append({
-            "gateway_type": PaymentGatewayType.BALANCE,
-            "price": total_price,
-            "original_price": original_price,
-            "currency": currency.symbol,
-            "has_discount": 1 if has_discount else 0,
-            "discount_percent": price_details.discount_percent,
-        })
+    # Добавляем оплату с баланса ВСЕГДА ПЕРВОЙ (даже если баланса недостаточно)
+    payment_methods.append({
+        "gateway_type": PaymentGatewayType.BALANCE,
+        "price": total_price,
+        "original_price": original_price,
+        "currency": currency.symbol,
+        "has_discount": 1 if has_discount else 0,
+        "discount_percent": price_details.discount_percent,
+    })
     
     # Добавляем другие способы оплаты
     for gateway in gateways:
