@@ -1404,7 +1404,6 @@ msg-referral-invite-edit =
     <i>✏️ Введите ваше приглашение</i>
 
 msg-referral-invite-preview =
-    <b>👁 Предпросмотр приглашения</b>
 
     { $preview_message }
 
