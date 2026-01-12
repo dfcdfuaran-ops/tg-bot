@@ -713,7 +713,7 @@ manage_change_settings() {
             done
             
             # Разделитель и кнопка "Назад"
-            echo -e "${BLUE}-----------------------------------------------${NC}"
+            echo -e "${BLUE}----------------------------------${NC}"
             if [ $selected_setting -eq ${#settings[@]} ]; then
                 echo -e "${BLUE}▶${NC} ${GREEN}⬅️  Назад${NC}"
             else
@@ -952,7 +952,10 @@ manage_cleanup_database() {
     
     echo
     echo -e "${GREEN}✅ Данные успешно очищены${NC}"
-    sleep 1
+    echo
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+    read -p ""
 }
 
 # Функция удаления бота
