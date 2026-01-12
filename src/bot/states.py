@@ -149,6 +149,10 @@ class DashboardSettings(StatesGroup):
     TOS = State()
     TOS_URL_MANUAL = State()
     
+    # Сообщество
+    COMMUNITY = State()
+    COMMUNITY_URL_MANUAL = State()
+    
     # Финансы
     FINANCES = State()
     

@@ -2064,6 +2064,24 @@ msg-dashboard-settings-tos-url =
     Введите ссылку (в формате https://telegram.org/tos).
     </blockquote>
 
+# Community Settings
+msg-dashboard-settings-community =
+    <b>👥 Сообщество</b>
+    
+    <blockquote>
+    • Статус: { $status }
+    • Телеграм группа: { $url_display }
+    </blockquote>
+
+    🔽 Укажите ссылку на Telegram группу.
+
+msg-dashboard-settings-community-url =
+    <b>🔗 Ссылка на Telegram группу</b>
+
+    <blockquote>
+    Введите ссылку (в формате https://t.me/+код или https://t.me/название_группы).
+    </blockquote>
+
 # Finances Settings
 msg-dashboard-settings-finances =
     <b>💰 Финансы</b>

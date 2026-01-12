@@ -19,6 +19,7 @@ from .getters import (
     global_discount_apply_to_getter,
     global_discount_mode_getter,
     tos_settings_getter,
+    community_settings_getter,
     finances_settings_getter,
     currency_rates_getter,
 )
@@ -67,6 +68,10 @@ from .handlers import (
     on_cancel_balance,
     on_accept_balance,
     on_community_click,
+    on_set_community_url,
+    on_community_url_input,
+    on_accept_community,
+    on_cancel_community,
     on_tos_click,
     on_toggle_balance,
     on_toggle_community,
@@ -1771,6 +1776,57 @@ tos_url_manual = Window(
 
 
 # ═══════════════════════════════════════════════════════════════
+# Сообщество
+# ═══════════════════════════════════════════════════════════════
+
+community_settings = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-community", status=F["status"], url_display=F["url_display"]),
+    Row(
+        Button(
+            text=I18nFormat("btn-settings-community-set-url"),
+            id="set_url",
+            on_click=on_set_community_url,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            on_click=on_cancel_community,
+        ),
+        Button(
+            text=I18nFormat("btn-accept"),
+            id="accept",
+            on_click=on_accept_community,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=DashboardSettings.COMMUNITY,
+    getter=community_settings_getter,
+)
+
+
+# Ввод URL сообщества
+community_url_manual = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-dashboard-settings-community-url"),
+    MessageInput(
+        func=on_community_url_input,
+        content_types=[ContentType.TEXT],
+    ),
+    SwitchTo(
+        text=I18nFormat("btn-cancel"),
+        id="back",
+        state=DashboardSettings.COMMUNITY,
+    ),
+    IgnoreUpdate(),
+    state=DashboardSettings.COMMUNITY_URL_MANUAL,
+    getter=community_settings_getter,
+)
+
+
+# ═══════════════════════════════════════════════════════════════
 # Финансы
 # ═══════════════════════════════════════════════════════════════
 
@@ -1930,6 +1986,8 @@ router = Dialog(
     global_discount_mode,
     tos_settings,
     tos_url_manual,
+    community_settings,
+    community_url_manual,
     finances_settings,
     currency_rates_settings,
     currency_rate_usd,

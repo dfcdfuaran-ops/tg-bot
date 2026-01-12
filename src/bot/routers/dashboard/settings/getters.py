@@ -4,6 +4,7 @@ from aiogram_dialog import DialogManager
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
+from src.core.config import AppConfig
 from src.services.settings import SettingsService
 
 
@@ -504,6 +505,47 @@ async def tos_settings_getter(
         "url": url,
         "url_display": url_display,
         "status_text": status_text,
+    }
+
+
+@inject
+async def community_settings_getter(
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+    config: AppConfig,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Геттер для настроек сообщества."""
+    settings = await settings_service.get()
+    community_url = config.bot.community_url or ""
+    
+    # Используем данные из dialog_data, если они есть
+    current = dialog_manager.dialog_data.get("current_community")
+    
+    if not current:
+        # Первое открытие - загружаем текущие значения
+        current = {
+            "enabled": settings.features.community_enabled,
+            "url": community_url,
+        }
+    
+    url = current.get("url", "")
+    enabled = current.get("enabled", True)
+    
+    # Форматируем URL для отображения
+    if url:
+        url_display = url[:50] + "..." if len(url) > 50 else url
+    else:
+        url_display = "Не установлено"
+    
+    # Статус для отображения
+    status = "ВКЛ" if enabled else "ВЫКЛ"
+    
+    return {
+        "enabled": 1 if enabled else 0,
+        "url": url,
+        "url_display": url_display,
+        "status": status,
     }
 
 

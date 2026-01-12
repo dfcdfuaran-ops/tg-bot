@@ -8,6 +8,7 @@ from dishka.integrations.aiogram_dialog import inject
 from loguru import logger
 
 from src.bot.states import Dashboard, DashboardSettings, MainMenu
+from src.core.config import AppConfig
 from src.core.constants import USER_KEY
 from src.core.enums import AccessMode, ReferralRewardType
 from src.core.utils.formatters import format_user_log as log
@@ -713,9 +714,26 @@ async def on_community_click(
     callback: CallbackQuery,
     widget: Button,
     dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+    config: AppConfig,
 ) -> None:
-    """Переход в настройки сообщества (пока не реализовано)."""
-    pass
+    """Переход в настройки сообщества."""
+    # Загружаем текущие настройки при входе
+    settings = await settings_service.get()
+    community_url = config.bot.community_url or ""
+    
+    # Сохраняем начальные и текущие значения
+    dialog_manager.dialog_data["initial_community"] = {
+        "enabled": settings.features.community_enabled,
+        "url": community_url,
+    }
+    
+    dialog_manager.dialog_data["current_community"] = {
+        "enabled": settings.features.community_enabled,
+        "url": community_url,
+    }
+    
+    await dialog_manager.switch_to(DashboardSettings.COMMUNITY)
 
 
 @inject
@@ -729,6 +747,130 @@ async def on_toggle_community(
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     new_value = await settings_service.toggle_feature("community_enabled")
     logger.info(f"{log(user)} Toggled community_enabled -> {new_value}")
+
+
+@inject
+async def on_set_community_url(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к вводу URL сообщества."""
+    await dialog_manager.switch_to(DashboardSettings.COMMUNITY_URL_MANUAL)
+
+
+@inject
+async def on_community_url_input(
+    message: Message,
+    message_input: MessageInput,
+    dialog_manager: DialogManager,
+) -> None:
+    """Обработка ввода URL сообщества."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    url = message.text.strip()
+    
+    # Валидация URL
+    import re
+    tg_url_pattern = r'^https://t\.me/[\w+\-/]+'
+    
+    if not re.match(tg_url_pattern, url):
+        # Отправляем предупреждающее сообщение
+        warning_msg = await message.answer(
+            "⚠️ Некорректный формат ссылки. Используйте формат: https://t.me/+код или https://t.me/название_группы",
+            parse_mode="HTML"
+        )
+        
+        # Удаляем сообщение через 5 секунд
+        async def delete_warning():
+            try:
+                await asyncio.sleep(5)
+                await warning_msg.delete()
+            except Exception as e:
+                logger.debug(f"Failed to delete warning message: {e}")
+        asyncio.create_task(delete_warning())
+        return
+    
+    current = dialog_manager.dialog_data.get("current_community", {})
+    current["url"] = url
+    dialog_manager.dialog_data["current_community"] = current
+    
+    logger.info(f"{log(user)} Set Community URL to '{url}' (not saved yet)")
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    await dialog_manager.switch_to(DashboardSettings.COMMUNITY)
+
+
+@inject
+async def on_accept_community(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Сохранение настроек сообщества."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    current = dialog_manager.dialog_data.get("current_community", {})
+    
+    # Обновляем URL сообщества в .env файле
+    if "url" in current:
+        import os
+        from pathlib import Path
+        
+        env_path = Path("/opt/tg-sell-bot/.env")
+        if env_path.exists():
+            with open(env_path, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            
+            # Ищем и обновляем BOT_COMMUNITY_URL
+            updated = False
+            for i, line in enumerate(lines):
+                if line.startswith('BOT_COMMUNITY_URL='):
+                    lines[i] = f"BOT_COMMUNITY_URL={current.get('url', '')}\n"
+                    updated = True
+                    break
+            
+            # Если строка не найдена, добавляем её
+            if not updated:
+                # Найдем секцию бота
+                for i, line in enumerate(lines):
+                    if 'КОНФИГУРАЦИЯ БОТА' in line or line.startswith('BOT_TOKEN='):
+                        # Вставляем после BOT_SUPPORT_USERNAME или в конец секции бота
+                        for j in range(i, len(lines)):
+                            if lines[j].startswith('BOT_MINI_APP='):
+                                lines.insert(j+1, f"BOT_COMMUNITY_URL={current.get('url', '')}\n")
+                                break
+                        break
+            
+            with open(env_path, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+            
+            logger.info(f"{log(user)} Updated Community URL to '{current.get('url')}' in .env")
+    
+    # Очищаем временные данные
+    dialog_manager.dialog_data.pop("initial_community", None)
+    dialog_manager.dialog_data.pop("current_community", None)
+    
+    logger.info(f"{log(user)} Accepted Community settings")
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
+
+
+@inject
+async def on_cancel_community(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Отмена изменений настроек сообщества."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    # Восстанавливаем начальные значения
+    initial = dialog_manager.dialog_data.get("initial_community", {})
+    dialog_manager.dialog_data["current_community"] = initial.copy()
+    
+    logger.info(f"{log(user)} Cancelled Community settings")
+    await dialog_manager.switch_to(DashboardSettings.MAIN)
 
 
 @inject
