@@ -65,13 +65,13 @@ frg-user =
             })
         }
     }
-    }
-    { $is_balance_separate ->
-        [1] • <b>Бонусы</b>: { $referral_balance } ₽
+    }{ $is_balance_separate ->
+        [1]
+    • <b>Бонусы</b>: { $referral_balance } ₽
         *[0] {""}
-    }
-    { $is_balance_enabled ->
-        [1] • <b>Баланс</b>: { $balance } ₽
+    }{ $is_balance_enabled ->
+        [1]
+    • <b>Баланс</b>: { $balance } ₽
     </blockquote>
     *[0] </blockquote>
     }

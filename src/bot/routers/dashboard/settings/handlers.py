@@ -9,11 +9,13 @@ from loguru import logger
 
 from src.bot.states import Dashboard, DashboardSettings, MainMenu
 from src.core.constants import USER_KEY
-from src.core.enums import AccessMode
+from src.core.enums import AccessMode, ReferralRewardType
 from src.core.utils.formatters import format_user_log as log
 from src.infrastructure.database.models.dto import UserDto
 from src.services.settings import SettingsService
 from src.services.access import AccessService
+from src.services.user import UserService
+from src.services.referral import ReferralService
 
 
 @inject
@@ -2205,17 +2207,50 @@ async def on_balance_mode_combined(
     widget: Button,
     dialog_manager: DialogManager,
     settings_service: FromDishka[SettingsService],
+    user_service: FromDishka[UserService],
+    referral_service: FromDishka[ReferralService],
 ) -> None:
-    """Установить режим баланса 'Сумма' (без отдельного бонусного баланса)."""
-    from src.core.enums import BalanceMode
+    """Установить режим баланса 'Сумма' (без отдельного бонусного баланса).
+    
+    При переключении на этот режим все накопленные бонусы пользователей
+    переносятся на основной баланс.
+    """
+    from src.core.enums import BalanceMode, ReferralRewardType
     
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     settings = await settings_service.get()
+    
+    # Проверяем, был ли режим раздельным до этого
+    was_separate = settings.features.balance_mode == BalanceMode.SEPARATE
+    
     settings.features.balance_mode = BalanceMode.COMBINED
     settings.features = settings.features  # Trigger change tracking
     await settings_service.update(settings)
     
-    logger.info(f"{log(user)} Set balance mode to COMBINED")
+    # Если был раздельный режим, переносим бонусы всех пользователей на основной баланс
+    if was_separate:
+        # Получаем всех пользователей и переносим их бонусы
+        all_users = await user_service.get_all()
+        transferred_count = 0
+        
+        for u in all_users:
+            pending_amount = await referral_service.get_pending_rewards_amount(
+                u.telegram_id,
+                ReferralRewardType.MONEY,
+            )
+            if pending_amount > 0:
+                # Выводим бонусы (помечаем как выведенные)
+                await referral_service.withdraw_pending_rewards(
+                    u.telegram_id,
+                    ReferralRewardType.MONEY,
+                )
+                # Добавляем на основной баланс
+                await user_service.add_to_balance(u, pending_amount)
+                transferred_count += 1
+        
+        logger.info(f"{log(user)} Set balance mode to COMBINED, transferred bonuses for {transferred_count} users")
+    else:
+        logger.info(f"{log(user)} Set balance mode to COMBINED")
 
 
 @inject
