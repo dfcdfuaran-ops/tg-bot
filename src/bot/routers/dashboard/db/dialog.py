@@ -42,6 +42,13 @@ db_management = Window(
         ),
     ),
     Row(
+        SwitchTo(
+            text=I18nFormat("btn-db-sync"),
+            id="sync",
+            state=DashboardDB.SYNC,
+        ),
+    ),
+    Row(
         Start(
             text=I18nFormat("btn-dashboard-importer"),
             id="importer",

@@ -580,8 +580,11 @@ msg-menu-invite =
             }
         }
     }
-    • <b>Бонусы</b>: { $referral_balance } ₽
     • <b>Баланс</b>: { $balance } ₽
+    { $is_balance_separate ->
+        [1] • <b>Бонусы</b>: { $referral_balance } ₽
+        *[0] {""}
+    }
     </blockquote>
 
     { hdr-subscription }{ frg-subscription-status-full }
