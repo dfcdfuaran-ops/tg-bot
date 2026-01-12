@@ -20,6 +20,7 @@ REPO_BRANCH="dev"
 # Статус обновлений
 UPDATE_AVAILABLE=0
 CHECK_UPDATE_PID=""
+UPDATE_STATUS_FILE=""
 
 # Цвета для вывода
 RED='\033[0;31m'
@@ -186,6 +187,10 @@ restore_env_vars() {
 
 # Функция для проверки доступности обновлений
 check_updates_available() {
+    # Создаем временный файл для хранения статуса
+    UPDATE_STATUS_FILE=$(mktemp)
+    echo "0" > "$UPDATE_STATUS_FILE"
+    
     # Проверка обновлений в фоне
     {
         TEMP_CHECK_DIR=$(mktemp -d)
@@ -203,9 +208,9 @@ check_updates_available() {
             fi
             
             if [ "$LOCAL_HASH" != "$REMOTE_HASH" ] && [ -n "$REMOTE_HASH" ]; then
-                UPDATE_AVAILABLE=1
+                echo "1" > "$UPDATE_STATUS_FILE"
             else
-                UPDATE_AVAILABLE=0
+                echo "0" > "$UPDATE_STATUS_FILE"
             fi
         fi
     } &
@@ -215,6 +220,12 @@ check_updates_available() {
 wait_for_update_check() {
     if [ -n "$CHECK_UPDATE_PID" ]; then
         wait $CHECK_UPDATE_PID 2>/dev/null || true
+    fi
+    
+    # Читаем результат из файла
+    if [ -n "$UPDATE_STATUS_FILE" ] && [ -f "$UPDATE_STATUS_FILE" ]; then
+        UPDATE_AVAILABLE=$(cat "$UPDATE_STATUS_FILE" 2>/dev/null || echo "0")
+        rm -f "$UPDATE_STATUS_FILE" 2>/dev/null || true
     fi
 }
 

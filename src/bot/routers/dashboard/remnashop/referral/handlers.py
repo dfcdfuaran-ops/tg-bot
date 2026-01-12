@@ -545,7 +545,7 @@ async def on_invite_message_input(
     except Exception:
         pass
     
-    await dialog_manager.switch_to(RemnashopReferral.MAIN)
+    await dialog_manager.switch_to(RemnashopReferral.INVITE_MESSAGE)
 
 
 @inject
@@ -554,8 +554,18 @@ async def on_invite_message_cancel(
     widget: Button,
     dialog_manager: DialogManager,
 ) -> None:
-    """Отмена редактирования сообщения приглашения."""
-    pass  # Просто возвращаемся в главное меню через SwitchTo
+    """Отмена - возврат в главное меню реферальной программы."""
+    await dialog_manager.switch_to(RemnashopReferral.MAIN)
+
+
+@inject
+async def on_invite_message_accept(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Принять изменения - возврат в главное меню реферальной программы."""
+    await dialog_manager.switch_to(RemnashopReferral.MAIN)
 
 
 @inject
@@ -575,3 +585,13 @@ async def on_invite_message_reset(
     await settings_service.update(settings)
     
     logger.info(f"{log(user)} Reset invite message to default")
+
+
+@inject
+async def on_invite_preview_close(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Закрыть предпросмотр - возврат в настройки приглашения."""
+    await dialog_manager.switch_to(RemnashopReferral.INVITE_MESSAGE)

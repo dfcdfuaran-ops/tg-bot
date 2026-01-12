@@ -11,6 +11,7 @@ from src.bot.routers.dashboard.remnashop.referral.getters import (
     reward_strategy_getter,
     reward_type_getter,
     invite_message_getter,
+    invite_preview_getter,
 )
 from src.bot.routers.dashboard.remnashop.referral.handlers import (
     on_accrual_strategy_select,
@@ -29,7 +30,9 @@ from src.bot.routers.dashboard.remnashop.referral.handlers import (
     on_submenu_accept,
     on_invite_message_input,
     on_invite_message_cancel,
+    on_invite_message_accept,
     on_invite_message_reset,
+    on_invite_preview_close,
 )
 from src.bot.states import RemnashopReferral
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
@@ -497,7 +500,20 @@ reward_manual_input = Window(
 invite_message = Window(
     Banner(BannerName.DASHBOARD),
     I18nFormat("msg-referral-invite-message", current_message=F["current_message"]),
-    MessageInput(func=on_invite_message_input),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-invite-edit"),
+            id="edit",
+            state=RemnashopReferral.INVITE_MESSAGE_EDIT,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-invite-preview"),
+            id="preview",
+            state=RemnashopReferral.INVITE_MESSAGE_PREVIEW,
+        ),
+    ),
     Row(
         Button(
             text=I18nFormat("btn-reset-default"),
@@ -506,16 +522,53 @@ invite_message = Window(
         ),
     ),
     Row(
-        SwitchTo(
-            text=I18nFormat("btn-back"),
-            id="back",
-            state=RemnashopReferral.MAIN,
+        Button(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
             on_click=on_invite_message_cancel,
+        ),
+        Button(
+            text=I18nFormat("btn-accept"),
+            id="accept",
+            on_click=on_invite_message_accept,
         ),
     ),
     IgnoreUpdate(),
     state=RemnashopReferral.INVITE_MESSAGE,
     getter=invite_message_getter,
+)
+
+# Окно редактирования сообщения приглашения
+invite_message_edit = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-referral-invite-edit", current_message=F["current_message"]),
+    MessageInput(func=on_invite_message_input),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            state=RemnashopReferral.INVITE_MESSAGE,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=RemnashopReferral.INVITE_MESSAGE_EDIT,
+    getter=invite_message_getter,
+)
+
+# Окно предпросмотра приглашения
+invite_message_preview = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-referral-invite-preview", preview_message=F["preview_message"]),
+    Row(
+        Button(
+            text=I18nFormat("btn-invite-close-preview"),
+            id="close",
+            on_click=on_invite_preview_close,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=RemnashopReferral.INVITE_MESSAGE_PREVIEW,
+    getter=invite_preview_getter,
 )
 
 router = Dialog(
@@ -527,4 +580,6 @@ router = Dialog(
     reward,
     reward_manual_input,
     invite_message,
+    invite_message_edit,
+    invite_message_preview,
 )

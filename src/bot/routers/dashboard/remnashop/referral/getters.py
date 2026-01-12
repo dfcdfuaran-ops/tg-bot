@@ -10,6 +10,7 @@ from src.core.enums import (
     ReferralRewardStrategy,
     ReferralRewardType,
 )
+from src.infrastructure.database.models.dto import UserDto
 from src.services.settings import SettingsService
 
 
@@ -279,4 +280,27 @@ async def invite_message_getter(
     
     return {
         "current_message": current_message,
+    }
+
+
+@inject
+async def invite_preview_getter(
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+    user: UserDto,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Геттер для предпросмотра сообщения приглашения."""
+    settings = await settings_service.get_referral_settings()
+    
+    invite_message_template = settings.invite_message
+    # Форматируем сообщение с примерными значениями
+    preview_message = invite_message_template.format(
+        name="VPN",
+        url=f"https://t.me/bot?start={user.referral_code}",
+    )
+    
+    return {
+        "current_message": settings.invite_message,
+        "preview_message": preview_message,
     }
