@@ -64,8 +64,11 @@ async def sync_panel_to_bot_task(
         errors_count = 0
         skipped_count = 0
         
-        for panel_user in all_panel_users:
+        for panel_user_short in all_panel_users:
             try:
+                # Получаем полные данные пользователя (с traffic_limit, device_limit и т.д.)
+                panel_user = await remnawave.users.get_user(panel_user_short.uuid)
+                
                 # Проверяем, есть ли telegram_id у пользователя панели
                 if not panel_user.telegram_id:
                     skipped_count += 1
