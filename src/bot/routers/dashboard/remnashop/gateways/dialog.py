@@ -87,12 +87,10 @@ gateways = Window(
             id="cancel",
             on_click=on_gateways_cancel,
         ),
-        Start(
+        Button(
             text=I18nFormat("btn-accept"),
             id="accept",
             on_click=on_gateways_accept,
-            state=DashboardSettings.FINANCES,
-            mode=StartMode.RESET_STACK,
         ),
     ),
     IgnoreUpdate(),
@@ -173,10 +171,9 @@ default_currency = Window(
             id="cancel",
             on_click=on_currency_cancel,
         ),
-        SwitchTo(
+        Button(
             text=I18nFormat("btn-accept"),
             id="accept",
-            state=RemnashopGateways.MAIN,
             on_click=on_currency_accept,
         ),
     ),
@@ -210,10 +207,9 @@ placement = Window(
             id="cancel",
             on_click=on_placement_cancel,
         ),
-        SwitchTo(
+        Button(
             text=I18nFormat("btn-accept"),
             id="accept",
-            state=RemnashopGateways.MAIN,
             on_click=on_placement_accept,
         ),
     ),

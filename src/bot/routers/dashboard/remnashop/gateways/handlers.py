@@ -1,5 +1,5 @@
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import DialogManager, ShowMode, SubManager
+from aiogram_dialog import DialogManager, ShowMode, SubManager, StartMode
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Select
 from dishka import FromDishka
@@ -7,7 +7,7 @@ from dishka.integrations.aiogram_dialog import inject
 from loguru import logger
 from pydantic import SecretStr
 
-from src.bot.states import RemnashopGateways
+from src.bot.states import RemnashopGateways, DashboardSettings
 from src.core.constants import USER_KEY
 from src.core.enums import Currency
 from src.core.utils.formatters import format_user_log as log
@@ -257,7 +257,8 @@ async def on_gateways_cancel(
     
     # Восстанавливаем исходное состояние из pending_changes
     if "pending_changes" in dialog_manager.dialog_data:
-        for gateway_id, original_state in dialog_manager.dialog_data["pending_changes"].items():
+        for gateway_id_str, original_state in dialog_manager.dialog_data["pending_changes"].items():
+            gateway_id = int(gateway_id_str)  # Конвертируем ключ из словаря в int
             gateway = await payment_gateway_service.get(gateway_id)
             if gateway:
                 gateway.is_active = original_state["is_active"]
@@ -285,6 +286,9 @@ async def on_gateways_accept(
         dialog_manager.dialog_data.pop("pending_changes", None)
         dialog_manager.dialog_data.pop("current_state", None)
         logger.info(f"{log(user)} Accepted all gateway changes")
+    
+    # Навигируем обратно в Finances
+    await dialog_manager.start(DashboardSettings.FINANCES, mode=StartMode.RESET_STACK)
 
 
 @inject
@@ -353,3 +357,47 @@ async def on_currency_accept(
     if "pending_currency" in dialog_manager.dialog_data:
         dialog_manager.dialog_data.pop("pending_currency", None)
         logger.info(f"{log(user)} Accepted currency change")
+    
+    # Навигируем обратно в главное меню gateways
+    await dialog_manager.switch_to(RemnashopGateways.MAIN)
+
+
+@inject
+async def on_placement_cancel(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    payment_gateway_service: FromDishka[PaymentGatewayService],
+) -> None:
+    """Отменить изменения позиционирования шлюзов"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    if "pending_placement" in dialog_manager.dialog_data:
+        original_order = dialog_manager.dialog_data["pending_placement"]
+        # Восстанавливаем исходный порядок всех шлюзов
+        for gateway_id_str, order_index in original_order.items():
+            gateway_id = int(gateway_id_str)
+            gateway = await payment_gateway_service.get(gateway_id)
+            if gateway:
+                gateway.order_index = order_index
+                await payment_gateway_service.update(gateway)
+        
+        dialog_manager.dialog_data.pop("pending_placement", None)
+        logger.info(f"{log(user)} Cancelled placement changes")
+
+
+@inject
+async def on_placement_accept(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Принять изменения позиционирования шлюзов"""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    if "pending_placement" in dialog_manager.dialog_data:
+        dialog_manager.dialog_data.pop("pending_placement", None)
+        logger.info(f"{log(user)} Accepted placement changes")
+    
+    # Навигируем обратно в главное меню gateways
+    await dialog_manager.switch_to(RemnashopGateways.MAIN)
