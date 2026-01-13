@@ -15,7 +15,7 @@ from src.infrastructure.database.models.dto import UserDto
 from src.services.notification import NotificationService
 from src.services.plan import PlanService
 from src.services.referral import ReferralService
-from src.services.remnawave import RemnaWaveService
+from src.services.remnawave import RemnawaveService
 from src.services.subscription import SubscriptionService
 from src.services.user import UserService
 
@@ -49,7 +49,7 @@ class UserMiddleware(EventTypedMiddleware):
         config: AppConfig = await container.get(AppConfig)
         user_service: UserService = await container.get(UserService)
         referral_service: ReferralService = await container.get(ReferralService)
-        remnawave_service: RemnaWaveService = await container.get(RemnaWaveService)
+        remnawave_service: RemnawaveService = await container.get(RemnawaveService)
         plan_service: PlanService = await container.get(PlanService)
         subscription_service: SubscriptionService = await container.get(SubscriptionService)
 
