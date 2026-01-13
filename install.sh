@@ -739,22 +739,90 @@ manage_update_bot() {
             fi
             
             # Запуск бота
-            (sleep 35) &
+            (sleep 5) &
             show_spinner "Запуск бота"
             
             echo
-            echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
+            echo -e "${YELLOW}Ожидание логотипа DFC в логах...${NC}"
+            echo
             
-            # Сохраняем хеш обновления в .env
-            update_env_var "$ENV_FILE" "LAST_UPDATE_HASH" "$REMOTE_HASH"
+            # Ждем появления логотипа DFC в логах
+            local max_attempts=60
+            local attempt=0
+            local dfc_found=false
+            local error_found=false
+            
+            while [ $attempt -lt $max_attempts ]; do
+                local logs=$(docker compose -f "$PROJECT_DIR/docker-compose.yml" logs remnashop 2>&1)
+                
+                # Проверяем наличие логотипа DFC
+                if echo "$logs" | grep -q "Digital.*Freedom.*Core"; then
+                    dfc_found=true
+                    break
+                fi
+                
+                # Проверяем наличие критических ошибок
+                if echo "$logs" | grep -iE "error|exception|failed|traceback" | grep -v "ERROR_LOG" >/dev/null 2>&1; then
+                    error_found=true
+                    break
+                fi
+                
+                ((attempt++))
+                sleep 1
+            done
             
             echo
-            tput civis 2>/dev/null || true
-            echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
-            read -p ""
             
-            # Перезапускаем скрипт чтобы вернуться в главное меню
-            exec "$0"
+            if [ "$dfc_found" = true ]; then
+                echo -e "${GREEN}✅ Бот успешно обновлен${NC}"
+                
+                # Сохраняем хеш обновления в .env
+                update_env_var "$ENV_FILE" "LAST_UPDATE_HASH" "$REMOTE_HASH"
+                
+                # Сбрасываем флаг обновления
+                UPDATE_AVAILABLE=0
+                AVAILABLE_VERSION=""
+                
+                echo
+                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                read -p ""
+                
+                # Перезапускаем скрипт чтобы вернуться в главное меню
+                exec "$0"
+            elif [ "$error_found" = true ]; then
+                echo -e "${RED}❌ Ошибка при обновлении бота!${NC}"
+                echo
+                echo -ne "${YELLOW}Показать лог ошибки? [Y/n]: ${NC}"
+                read -n 1 -r show_logs
+                echo
+                
+                if [[ -z "$show_logs" || "$show_logs" =~ ^[Yy]$ ]]; then
+                    echo
+                    echo -e "${BLUE}========================================${NC}"
+                    echo -e "${RED}ЛОГИ ОШИБОК:${NC}"
+                    echo -e "${BLUE}========================================${NC}"
+                    docker compose -f "$PROJECT_DIR/docker-compose.yml" logs --tail 50 remnashop
+                    echo -e "${BLUE}========================================${NC}"
+                fi
+                
+                echo
+                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                read -p ""
+                return
+            else
+                echo -e "${YELLOW}⚠️  Превышено время ожидания (${max_attempts}сек)${NC}"
+                echo -e "${YELLOW}Бот может всё ещё запускаться...${NC}"
+                
+                # Сохраняем хеш обновления даже при таймауте
+                update_env_var "$ENV_FILE" "LAST_UPDATE_HASH" "$REMOTE_HASH"
+                
+                echo
+                echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+                read -p ""
+                
+                # Перезапускаем скрипт
+                exec "$0"
+            fi
     fi
 }
 

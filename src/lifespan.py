@@ -154,6 +154,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 except Exception as e:
                     logger.warning(f"Failed to delete shutdown message: {e}")
             await redis_repository.delete(shutdown_key)
+            
+            # Send startup notification after deletion of shutdown messages
+            # This indicates the bot was turned on after being turned off
+            if shutdown_messages:
+                devs = await user_service.get_by_role(role=UserRole.DEV)
+                for dev in devs:
+                    try:
+                        i18n = translator_hub.get_translator_by_locale(locale=dev.language)
+                        text = i18n_postprocess_text(i18n.get("ntf-event-bot-started"))
+                        await bot.send_message(
+                            chat_id=dev.telegram_id,
+                            text=text,
+                            reply_markup=await notification_service.get_notification_keyboard(
+                                add_close_button=True,
+                                locale=dev.language,
+                                auto_delete_after=None,
+                            ),
+                        )
+                        logger.debug(f"Sent startup notification to {dev.telegram_id}")
+                    except Exception as e:
+                        logger.warning(f"Failed to send startup notification to {dev.telegram_id}: {e}")
         except Exception as e:
             logger.warning(f"Failed to cleanup shutdown messages: {e}")
         

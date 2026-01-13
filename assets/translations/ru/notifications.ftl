@@ -221,6 +221,11 @@ ntf-event-bot-shutdown =
 
     <b>🔅 Событие: Бот остановлен!</b>
 
+ntf-event-bot-started =
+    #Event
+
+    <b>🟢 Событие: Бот включен!</b>
+
 ntf-event-bot-update =
     #EventBotUpdate
 
