@@ -1474,6 +1474,7 @@ async def getter_connect(
         "traffic_limit": traffic_limit,
         "device_limit": device_limit,
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": expire_time,
     }
