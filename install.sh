@@ -466,7 +466,7 @@ show_full_menu() {
         for i in "${!options[@]}"; do
             if [ $i -eq $selected ]; then
                 # Для пункта "Обновить" добавляем статус если доступно обновление
-                if [ $i -eq 2 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
+                if [ $i -eq 3 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
                     if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
                         echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
                     else
@@ -477,7 +477,7 @@ show_full_menu() {
                 fi
             else
                 # Для пункта "Обновить" добавляем статус если доступно обновление
-                if [ $i -eq 2 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
+                if [ $i -eq 3 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
                     if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
                         echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
                     else
@@ -488,8 +488,8 @@ show_full_menu() {
                 fi
             fi
             
-            # Разделители после пунктов 2, 5 и 8
-            if [ $i -eq 2 ] || [ $i -eq 5 ] || [ $i -eq 8 ]; then
+            # Разделители после пунктов 3, 6 и 9
+            if [ $i -eq 3 ] || [ $i -eq 6 ] || [ $i -eq 9 ]; then
                 echo -e "${BLUE}----------------------------------${NC}"
             fi
         done
