@@ -765,7 +765,7 @@ manage_update_bot() {
                 show_spinner "Применение сохранённых параметров"
             fi
             
-            # Запуск бота
+            # Ожидание запуска бота
             (sleep 5) &
             
             echo
@@ -867,7 +867,7 @@ manage_restart_bot() {
     show_spinner "Перезагрузка бота"
     
     echo
-    echo -e "${YELLOW}Ожидание логотипа DFC в логах...${NC}"
+    echo -e "${YELLOW}Запуск бота. Пожалуйста ожидайте.${NC}"
     echo
     
     # Ждем появления логотипа DFC в логах (строка с "Digital  Freedom   Core")

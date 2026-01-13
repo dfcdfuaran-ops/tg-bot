@@ -66,14 +66,15 @@ async def menu_getter(
         
         # Get invite message from settings
         settings = await settings_service.get()
-        # Replace Fluent-style placeholders with actual values
+        # Replace placeholders with actual values
         try:
             invite_message = str(settings.referral.invite_message) if settings.referral.invite_message else None
         except Exception:
             invite_message = None
         
         if invite_message:
-            invite_message = invite_message.replace("$url", ref_link).replace("$name", "VPN")
+            # Support both Python format {url}/{name} and legacy $url/$name
+            invite_message = invite_message.format(url=ref_link, name="VPN") if "{url}" in invite_message else invite_message.replace("$url", ref_link).replace("$name", "VPN")
         else:
             invite_message = f"Join us! {ref_link}"
         
@@ -311,14 +312,15 @@ async def invite_getter(
     )
     
     # Get invite message from settings
-    # Replace Fluent-style placeholders with actual values
+    # Replace placeholders with actual values
     try:
         invite_message = str(settings.invite_message) if settings.invite_message else None
     except Exception:
         invite_message = None
     
     if invite_message:
-        invite_message = invite_message.replace("$url", ref_link).replace("$name", "VPN")
+        # Support both Python format {url}/{name} and legacy $url/$name
+        invite_message = invite_message.format(url=ref_link, name="VPN") if "{url}" in invite_message else invite_message.replace("$url", ref_link).replace("$name", "VPN")
     else:
         invite_message = f"Join us! {ref_link}"
     

@@ -77,7 +77,6 @@ from .handlers import (
     on_bonus_custom_input,
     on_bonus_custom_mode,
     on_cancel_bonus_amount,
-    on_copy_referral_link,
     on_device_delete,
     on_invite,
     on_platform_select,
@@ -271,10 +270,9 @@ invite = Window(
         ),
     ),
     Row(
-        Button(
+        CopyText(
             text=I18nFormat("btn-menu-invite-copy"),
-            id="copy",
-            on_click=on_copy_referral_link,
+            copy_text=Format("{referral_link}"),
         ),
     ),
     Row(
