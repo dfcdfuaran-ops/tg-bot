@@ -705,6 +705,10 @@ manage_update_bot() {
                         fi
                     fi
                 done
+                
+                # Копируем __version__.py для корректной проверки версий
+                mkdir -p "$PROJECT_DIR/src" 2>/dev/null || true
+                cp -f "src/__version__.py" "$PROJECT_DIR/src/__version__.py" 2>/dev/null || true
             } &
             show_spinner "Обновление конфигурации"
             
@@ -747,7 +751,7 @@ manage_update_bot() {
             echo
             
             # Ждем появления логотипа DFC в логах
-            local max_attempts=60
+            local max_attempts=90
             local attempt=0
             local dfc_found=false
             local error_found=false
@@ -761,8 +765,8 @@ manage_update_bot() {
                     break
                 fi
                 
-                # Проверяем наличие критических ошибок
-                if echo "$logs" | grep -iE "error|exception|failed|traceback" | grep -v "ERROR_LOG" >/dev/null 2>&1; then
+                # Проверяем наличие критических ошибок (строки начинающиеся с ERROR, CRITICAL, или содержащие Traceback)
+                if echo "$logs" | grep -E "^\s*(ERROR|CRITICAL|Traceback)" >/dev/null 2>&1; then
                     error_found=true
                     break
                 fi
@@ -779,15 +783,12 @@ manage_update_bot() {
                 # Сохраняем хеш обновления в .env
                 update_env_var "$ENV_FILE" "LAST_UPDATE_HASH" "$REMOTE_HASH"
                 
-                # Сбрасываем флаг обновления
-                UPDATE_AVAILABLE=0
-                AVAILABLE_VERSION=""
-                
                 echo
                 echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
                 read -p ""
                 
                 # Перезапускаем скрипт чтобы вернуться в главное меню
+                # При перезапуске check_updates_available автоматически пересчитает флаг обновления
                 exec "$0"
             elif [ "$error_found" = true ]; then
                 echo -e "${RED}❌ Ошибка при обновлении бота!${NC}"
