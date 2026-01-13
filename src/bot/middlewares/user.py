@@ -121,9 +121,24 @@ class UserMiddleware(EventTypedMiddleware):
                                 )
                                 
                                 await subscription_service.create(user, imported_subscription)
+                                
+                                # Обновляем device_limit в Remnawave в соответствии с планом бота
+                                await remnawave_service.remnawave.users.update_user(
+                                    UpdateUserRequestDto(
+                                        uuid=existing_user.uuid,
+                                        hwid_device_limit=matching_plan.device_limit,
+                                    )
+                                )
+                                
+                                # Инвалидируем кеш пользователя чтобы загрузить актуальные данные с подпиской
+                                await user_service.clear_user_cache(user.telegram_id)
+                                user = await user_service.get(telegram_id=user.telegram_id)
+                                data[USER_KEY] = user  # Обновляем объект user в контексте
+                                
                                 logger.info(
                                     f"Imported existing subscription for user {user.telegram_id} "
-                                    f"with tag '{matching_plan.tag}' and plan '{matching_plan.name}'"
+                                    f"with tag '{matching_plan.tag}' and plan '{matching_plan.name}', "
+                                    f"updated device_limit to {matching_plan.device_limit}"
                                 )
                             else:
                                 # План не найден, создаём подписку с тегом IMPORT
@@ -175,16 +190,23 @@ class UserMiddleware(EventTypedMiddleware):
                                     
                                     await subscription_service.create(user, imported_subscription)
                                     
-                                    # Меняем тег в панели на IMPORT
+                                    # Меняем тег и device_limit в панели
                                     await remnawave_service.remnawave.users.update_user(
                                         UpdateUserRequestDto(
                                             uuid=existing_user.uuid,
                                             tag="IMPORT",
+                                            hwid_device_limit=template_plan.device_limit,
                                         )
                                     )
+                                    
+                                    # Инвалидируем кеш пользователя чтобы загрузить актуальные данные с подпиской
+                                    await user_service.clear_user_cache(user.telegram_id)
+                                    user = await user_service.get(telegram_id=user.telegram_id)
+                                    data[USER_KEY] = user  # Обновляем объект user в контексте
+                                    
                                     logger.info(
-                                        f"Created IMPORT subscription for user {user.telegram_id} "
-                                        f"and changed tag in Remnawave panel"
+                                        f"Created IMPORT subscription for user {user.telegram_id}, "
+                                        f"changed tag in Remnawave panel and updated device_limit to {template_plan.device_limit}"
                                     )
                                 else:
                                     logger.error(f"No active plans found to create IMPORT subscription")
