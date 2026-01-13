@@ -1,5 +1,6 @@
 #!/bin/bash
 # Git hook для автоматического инкремента версии перед push
+# Проверяет, была ли версия уже изменена в текущем коммите, и увеличивает её только если нужно
 
 VERSION_FILE="src/__version__.py"
 
@@ -9,12 +10,22 @@ if [ ! -f "$VERSION_FILE" ]; then
     exit 1
 fi
 
-# Читаем текущую версию
+# Читаем текущую версию из файла
 current_version=$(grep -oP '__version__ = "\K[^"]+' "$VERSION_FILE")
 
 if [ -z "$current_version" ]; then
     echo "Ошибка: не удалось прочитать версию из $VERSION_FILE"
     exit 1
+fi
+
+# Проверяем, была ли версия изменена в последнем коммите
+# Смотрим diff между HEAD^ и HEAD в файле версии
+version_changed_in_commit=$(git diff HEAD^ HEAD -- "$VERSION_FILE" 2>/dev/null | grep -c "^[+-]__version__" || echo "0")
+
+# Если версия уже была изменена в этом коммите, не трогаем её
+if [ "$version_changed_in_commit" -ge 2 ]; then
+    echo "ℹ️  Версия уже обновлена в текущем коммите ($current_version), пропускаем автоматическое увеличение"
+    exit 0
 fi
 
 # Парсим версию (формат: major.minor.patch)
