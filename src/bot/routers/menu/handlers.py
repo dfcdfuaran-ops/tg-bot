@@ -373,6 +373,19 @@ async def on_get_trial(
         # Очищаем кеш пользователя чтобы getter_connect увидел новую подписку
         await user_service.clear_user_cache(fresh_user.telegram_id)
         
+        # Даём время на загрузку данных в кеш
+        import asyncio
+        await asyncio.sleep(0.5)
+        
+        # Дополнительная проверка - загружаем пользователя снова и убеждаемся что подписка есть
+        verify_user = await user_service.get(fresh_user.telegram_id)
+        if not verify_user or not verify_user.current_subscription:
+            logger.error(f"on_get_trial: Subscription not found after creation for user {user.telegram_id}, retrying...")
+            await asyncio.sleep(1)
+            # Попытка 2
+            await user_service.clear_user_cache(fresh_user.telegram_id)
+            verify_user = await user_service.get(fresh_user.telegram_id)
+        
         await dialog_manager.start(
             state=Subscription.TRIAL,
             mode=StartMode.RESET_STACK,

@@ -2,7 +2,7 @@ from decimal import Decimal
 from math import ceil
 from typing import Any, cast
 
-from aiogram_dialog import DialogManager
+from aiogram_dialog import DialogManager, ShowMode, StartMode
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 from fluentogram import TranslatorRunner
@@ -1410,10 +1410,48 @@ async def getter_connect(
     user: UserDto,
     referral_service: FromDishka[ReferralService],
     settings_service: FromDishka[SettingsService],
+    user_service: FromDishka[UserService],
     **kwargs: Any,
 ) -> dict[str, Any]:
+    # Если нет активной подписки, перезагружаем данные пользователя с проверкой
     if not user.current_subscription:
-        raise ValueError(f"User '{user.telegram_id}' has no active subscription after purchase")
+        # Попытка переодичной загрузки в случае кеш-проблемы
+        fresh_user = await user_service.get(user.telegram_id)
+        if not fresh_user or not fresh_user.current_subscription:
+            # Если подписки всё ещё нет, отправляем на главное меню
+            logger.warning(
+                f"getter_connect: No active subscription for user '{user.telegram_id}', "
+                f"redirecting to main menu"
+            )
+            from src.bot.states import MainMenu
+            try:
+                await dialog_manager.done()
+                await dialog_manager.start(
+                    state=MainMenu.MAIN,
+                    mode=StartMode.RESET_STACK,
+                    show_mode=ShowMode.DELETE_AND_SEND,
+                )
+            except Exception as e:
+                logger.error(f"getter_connect: Failed to redirect: {e}")
+            
+            # Возвращаем пустые данные для безопасности
+            return {
+                "has_subscription": 0,
+                "plan_name": "N/A",
+                "traffic_limit": "N/A",
+                "device_limit": "N/A",
+                "expire_time": "N/A",
+                "user_id": str(user.telegram_id),
+                "user_name": user.name,
+                "balance": 0,
+                "referral_balance": 0,
+                "referral_code": user.referral_code,
+                "is_balance_enabled": 0,
+                "is_balance_separate": 0,
+            }
+        
+        # Если данные загружены, используем их
+        user = fresh_user
 
     subscription = user.current_subscription
     
