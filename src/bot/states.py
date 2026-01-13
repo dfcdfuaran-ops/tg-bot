@@ -68,6 +68,8 @@ class DashboardDB(StatesGroup):
     IMPORTER = State()
     SYNC = State()  # Меню синхронизации
     SYNC_PROGRESS = State()  # Процесс синхронизации
+    CLEAR_ALL_CONFIRM = State()  # Подтверждение полной очистки
+    CLEAR_USERS_CONFIRM = State()  # Подтверждение очистки пользователей
 
 
 class DashboardStatistics(StatesGroup):

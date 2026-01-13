@@ -1422,3 +1422,277 @@ async def on_sync_from_panel(
         user=user,
         payload=MessagePayload(i18n_key="ntf-remnawave-sync-confirm"),
     )
+
+
+@inject
+async def on_clear_all(
+    callback: CallbackQuery,
+    button,
+    manager: DialogManager,
+):
+    """Обработчик для первого нажатия на кнопку очистки всех данных."""
+    from src.bot.states import DashboardDB
+    await manager.switch_to(DashboardDB.CLEAR_ALL_CONFIRM)
+
+
+@inject
+async def on_clear_users(
+    callback: CallbackQuery,
+    button,
+    manager: DialogManager,
+):
+    """Обработчик для первого нажатия на кнопку очистки пользователей."""
+    from src.bot.states import DashboardDB
+    await manager.switch_to(DashboardDB.CLEAR_USERS_CONFIRM)
+
+
+@inject
+async def on_clear_all_confirm(
+    callback: CallbackQuery,
+    button,
+    manager: DialogManager,
+    notification_service: FromDishka[NotificationService],
+    redis_client: FromDishka[Redis],
+):
+    """Обработчик для подтверждения полной очистки базы данных."""
+    user = manager.middleware_data.get(USER_KEY)
+    
+    await notification_service.notify_user(
+        user=user,
+        payload=MessagePayload(i18n_key="ntf-db-clear-all-start"),
+    )
+    
+    loop = asyncio.get_event_loop()
+    
+    def clear_all_db():
+        """Полная очистка базы данных."""
+        import os as os_module
+        
+        db_password = os_module.getenv('DATABASE_PASSWORD', 'remnashop')
+        db_user = os_module.getenv('DATABASE_USER', 'remnashop')
+        db_name = os_module.getenv('DATABASE_NAME', 'remnashop')
+        db_host = os_module.getenv('DATABASE_HOST', 'remnashop-db')
+        db_port = os_module.getenv('DATABASE_PORT', '5432')
+        
+        env = os_module.environ.copy()
+        env['PGPASSWORD'] = db_password
+        
+        # SQL запрос для подсчета записей перед удалением
+        count_query = """
+        SELECT 
+            (SELECT COUNT(*) FROM users) as users,
+            (SELECT COUNT(*) FROM subscriptions) as subscriptions,
+            (SELECT COUNT(*) FROM transactions) as transactions,
+            (SELECT COUNT(*) FROM promocodes) as promocodes,
+            (SELECT COUNT(*) FROM promocode_activations) as activations,
+            (SELECT COUNT(*) FROM referrals) as referrals,
+            (SELECT COUNT(*) FROM referral_rewards) as rewards,
+            (SELECT COUNT(*) FROM notifications) as notifications;
+        """
+        
+        # Получаем количество записей до удаления
+        count_cmd = [
+            'psql', '-h', db_host, '-p', db_port, '-U', db_user, '-d', db_name,
+            '-t', '-c', count_query
+        ]
+        result = subprocess.run(count_cmd, capture_output=True, text=True, env=env)
+        
+        counts = {}
+        if result.returncode == 0:
+            values = result.stdout.strip().split('|')
+            counts = {
+                'users': int(values[0].strip()),
+                'subscriptions': int(values[1].strip()),
+                'transactions': int(values[2].strip()),
+                'promocodes': int(values[3].strip()),
+                'activations': int(values[4].strip()),
+                'referrals': int(values[5].strip()),
+                'rewards': int(values[6].strip()),
+                'notifications': int(values[7].strip()),
+            }
+        
+        # SQL запрос для удаления всех данных
+        delete_query = """
+        BEGIN;
+        DELETE FROM referral_rewards;
+        DELETE FROM referrals;
+        DELETE FROM promocode_activations;
+        DELETE FROM transactions;
+        DELETE FROM subscriptions;
+        DELETE FROM users;
+        DELETE FROM promocodes;
+        DELETE FROM notifications;
+        COMMIT;
+        """
+        
+        # Выполняем очистку
+        delete_cmd = [
+            'psql', '-h', db_host, '-p', db_port, '-U', db_user, '-d', db_name,
+            '-c', delete_query
+        ]
+        result = subprocess.run(delete_cmd, capture_output=True, text=True, env=env)
+        
+        if result.returncode != 0:
+            return False, result.stderr, counts
+        
+        return True, None, counts
+    
+    try:
+        success, error, counts = await loop.run_in_executor(None, clear_all_db)
+        
+        if success:
+            # Очищаем кэш Redis
+            await redis_client.flushall()
+            logger.info(f"{log(user)} Database cleared successfully")
+            
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(
+                    i18n_key="ntf-db-clear-all-success",
+                    i18n_kwargs=counts,
+                ),
+            )
+        else:
+            logger.error(f"{log(user)} Failed to clear database: {error}")
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(
+                    i18n_key="ntf-db-clear-all-failed",
+                    i18n_kwargs={"error": error},
+                ),
+            )
+    except Exception as e:
+        logger.exception(f"{log(user)} Error clearing database: {e}")
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(
+                i18n_key="ntf-db-clear-all-failed",
+                i18n_kwargs={"error": str(e)},
+            ),
+        )
+    
+    from src.bot.states import DashboardDB
+    await manager.switch_to(DashboardDB.MAIN)
+
+
+@inject
+async def on_clear_users_confirm(
+    callback: CallbackQuery,
+    button,
+    manager: DialogManager,
+    notification_service: FromDishka[NotificationService],
+    redis_client: FromDishka[Redis],
+):
+    """Обработчик для подтверждения очистки пользователей."""
+    user = manager.middleware_data.get(USER_KEY)
+    
+    await notification_service.notify_user(
+        user=user,
+        payload=MessagePayload(i18n_key="ntf-db-clear-users-start"),
+    )
+    
+    loop = asyncio.get_event_loop()
+    
+    def clear_users_db():
+        """Очистка пользователей из базы данных."""
+        import os as os_module
+        
+        db_password = os_module.getenv('DATABASE_PASSWORD', 'remnashop')
+        db_user = os_module.getenv('DATABASE_USER', 'remnashop')
+        db_name = os_module.getenv('DATABASE_NAME', 'remnashop')
+        db_host = os_module.getenv('DATABASE_HOST', 'remnashop-db')
+        db_port = os_module.getenv('DATABASE_PORT', '5432')
+        
+        env = os_module.environ.copy()
+        env['PGPASSWORD'] = db_password
+        
+        # SQL запрос для подсчета записей перед удалением
+        count_query = """
+        SELECT 
+            (SELECT COUNT(*) FROM users) as users,
+            (SELECT COUNT(*) FROM subscriptions) as subscriptions,
+            (SELECT COUNT(*) FROM transactions) as transactions,
+            (SELECT COUNT(*) FROM promocode_activations) as activations,
+            (SELECT COUNT(*) FROM referrals) as referrals,
+            (SELECT COUNT(*) FROM referral_rewards) as rewards;
+        """
+        
+        # Получаем количество записей до удаления
+        count_cmd = [
+            'psql', '-h', db_host, '-p', db_port, '-U', db_user, '-d', db_name,
+            '-t', '-c', count_query
+        ]
+        result = subprocess.run(count_cmd, capture_output=True, text=True, env=env)
+        
+        counts = {}
+        if result.returncode == 0:
+            values = result.stdout.strip().split('|')
+            counts = {
+                'users': int(values[0].strip()),
+                'subscriptions': int(values[1].strip()),
+                'transactions': int(values[2].strip()),
+                'activations': int(values[3].strip()),
+                'referrals': int(values[4].strip()),
+                'rewards': int(values[5].strip()),
+            }
+        
+        # SQL запрос для удаления пользователей и связанных данных
+        delete_query = """
+        BEGIN;
+        DELETE FROM referral_rewards;
+        DELETE FROM referrals;
+        DELETE FROM promocode_activations;
+        DELETE FROM transactions;
+        DELETE FROM subscriptions;
+        DELETE FROM users;
+        COMMIT;
+        """
+        
+        # Выполняем очистку
+        delete_cmd = [
+            'psql', '-h', db_host, '-p', db_port, '-U', db_user, '-d', db_name,
+            '-c', delete_query
+        ]
+        result = subprocess.run(delete_cmd, capture_output=True, text=True, env=env)
+        
+        if result.returncode != 0:
+            return False, result.stderr, counts
+        
+        return True, None, counts
+    
+    try:
+        success, error, counts = await loop.run_in_executor(None, clear_users_db)
+        
+        if success:
+            # Очищаем кэш Redis
+            await redis_client.flushall()
+            logger.info(f"{log(user)} Users cleared successfully")
+            
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(
+                    i18n_key="ntf-db-clear-users-success",
+                    i18n_kwargs=counts,
+                ),
+            )
+        else:
+            logger.error(f"{log(user)} Failed to clear users: {error}")
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(
+                    i18n_key="ntf-db-clear-users-failed",
+                    i18n_kwargs={"error": error},
+                ),
+            )
+    except Exception as e:
+        logger.exception(f"{log(user)} Error clearing users: {e}")
+        await notification_service.notify_user(
+            user=user,
+            payload=MessagePayload(
+                i18n_key="ntf-db-clear-users-failed",
+                i18n_kwargs={"error": str(e)},
+            ),
+        )
+    
+    from src.bot.states import DashboardDB
+    await manager.switch_to(DashboardDB.MAIN)

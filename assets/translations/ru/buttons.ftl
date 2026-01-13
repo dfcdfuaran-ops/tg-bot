@@ -19,6 +19,8 @@ btn-db-sync-from-bot = 📤 Импорт из Бота в Remnawave
 btn-db-sync-from-panel = 📥 Remnawave Импорт
 btn-db-sync-remnawave-to-bot = 📥 Импорт из Remnawave в Бота
 btn-db-sync-bot-to-remnawave = 📤 Импорт из Бота в Remnawave
+btn-db-clear-all = 🗑 Очистить всё
+btn-db-clear-users = 👥 Очистить пользователей
 
 # Settings
 btn-dashboard-settings = ⚙️ Настройки

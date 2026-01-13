@@ -24,6 +24,10 @@ from .handlers import (
     on_sync_from_panel,
     on_sync_manage,
     sync_getter,
+    on_clear_all,
+    on_clear_users,
+    on_clear_all_confirm,
+    on_clear_users_confirm,
 )
 from src.bot.states import DashboardDB
 db_management = Window(
@@ -39,6 +43,18 @@ db_management = Window(
             text=I18nFormat("btn-db-load"),
             id="load_db",
             on_click=on_load_db,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat("btn-db-clear-all"),
+            id="clear_all",
+            on_click=on_clear_all,
+        ),
+        Button(
+            text=I18nFormat("btn-db-clear-users"),
+            id="clear_users",
+            on_click=on_clear_users,
         ),
     ),
     Row(
@@ -155,4 +171,55 @@ db_sync_progress = Window(
     getter=sync_getter,
 )
 
-dialog = Dialog(db_management, db_load_window, db_sync_window, db_sync_progress)
+# Окно подтверждения полной очистки базы
+clear_all_confirm = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-db-clear-all-confirm"),
+    Row(
+        Button(
+            text=I18nFormat("btn-db-clear-all"),
+            id="confirm_clear_all",
+            on_click=on_clear_all_confirm,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            state=DashboardDB.MAIN,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=DashboardDB.CLEAR_ALL_CONFIRM,
+)
+
+# Окно подтверждения очистки пользователей
+clear_users_confirm = Window(
+    Banner(BannerName.DASHBOARD),
+    I18nFormat("msg-db-clear-users-confirm"),
+    Row(
+        Button(
+            text=I18nFormat("btn-db-clear-users"),
+            id="confirm_clear_users",
+            on_click=on_clear_users_confirm,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-cancel"),
+            id="cancel",
+            state=DashboardDB.MAIN,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=DashboardDB.CLEAR_USERS_CONFIRM,
+)
+
+dialog = Dialog(
+    db_management,
+    db_load_window,
+    db_sync_window,
+    db_sync_progress,
+    clear_all_confirm,
+    clear_users_confirm,
+)
