@@ -442,7 +442,7 @@ show_full_menu() {
     wait_for_update_check
     
     # Формируем опции меню
-    local options=("ℹ️   Просмотр логов" "⚙️   Изменить настройки" "🔄  Обновить" "🔃  Перезагрузить бота" "⬇️   Выключить бота" "⬆️   Включить бота" "🔄  Переустановить" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
+    local options=("ℹ️   Просмотр логов" "📊  Логи в реальном времени" "⚙️   Изменить настройки" "🔄  Обновить" "🔃  Перезагрузить бота" "🔃📊  Перезагрузить с логами" "⬇️   Выключить бота" "⬆️   Включить бота" "🔄  Переустановить" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
     local num_options=${#options[@]}
     
     # Сохраняем текущие настройки терминала
@@ -551,32 +551,40 @@ show_full_menu() {
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    1)  # Изменить настройки
+                    1)  # Логи в реальном времени
+                        manage_view_logs_live
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    2)  # Изменить настройки
                         manage_change_settings
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    2)  # Обновить
+                    3)  # Обновить
                         manage_update_bot
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    3)  # Перезагрузить бота
+                    4)  # Перезагрузить бота
                         manage_restart_bot
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    4)  # Выключить бота
+                    5)  # Перезагрузить с логами
+                        manage_restart_bot_with_logs
+                        ;;
+                    6)  # Выключить бота
                         manage_stop_bot
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    5)  # Включить бота
+                    7)  # Включить бота
                         manage_start_bot
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    6)  # Переустановить
+                    8)  # Переустановить
                         clear
                         echo -e "${BLUE}========================================${NC}"
                         echo -e "${GREEN}       🔄 ПЕРЕУСТАНОВКА TG-SELL-BOT${NC}"
@@ -592,15 +600,15 @@ show_full_menu() {
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    7)  # Очистить данные
+                    9)  # Очистить данные
                         manage_cleanup_database
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    8)  # Удалить бота
+                    10)  # Удалить бота
                         manage_uninstall_bot
                         ;;
-                    9)  # Выход
+                    11)  # Выход
                         clear
                         exit 0
                         ;;
@@ -766,7 +774,7 @@ manage_update_bot() {
     fi
 }
 
-# Функция перезагрузки бота
+# Функция перезагрузки бота с ожиданием логотипа DFC
 manage_restart_bot() {
     clear
     echo -e "${BLUE}========================================${NC}"
@@ -784,11 +792,62 @@ manage_restart_bot() {
     show_spinner "Перезагрузка бота"
     
     echo
-    echo -e "${GREEN}✅ Бот успешно перезагружен${NC}"
+    echo -e "${YELLOW}Ожидание логотипа DFC в логах...${NC}"
+    echo
+    
+    # Ждем появления логотипа DFC в логах (строка с "Digital  Freedom   Core")
+    local max_attempts=60
+    local attempt=0
+    while [ $attempt -lt $max_attempts ]; do
+        if docker compose logs remnashop 2>&1 | grep -q "Digital.*Freedom.*Core"; then
+            # Логотип найден - бот загружен
+            echo -e "${GREEN}✅ Бот успешно перезагружен${NC}"
+            break
+        fi
+        ((attempt++))
+        sleep 1
+    done
+    
+    if [ $attempt -eq $max_attempts ]; then
+        echo -e "${YELLOW}⚠️  Превышено время ожидания (${max_attempts}сек), но бот может быть готов${NC}"
+    fi
+    
     echo
     echo -e "${BLUE}========================================${NC}"
     tput civis 2>/dev/null || true
     echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+    read -p ""
+}
+
+# Функция перезагрузки бота с отображением логов
+manage_restart_bot_with_logs() {
+    clear
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${GREEN}    🔃📊 ПЕРЕЗАГРУЗКА С ЛОГАМИ TG-SELL-BOT${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo
+    echo -e "${YELLOW}Бот будет перезагружен с отображением логов...${NC}"
+    echo -e "${DARKGRAY}(Нажмите Ctrl+C для выхода из логов)${NC}"
+    echo
+    
+    # Восстанавливаем нормальные настройки терминала
+    stty sane 2>/dev/null || true
+    tput cnorm 2>/dev/null || true
+    
+    cd "$PROJECT_DIR" || return
+    
+    # Перезагружаем и одновременно смотрим логи
+    docker compose down >/dev/null 2>&1
+    docker compose up -d >/dev/null 2>&1
+    sleep 2
+    
+    # Выводим логи с автоматическим обновлением
+    docker compose logs -f remnashop
+    
+    # После выхода из логов возвращаемся в меню
+    echo
+    tput civis 2>/dev/null || true
+    echo -e "${DARKGRAY}Нажмите Enter для возврата в меню${NC}"
     read -p ""
 }
 
@@ -849,6 +908,26 @@ manage_view_logs() {
     echo -e "${GREEN}       📋 ПРОСМОТР ЛОГОВ TG-SELL-BOT${NC}"
     echo -e "${BLUE}========================================${NC}"
     echo
+    echo -e "${DARKGRAY}Последние 50 строк логов...${NC}"
+    echo -e "${DARKGRAY}(Нажмите Enter для продолжения)${NC}"
+    echo
+    
+    cd "$PROJECT_DIR" || return
+    docker compose logs remnashop 2>&1 | tail -50
+    
+    echo
+    tput civis 2>/dev/null || true
+    echo -e "${DARKGRAY}Нажмите Enter для возврата в меню${NC}"
+    read -p ""
+}
+
+# Функция просмотра логов в реальном времени
+manage_view_logs_live() {
+    clear
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${GREEN}     📊 ЛОГИ В РЕАЛЬНОМ ВРЕМЕНИ TG-SELL-BOT${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo
     echo -e "${DARKGRAY}Запуск просмотра логов...${NC}"
     echo -e "${DARKGRAY}(Для выхода нажмите Ctrl+C)${NC}"
     echo
@@ -858,11 +937,11 @@ manage_view_logs() {
     tput cnorm 2>/dev/null || true
     
     cd "$PROJECT_DIR" || return
-    docker compose logs -f
+    docker compose logs -f remnashop
     
-    # После выхода из логов показываем сообщение
+    # После выхода возвращаемся в raw mode
+    tput civis 2>/dev/null || true
     echo
-    echo -e "${BLUE}========================================${NC}"
     echo -e "${DARKGRAY}Нажмите Enter для возврата в меню${NC}"
     read -p ""
 }
