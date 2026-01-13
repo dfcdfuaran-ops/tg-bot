@@ -298,6 +298,7 @@ async def invite_preview_getter(
     preview_message = invite_message_template.format(
         name="VPN",
         url=f"https://t.me/bot?start={user.referral_code}",
+        space="\n",
     )
     
     return {
