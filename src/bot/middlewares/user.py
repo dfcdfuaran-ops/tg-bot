@@ -141,14 +141,16 @@ class UserMiddleware(EventTypedMiddleware):
                                     f"updated device_limit to {matching_plan.device_limit}"
                                 )
                             else:
-                                # План не найден, создаём подписку с тегом IMPORT(старый_тег)
+                                # План не найден, создаём подписку с тегом IMPORT_OLDTAG
                                 # и сохраняем параметры пользователя (device_limit, expire_at) из Remnawave
-                                import_tag = f"IMPORT({existing_tag})"
+                                # Используем underscore вместо скобок для совместимости с валидацией Remnawave (pattern: ^[A-Z0-9_]+$)
+                                import_tag_remnawave = f"IMPORT_{existing_tag}"  # Тег для Remnawave API
+                                import_tag_display = f"IMPORT({existing_tag})"  # Тег для отображения в боте
                                 import_name = "Импорт"  # Название для отображения в профиле
                                 
                                 logger.warning(
                                     f"No matching plan found for tag '{existing_tag}' "
-                                    f"for user {user.telegram_id}. Creating subscription with tag '{import_tag}'"
+                                    f"for user {user.telegram_id}. Creating subscription with tag '{import_tag_display}'"
                                 )
                                 
                                 # Используем любой план как шаблон для получения технических параметров
@@ -170,7 +172,7 @@ class UserMiddleware(EventTypedMiddleware):
                                     plan_snapshot = PlanSnapshotDto(
                                         id=template_plan.id,
                                         name=import_name,
-                                        tag=import_tag,
+                                        tag=import_tag_display,  # В боте храним с скобками для читаемости
                                         type=template_plan.type,
                                         traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else template_plan.traffic_limit,
                                         device_limit=user_device_limit,
@@ -187,7 +189,7 @@ class UserMiddleware(EventTypedMiddleware):
                                         traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else template_plan.traffic_limit,
                                         device_limit=user_device_limit,
                                         traffic_limit_strategy=existing_user.traffic_limit_strategy or template_plan.traffic_limit_strategy,
-                                        tag=import_tag,
+                                        tag=import_tag_display,  # В боте храним с скобками
                                         internal_squads=template_plan.internal_squads,
                                         external_squad=template_plan.external_squad,
                                         expire_at=existing_user.expire_at,
@@ -197,11 +199,11 @@ class UserMiddleware(EventTypedMiddleware):
                                     
                                     await subscription_service.create(user, imported_subscription)
                                     
-                                    # Меняем тег в панели на IMPORT(старый_тег), сохраняя device_limit пользователя
+                                    # Меняем тег в панели Remnawave на IMPORT_OLDTAG (с underscore для валидации)
                                     await remnawave_service.remnawave.users.update_user(
                                         UpdateUserRequestDto(
                                             uuid=existing_user.uuid,
-                                            tag=import_tag,
+                                            tag=import_tag_remnawave,  # Используем формат с underscore для API
                                             hwid_device_limit=user_device_limit,
                                         )
                                     )
@@ -212,8 +214,9 @@ class UserMiddleware(EventTypedMiddleware):
                                     data[USER_KEY] = user  # Обновляем объект user в контексте
                                     
                                     logger.info(
-                                        f"Created '{import_tag}' subscription for user {user.telegram_id}, "
-                                        f"preserved device_limit={user_device_limit}, duration={duration_days} days"
+                                        f"Created '{import_tag_display}' subscription for user {user.telegram_id}, "
+                                        f"preserved device_limit={user_device_limit}, duration={duration_days} days, "
+                                        f"Remnawave tag='{import_tag_remnawave}'"
                                     )
                                 else:
                                     logger.error(f"No active plans found to create IMPORT subscription")
