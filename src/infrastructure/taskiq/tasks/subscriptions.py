@@ -5,7 +5,7 @@ from typing import Optional, cast
 from aiogram.utils.formatting import Text
 from dishka.integrations.taskiq import FromDishka, inject
 from loguru import logger
-from remnapy.exceptions import ServerError
+from remnapy.exceptions import ServerError, NotFoundError
 
 from src.bot.keyboards import get_user_keyboard
 from src.core.enums import (
@@ -18,6 +18,7 @@ from src.core.utils.formatters import (
     i18n_format_days,
     i18n_format_device_limit,
     i18n_format_traffic_limit,
+    format_bytes_to_gb,
 )
 from src.core.utils.message_payload import MessagePayload
 from src.core.utils.time import datetime_now
@@ -31,6 +32,7 @@ from src.infrastructure.database.models.dto import (
 from src.infrastructure.taskiq.broker import broker
 from src.services.extra_device import ExtraDeviceService
 from src.services.notification import NotificationService
+from src.services.plan import PlanService
 from src.services.remnawave import RemnawaveService
 from src.services.subscription import SubscriptionService
 from src.services.transaction import TransactionService
@@ -51,10 +53,140 @@ async def trial_subscription_task(
     remnawave_service: FromDishka[RemnawaveService],
     subscription_service: FromDishka[SubscriptionService],
     notification_service: FromDishka[NotificationService],
+    plan_service: FromDishka[PlanService],
 ) -> None:
     logger.info(f"Started trial for user '{user.telegram_id}'")
 
     try:
+        # Проверяем, существует ли пользователь в Remnawave
+        existing_user = None
+        try:
+            result = await remnawave_service.remnawave.users.get_users_by_telegram_id(
+                telegram_id=str(user.telegram_id)
+            )
+            if result:
+                existing_user = result[0]
+                logger.info(
+                    f"Found existing user in Remnawave: uuid={existing_user.uuid}, "
+                    f"tag={existing_user.tag}, status={existing_user.status}"
+                )
+        except NotFoundError:
+            logger.debug(f"No existing user found in Remnawave for telegram_id={user.telegram_id}")
+        except Exception as e:
+            logger.warning(f"Error checking existing user in Remnawave: {e}")
+        
+        # Если пользователь уже существует в Remnawave
+        if existing_user and existing_user.status in [SubscriptionStatus.ACTIVE, "ACTIVE"]:
+            existing_tag = existing_user.tag or "IMPORT"
+            logger.info(f"User has existing active subscription with tag '{existing_tag}'")
+            
+            # Пытаемся найти план по тегу
+            matching_plan = await plan_service.get_by_tag(existing_tag)
+            
+            if matching_plan:
+                # План найден - создаем подписку на основе существующего пользователя
+                logger.info(f"Found matching plan '{matching_plan.name}' for tag '{existing_tag}'")
+                
+                # Создаём snapshot плана
+                plan_snapshot = PlanSnapshotDto(
+                    id=matching_plan.id,
+                    name=matching_plan.name,
+                    tag=matching_plan.tag,
+                    type=matching_plan.type,
+                    traffic_limit=matching_plan.traffic_limit,
+                    device_limit=matching_plan.device_limit,
+                    duration=matching_plan.duration,
+                    traffic_limit_strategy=matching_plan.traffic_limit_strategy,
+                    internal_squads=matching_plan.internal_squads,
+                    external_squad=matching_plan.external_squad,
+                )
+                
+                # Создаём подписку на основе существующего пользователя в Remnawave
+                imported_subscription = SubscriptionDto(
+                    user_remna_id=existing_user.uuid,
+                    status=existing_user.status,
+                    is_trial=False,  # Это не пробная, а импортированная подписка
+                    traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else matching_plan.traffic_limit,
+                    device_limit=existing_user.hwid_device_limit or matching_plan.device_limit,
+                    traffic_limit_strategy=existing_user.traffic_limit_strategy or matching_plan.traffic_limit_strategy,
+                    tag=existing_tag,
+                    internal_squads=matching_plan.internal_squads,
+                    external_squad=matching_plan.external_squad,
+                    expire_at=existing_user.expire_at,
+                    url=existing_user.subscription_url,
+                    plan=plan_snapshot,
+                )
+                
+                await subscription_service.create(user, imported_subscription)
+                logger.info(f"Imported existing subscription for user '{user.telegram_id}' with plan '{matching_plan.name}'")
+                
+                # Уведомляем пользователя
+                await notification_service.notify_user(
+                    user=user,
+                    payload=MessagePayload(
+                        i18n_key="ntf-existing-subscription-found",
+                        i18n_kwargs={
+                            "plan_name": matching_plan.name,
+                            "tag": existing_tag,
+                        },
+                    ),
+                )
+                
+                await redirect_to_successed_trial_task.kiq(user)
+                logger.info(f"Imported subscription task completed for user '{user.telegram_id}'")
+                return
+                
+            else:
+                # План не найден - меняем тег на IMPORT
+                logger.warning(f"No matching plan found for tag '{existing_tag}', changing to IMPORT")
+                
+                try:
+                    from remnapy.models import UpdateUserRequestDto
+                    await remnawave_service.remnawave.users.update_user(
+                        UpdateUserRequestDto(
+                            uuid=existing_user.uuid,
+                            tag="IMPORT",
+                        )
+                    )
+                    logger.info(f"Changed tag from '{existing_tag}' to 'IMPORT' for user '{user.telegram_id}'")
+                except Exception as e:
+                    logger.error(f"Failed to update tag to IMPORT: {e}")
+                
+                # Создаём базовую подписку без плана
+                # Используем данные из существующего пользователя
+                imported_subscription = SubscriptionDto(
+                    user_remna_id=existing_user.uuid,
+                    status=existing_user.status,
+                    is_trial=False,
+                    traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else 0,
+                    device_limit=existing_user.hwid_device_limit or 1,
+                    traffic_limit_strategy=existing_user.traffic_limit_strategy,
+                    tag="IMPORT",
+                    internal_squads=[],
+                    external_squad=None,
+                    expire_at=existing_user.expire_at,
+                    url=existing_user.subscription_url,
+                    plan=None,
+                )
+                
+                await subscription_service.create(user, imported_subscription)
+                
+                # Уведомляем пользователя
+                await notification_service.notify_user(
+                    user=user,
+                    payload=MessagePayload(
+                        i18n_key="ntf-existing-subscription-no-plan",
+                        i18n_kwargs={
+                            "old_tag": existing_tag,
+                        },
+                    ),
+                )
+                
+                await redirect_to_successed_trial_task.kiq(user)
+                logger.info(f"Imported subscription (no plan) task completed for user '{user.telegram_id}'")
+                return
+
+        # Если пользователя нет в Remnawave или подписка неактивна - создаём пробную
         # force=True позволяет обновить существующего пользователя в Remnawave
         # если он уже есть (например, старая подписка через панель)
         created_user = await remnawave_service.create_user(user, plan=plan, force=True)
