@@ -533,6 +533,10 @@ async def on_invite_message_input(
         await message.answer("⚠️ Сообщение не может быть пустым!")
         return
     
+    # Автоматически добавляем {space} в начало, если его там нет
+    if not new_message.startswith("{space}"):
+        new_message = "{space}" + new_message
+    
     # Сохраняем новое сообщение
     settings = await settings_service.get()
     settings.referral.invite_message = new_message
