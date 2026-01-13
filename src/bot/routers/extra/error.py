@@ -8,9 +8,7 @@ from loguru import logger
 
 from src.bot.states import MainMenu
 from src.core.utils.formatters import format_user_log as log
-from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database.models.dto import UserDto
-from src.services.notification import NotificationService
 
 # Registered in main router (src/bot/dispatcher.py)
 
@@ -18,19 +16,26 @@ from src.services.notification import NotificationService
 async def on_lost_context(
     event: ErrorEvent,
     user: UserDto,
-    notification_service: FromDishka[NotificationService],
     bot: FromDishka[Bot],
     bg_manager_factory: FromDishka[BgManagerFactory],
 ) -> None:
-    logger.error(f"{log(user)} Lost context: {event.exception}")
+    """
+    Обработчик устаревших/потерянных контекстов диалога.
     
-    # Отвечаем на callback query, если он есть, чтобы убрать индикатор загрузки
+    Тихо перезапускает диалог без показа предупреждений пользователю,
+    редактируя существующее сообщение если возможно.
+    """
+    # Логируем как debug, так как это нормальное поведение при рестарте бота
+    # или когда пользователь нажимает на старые кнопки
+    logger.debug(f"{log(user)} Dialog context expired: {type(event.exception).__name__}")
+    
+    # Отвечаем на callback query тихо (пустой answer убирает индикатор загрузки)
     callback_query: Optional[CallbackQuery] = event.update.callback_query
     if callback_query:
         try:
-            await callback_query.answer("⚠️ Диалог устарел. Перезапуск...")
-        except Exception as e:
-            logger.warning(f"{log(user)} Failed to answer callback query: {e}")
+            await callback_query.answer()  # Пустой answer - без текста
+        except Exception:
+            pass  # Игнорируем ошибку если callback уже обработан
     
     # Определяем message_id для редактирования
     target_message_id = None
@@ -38,7 +43,6 @@ async def on_lost_context(
         target_message_id = callback_query.message.message_id
     
     # Автоматически перезапускаем диалог в главное меню
-    # ВАЖНО: Всегда используем ShowMode.EDIT если есть message_id для редактирования существующего сообщения
     try:
         bg_manager = bg_manager_factory.bg(
             bot=bot,
@@ -47,35 +51,42 @@ async def on_lost_context(
         )
         
         # Если есть message_id, пытаемся отредактировать существующее сообщение
-        # Иначе отправляем новое
-        show_mode = ShowMode.EDIT if target_message_id else ShowMode.SEND
+        if target_message_id:
+            # Пробуем DELETE_AND_SEND - удалит старое и отправит новое
+            # Это надежнее чем EDIT, так как EDIT может не работать если изменилась структура
+            await bg_manager.start(
+                state=MainMenu.MAIN,
+                mode=StartMode.RESET_STACK,
+                show_mode=ShowMode.DELETE_AND_SEND,
+            )
+        else:
+            # Нет сообщения для редактирования - просто отправляем новое
+            await bg_manager.start(
+                state=MainMenu.MAIN,
+                mode=StartMode.RESET_STACK,
+                show_mode=ShowMode.SEND,
+            )
         
-        await bg_manager.start(
-            state=MainMenu.MAIN,
-            mode=StartMode.RESET_STACK,
-            show_mode=show_mode,
-        )
-        logger.info(f"{log(user)} Dialog restarted after lost context (show_mode={show_mode})")
+        logger.debug(f"{log(user)} Dialog silently restarted")
     except Exception as e:
-        logger.error(f"{log(user)} Failed to restart dialog after lost context: {e}")
+        logger.warning(f"{log(user)} Failed to restart dialog: {e}")
         
-        # Fallback: если редактирование не сработало и есть message_id, пробуем удалить старое сообщение и отправить новое
+        # Fallback: если перезапуск не сработал, пробуем удалить старое сообщение
         if target_message_id:
             try:
                 await bot.delete_message(
                     chat_id=user.telegram_id,
                     message_id=target_message_id
                 )
-                logger.debug(f"{log(user)} Deleted old message before fallback")
             except Exception:
                 pass
         
-        # Fallback: отправляем простое текстовое сообщение с просьбой нажать /start
+        # Последний fallback: простое сообщение
         try:
             await bot.send_message(
                 chat_id=user.telegram_id,
-                text="⚠️ Произошла ошибка. Пожалуйста, нажмите /start для перезапуска."
+                text="Нажмите /start для продолжения."
             )
-        except Exception as fallback_error:
-            logger.error(f"{log(user)} Fallback failed: {fallback_error}")
+        except Exception:
+            pass  # Если и это не сработало, пользователь сам нажмет /start
 
