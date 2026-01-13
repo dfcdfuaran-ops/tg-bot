@@ -411,6 +411,7 @@ class UserService(BaseService):
         list_cache_keys_to_invalidate = [
             build_key("cache", "get_blocked_users"),
             build_key("cache", "count"),
+            build_key("cache", "get_all"),
         ]
 
         for role in UserRole:
