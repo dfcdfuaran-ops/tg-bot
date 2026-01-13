@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import Any, Awaitable, Callable, Optional
 
 from aiogram.types import TelegramObject
@@ -82,6 +83,14 @@ class UserMiddleware(EventTypedMiddleware):
                         if existing_tag:
                             matching_plan = await plan_service.get_by_tag(existing_tag)
                             if matching_plan:
+                                # Вычисляем duration из expire_at
+                                if existing_user.expire_at:
+                                    now = datetime.now(timezone.utc)
+                                    time_left = existing_user.expire_at - now
+                                    duration_days = max(1, time_left.days)  # Минимум 1 день
+                                else:
+                                    duration_days = -1  # Безлимит если нет expire_at
+                                
                                 # План найден, импортируем подписку
                                 plan_snapshot = PlanSnapshotDto(
                                     id=matching_plan.id,
@@ -90,7 +99,7 @@ class UserMiddleware(EventTypedMiddleware):
                                     type=matching_plan.type,
                                     traffic_limit=matching_plan.traffic_limit,
                                     device_limit=matching_plan.device_limit,
-                                    duration=matching_plan.duration,
+                                    duration=duration_days,
                                     traffic_limit_strategy=matching_plan.traffic_limit_strategy,
                                     internal_squads=matching_plan.internal_squads,
                                     external_squad=matching_plan.external_squad,
@@ -127,6 +136,15 @@ class UserMiddleware(EventTypedMiddleware):
                                 all_plans = await plan_service.get_all_active()
                                 if all_plans:
                                     template_plan = all_plans[0]
+                                    
+                                    # Вычисляем duration из expire_at
+                                    if existing_user.expire_at:
+                                        now = datetime.now(timezone.utc)
+                                        time_left = existing_user.expire_at - now
+                                        duration_days = max(1, time_left.days)  # Минимум 1 день
+                                    else:
+                                        duration_days = -1  # Безлимит если нет expire_at
+                                    
                                     plan_snapshot = PlanSnapshotDto(
                                         id=template_plan.id,
                                         name="Imported",
@@ -134,7 +152,7 @@ class UserMiddleware(EventTypedMiddleware):
                                         type=template_plan.type,
                                         traffic_limit=template_plan.traffic_limit,
                                         device_limit=template_plan.device_limit,
-                                        duration=template_plan.duration,
+                                        duration=duration_days,
                                         traffic_limit_strategy=template_plan.traffic_limit_strategy,
                                         internal_squads=template_plan.internal_squads,
                                         external_squad=template_plan.external_squad,
