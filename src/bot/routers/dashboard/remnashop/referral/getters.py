@@ -277,9 +277,11 @@ async def invite_message_getter(
     settings = await settings_service.get_referral_settings()
     
     current_message = settings.invite_message
+    # Скрываем {space} из отображения (но он остается в сохраняемом сообщении)
+    display_message = current_message.lstrip() if current_message.startswith("{space}") else current_message
     
     return {
-        "current_message": current_message,
+        "current_message": display_message,
     }
 
 
@@ -300,8 +302,10 @@ async def invite_preview_getter(
         url=f"https://t.me/bot?start={user.referral_code}",
         space="\n",
     )
+    # Скрываем {space} из отображения
+    display_message = invite_message_template.lstrip() if invite_message_template.startswith("{space}") else invite_message_template
     
     return {
-        "current_message": settings.invite_message,
+        "current_message": display_message,
         "preview_message": preview_message,
     }

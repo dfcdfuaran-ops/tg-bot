@@ -1439,7 +1439,6 @@ msg-referral-invite-edit =
 
     ℹ️ Доступные переменные:
     <blockquote>
-    • <code>{"{name}"}</code> - название вашего сервиса
     • <code>{"{url}"}</code> - реферальная ссылка
     • <code>{"{space}"}</code> - пустая строка (перевод строки)
     </blockquote>
