@@ -75,6 +75,8 @@ async def user_getter(
 
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        device_limit_number = subscription.plan.device_limit
+        device_limit_bonus = max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0
         data.update(
             {
                 "status": subscription.get_status,
@@ -82,7 +84,8 @@ async def user_getter(
                 "plan_name": subscription.plan.name,
                 "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
                 "device_limit": i18n_format_device_limit(subscription.device_limit),
-                "device_limit_number": subscription.plan.device_limit,
+                "device_limit_number": device_limit_number,
+                "device_limit_bonus": device_limit_bonus,
                 "extra_devices": extra_devices,
                 "expire_time": i18n_format_expire_time(subscription.expire_at),
             }
