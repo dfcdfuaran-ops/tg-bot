@@ -222,10 +222,13 @@ get_version_from_file() {
     fi
 }
 
-# Функция для получения локальной версии (из .version или src/__version__.py)
+# Функция для получения локальной версии (из .remnashop/.version или src/__version__.py)
 get_local_version() {
-    # Сначала пробуем .version файл
-    if [ -f "$PROJECT_DIR/.version" ]; then
+    # Сначала пробуем .remnashop/.version файл
+    if [ -f "$PROJECT_DIR/.remnashop/.version" ]; then
+        cat "$PROJECT_DIR/.remnashop/.version" 2>/dev/null | tr -d '\n' || echo ""
+    # Fallback на старый путь .version
+    elif [ -f "$PROJECT_DIR/.version" ]; then
         cat "$PROJECT_DIR/.version" 2>/dev/null | tr -d '\n' || echo ""
     # Fallback на src/__version__.py
     elif [ -f "$PROJECT_DIR/src/__version__.py" ]; then
@@ -719,11 +722,16 @@ manage_update_bot() {
                     fi
                 done
                 
-                # Сохраняем версию в .version файл для корректной проверки версий
+                # Сохраняем версию в .remnashop/.version файл для корректной проверки версий
+                mkdir -p "$PROJECT_DIR/.remnashop" 2>/dev/null || true
                 local new_version=$(grep -oP '__version__ = "\K[^"]+' "src/__version__.py" 2>/dev/null || echo "")
                 if [ -n "$new_version" ]; then
-                    echo "$new_version" > "$PROJECT_DIR/.version"
+                    echo "$new_version" > "$PROJECT_DIR/.remnashop/.version"
                 fi
+                
+                # Копируем install.sh в скрытую папку
+                cp -f "install.sh" "$PROJECT_DIR/.remnashop/install.sh" 2>/dev/null || true
+                chmod +x "$PROJECT_DIR/.remnashop/install.sh" 2>/dev/null || true
             } &
             show_spinner "Обновление конфигурации"
             
@@ -1912,7 +1920,13 @@ INSTALL_STARTED=false
 (
     sudo tee /usr/local/bin/tg-sell-bot > /dev/null << 'EOF'
 #!/bin/bash
-exec /opt/tg-bot/install.sh
+# Запускаем install.sh из скрытой папки .remnashop
+if [ -f "/opt/tg-sell-bot/.remnashop/install.sh" ]; then
+    exec /opt/tg-sell-bot/.remnashop/install.sh
+else
+    # Fallback на старый путь для обратной совместимости
+    exec /opt/tg-bot/install.sh
+fi
 EOF
     sudo chmod +x /usr/local/bin/tg-sell-bot
 ) >/dev/null 2>&1

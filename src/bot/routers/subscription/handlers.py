@@ -180,7 +180,7 @@ async def on_purchase_type_select(
         logger.warning(f"{log(user)} No available subscription plans")
         await notification_service.notify_user(
             user=user,
-            payload=MessagePayload(i18n_key="ntf-subscription-plans-not-available"),
+            payload=MessagePayload(i18n_key="ntf-subscription-plans-not-available", auto_delete_after=5),
         )
         return
 
@@ -257,7 +257,7 @@ async def on_subscription_plans(  # noqa: C901
         logger.warning(f"{log(user)} No available subscription plans")
         await notification_service.notify_user(
             user=user,
-            payload=MessagePayload(i18n_key="ntf-subscription-plans-not-available"),
+            payload=MessagePayload(i18n_key="ntf-subscription-plans-not-available", auto_delete_after=5),
         )
         return
 

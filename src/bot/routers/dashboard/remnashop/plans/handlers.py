@@ -39,7 +39,7 @@ async def on_plan_create(
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     logger.info(f"{log(user)} Started creating new plan")
     
-    # Очищаем все служебные флаги
+    # Очищаем все служебные флаги и данные плана
     dialog_manager.dialog_data.pop("is_edit", None)
     dialog_manager.dialog_data.pop("original_plan", None)
     dialog_manager.dialog_data.pop("pending_plan_name", None)
@@ -47,6 +47,8 @@ async def on_plan_create(
     dialog_manager.dialog_data.pop("pending_plan_type", None)
     dialog_manager.dialog_data.pop("pending_internal_squads", None)
     dialog_manager.dialog_data.pop("pending_external_squad", None)
+    # Очищаем сохранённый план (ключ от DialogDataAdapter)
+    dialog_manager.dialog_data.pop("plandto", None)
     
     await dialog_manager.switch_to(state=RemnashopPlans.CONFIGURATOR)
 
