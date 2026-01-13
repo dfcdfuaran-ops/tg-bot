@@ -28,12 +28,12 @@ new_version="$major.$minor.$new_patch"
 echo "__version__ = \"$new_version\"" > "$VERSION_FILE"
 echo ""  >> "$VERSION_FILE"
 
-# Добавляем изменённый файл в коммит
+# Добавляем изменённый файл в staging
 git add "$VERSION_FILE"
 
-# Коммитим изменение версии
-git commit -m "chore: bump version to $new_version" --no-verify
+# Делаем amend последнего коммита с новой версией (без редактирования сообщения)
+git commit --amend --no-edit --no-verify
 
-echo "✅ Версия обновлена: $current_version → $new_version"
+echo "✅ Версия обновлена: $current_version → $new_version (добавлена в последний коммит)"
 
 exit 0
