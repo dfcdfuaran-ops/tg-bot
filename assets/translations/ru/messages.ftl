@@ -1433,9 +1433,7 @@ msg-referral-invite-edit =
     <b>✉️ Настройка сообщения приглашения</b>
 
     ✉️ Текущее сообщение:
-    <blockquote>
-    { $current_message }
-    </blockquote>
+    <pre>{ $current_message }</pre>
 
     ℹ️ Доступные переменные:
     <blockquote>
