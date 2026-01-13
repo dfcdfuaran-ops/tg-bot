@@ -1221,6 +1221,12 @@ manage_uninstall_bot() {
     
     echo
     
+    # Удаляем блок из Caddyfile
+    {
+        remove_from_caddy
+    } &
+    show_spinner "Удаление из Caddyfile"
+    
     # Остановка контейнеров и удаление
     {
         cd "$PROJECT_DIR" || return
@@ -1420,6 +1426,36 @@ generate_password() {
 
 generate_key() {
     openssl rand -base64 32 | tr -d '\n'
+}
+
+remove_from_caddy() {
+    local caddy_dir="/opt/remnawave/caddy"
+    local caddy_file="${caddy_dir}/Caddyfile"
+
+    # Если Caddy нет — выходим
+    [ -d "$caddy_dir" ] || return 0
+    [ -f "$caddy_file" ] || return 0
+
+    # Получаем домен из .env
+    local app_domain=""
+    if [ -f "$ENV_FILE" ]; then
+        app_domain=$(grep "^APP_DOMAIN=" "$ENV_FILE" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+    fi
+
+    # Если домен не найден, выходим
+    [ -z "$app_domain" ] && return 0
+
+    # Удаляем блок с доменом из Caddyfile используя sed
+    # Ищем блок начинающийся с https://$app_domain { и заканчивающийся }
+    sed -i "/^https:\/\/${app_domain}\s*{/,/^}/d" "$caddy_file" 2>/dev/null || true
+
+    # Также удаляем пустые строки вокруг удаленного блока
+    sed -i '/^$/N;/^\n$/d' "$caddy_file" 2>/dev/null || true
+
+    # Перезапускаем Caddy
+    cd "$caddy_dir"
+    docker compose down >/dev/null 2>&1
+    docker compose up -d >/dev/null 2>&1
 }
 
 configure_caddy() {
