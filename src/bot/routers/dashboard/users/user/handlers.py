@@ -1325,7 +1325,19 @@ async def on_subscription_duration_select(
     await user_service.clear_user_cache(target_telegram_id)
 
     logger.info(f"{log(user)} Set plan '{selected_plan_id}' for user '{target_telegram_id}'")
-    await redirect_to_main_menu_task.kiq(target_user.telegram_id)
+    
+    # Прямой редирект вместо taskiq для мгновенного обновления
+    from src.bot.states import MainMenu
+    try:
+        await dialog_manager.bg(user_id=target_telegram_id, chat_id=target_telegram_id).start(
+            state=MainMenu.MAIN,
+            mode=StartMode.RESET_STACK,
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+    except Exception as e:
+        logger.warning(f"Failed direct redirect for user {target_telegram_id}: {e}")
+        await redirect_to_main_menu_task.kiq(target_user.telegram_id)
+    
     await dialog_manager.switch_to(state=DashboardUser.MAIN)
 
 
@@ -1431,5 +1443,17 @@ async def on_subscription_duration_keep_current(
     await user_service.clear_user_cache(target_telegram_id)
 
     logger.info(f"{log(user)} Changed plan to '{selected_plan_id}' for user '{target_telegram_id}' keeping exact duration")
-    await redirect_to_main_menu_task.kiq(target_user.telegram_id)
+    
+    # Прямой редирект вместо taskiq для мгновенного обновления
+    from src.bot.states import MainMenu
+    try:
+        await dialog_manager.bg(user_id=target_telegram_id, chat_id=target_telegram_id).start(
+            state=MainMenu.MAIN,
+            mode=StartMode.RESET_STACK,
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+    except Exception as e:
+        logger.warning(f"Failed direct redirect for user {target_telegram_id}: {e}")
+        await redirect_to_main_menu_task.kiq(target_user.telegram_id)
+    
     await dialog_manager.switch_to(state=DashboardUser.MAIN)
