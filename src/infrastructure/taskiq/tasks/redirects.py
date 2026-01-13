@@ -12,6 +12,7 @@ from src.bot.states import MainMenu, Subscription
 from src.core.enums import PurchaseType
 from src.infrastructure.database.models.dto import UserDto
 from src.infrastructure.taskiq.broker import broker
+from src.services.user import UserService
 
 
 @broker.task
@@ -45,10 +46,38 @@ async def redirect_to_successed_trial_task(
     user: UserDto,
     bot: FromDishka[Bot],
     bg_manager_factory: FromDishka[BgManagerFactory],
+    user_service: FromDishka[UserService],
 ) -> None:
-    # Добавляем небольшую задержку для гарантии сохранения данных в БД
     import asyncio
-    await asyncio.sleep(1.5)
+    
+    # Умная полирующая задержка - проверяем наличие подписки в БД
+    # вместо просто ждали фиксированное время
+    max_retries = 10
+    retry_interval = 0.2  # 200ms между попытками
+    subscription_found = False
+    
+    for attempt in range(max_retries):
+        try:
+            # Пытаемся получить свежего пользователя с подпиской
+            fresh_user = await user_service.get(user.telegram_id)
+            if fresh_user and fresh_user.current_subscription:
+                logger.debug(
+                    f"Subscription found for user {user.telegram_id} on attempt {attempt + 1}"
+                )
+                subscription_found = True
+                break
+        except Exception as e:
+            logger.debug(f"Attempt {attempt + 1} to fetch subscription failed: {e}")
+        
+        # Ждём перед следующей попыткой
+        if attempt < max_retries - 1:
+            await asyncio.sleep(retry_interval)
+    
+    if not subscription_found:
+        logger.warning(
+            f"Subscription not found for user {user.telegram_id} after {max_retries} retries. "
+            f"Proceeding anyway..."
+        )
     
     bg_manager = bg_manager_factory.bg(
         bot=bot,
