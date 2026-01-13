@@ -370,6 +370,9 @@ async def on_get_trial(
             )
         
         # ===== МГНОВЕННЫЙ ПЕРЕХОД (вместо taskiq redirect) =====
+        # Очищаем кеш пользователя чтобы getter_connect увидел новую подписку
+        await user_service.clear_user_cache(fresh_user.telegram_id)
+        
         await dialog_manager.start(
             state=Subscription.TRIAL,
             mode=StartMode.RESET_STACK,

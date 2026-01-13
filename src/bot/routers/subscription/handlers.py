@@ -16,7 +16,7 @@ from loguru import logger
 from src.bot.keyboards import get_user_keyboard
 from src.bot.states import Subscription, MainMenu
 from src.core.constants import PURCHASE_PREFIX, USER_KEY
-from src.core.enums import Currency, PaymentGatewayType, PurchaseType, ReferralLevel, TransactionStatus
+from src.core.enums import Currency, PaymentGatewayType, PurchaseType, ReferralLevel, ReferralRewardType, TransactionStatus
 from src.core.utils.adapter import DialogDataAdapter
 from src.core.utils.formatters import format_user_log as log
 from src.core.utils.message_payload import MessagePayload
@@ -516,7 +516,15 @@ async def on_payment_method_select(
         price = pricing_service.calculate(user, total_price, currency, global_discount, context="subscription")
         
         # Check if user still has enough balance
-        if user.balance < price.final_amount:
+        # В режиме COMBINED учитываем и бонусный баланс
+        is_balance_combined = await settings_service.is_balance_combined()
+        referral_balance = await referral_service.get_pending_rewards_amount(
+            telegram_id=user.telegram_id,
+            reward_type=ReferralRewardType.MONEY,
+        )
+        available_balance = user.balance + referral_balance if is_balance_combined else user.balance
+        
+        if available_balance < price.final_amount:
             await notification_service.notify_user(
                 user=user,
                 payload=MessagePayload(i18n_key="ntf-subscription-insufficient-balance"),
@@ -648,7 +656,16 @@ async def on_confirm_balance_payment(
     
     # Re-check balance (user might have spent it elsewhere)
     fresh_user = await user_service.get(user.telegram_id)
-    if not fresh_user or fresh_user.balance < price.final_amount:
+    
+    # В режиме COMBINED учитываем и бонусный баланс
+    is_balance_combined = await settings_service.is_balance_combined()
+    referral_balance = await referral_service.get_pending_rewards_amount(
+        telegram_id=user.telegram_id,
+        reward_type=ReferralRewardType.MONEY,
+    )
+    available_balance = fresh_user.balance + referral_balance if is_balance_combined else fresh_user.balance
+    
+    if not fresh_user or available_balance < price.final_amount:
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-subscription-insufficient-balance"),
@@ -666,8 +683,21 @@ async def on_confirm_balance_payment(
             purchase_type=purchase_type,
         )
         
-        # Deduct from balance
-        await user_service.subtract_from_balance(fresh_user, price.final_amount)
+        # Deduct from balance (with COMBINED mode support)
+        from_main, from_bonus = await user_service.subtract_from_combined_balance(
+            user=fresh_user,
+            amount=int(price.final_amount),
+            referral_balance=referral_balance,
+            is_combined=is_balance_combined,
+        )
+        
+        # Если списали с бонусного, отмечаем награды как использованные
+        if from_bonus > 0:
+            await referral_service.withdraw_pending_rewards(
+                telegram_id=fresh_user.telegram_id,
+                reward_type=ReferralRewardType.MONEY,
+                amount=from_bonus,
+            )
         
         # Process payment as succeeded
         await payment_gateway_service.handle_payment_succeeded(result.id)
@@ -1350,15 +1380,37 @@ async def on_add_device_confirm(
     if selected_payment_method == PaymentGatewayType.BALANCE:
         # Проверяем баланс
         fresh_user = await user_service.get(user.telegram_id)
-        if not fresh_user or fresh_user.balance < total_price:
+        
+        # В режиме COMBINED учитываем и бонусный баланс
+        is_balance_combined = await settings_service.is_balance_combined()
+        referral_balance = await referral_service.get_pending_rewards_amount(
+            telegram_id=user.telegram_id,
+            reward_type=ReferralRewardType.MONEY,
+        )
+        available_balance = fresh_user.balance + referral_balance if is_balance_combined else fresh_user.balance
+        
+        if not fresh_user or available_balance < total_price:
             await notification_service.notify_user(
                 user=user,
                 payload=MessagePayload(i18n_key="ntf-subscription-insufficient-balance"),
             )
             return
         
-        # Списываем с баланса
-        await user_service.subtract_from_balance(fresh_user, total_price)
+        # Списываем с баланса (with COMBINED mode support)
+        from_main, from_bonus = await user_service.subtract_from_combined_balance(
+            user=fresh_user,
+            amount=total_price,
+            referral_balance=referral_balance,
+            is_combined=is_balance_combined,
+        )
+        
+        # Если списали с бонусного, отмечаем награды как использованные
+        if from_bonus > 0:
+            await referral_service.withdraw_pending_rewards(
+                telegram_id=fresh_user.telegram_id,
+                reward_type=ReferralRewardType.MONEY,
+                amount=from_bonus,
+            )
         
         # Увеличиваем лимит устройств
         subscription = fresh_user.current_subscription
