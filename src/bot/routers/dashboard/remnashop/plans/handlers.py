@@ -39,10 +39,6 @@ async def on_plan_create(
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     logger.info(f"{log(user)} Started creating new plan")
     
-    # Очищаем все данные предыдущего плана
-    adapter = DialogDataAdapter(dialog_manager)
-    adapter.clear()
-    
     # Очищаем все служебные флаги
     dialog_manager.dialog_data.pop("is_edit", None)
     dialog_manager.dialog_data.pop("original_plan", None)
