@@ -5,13 +5,19 @@ from aiogram.types import User as AiogramUser
 from aiogram_dialog.api.internal import FakeUser
 from dishka import AsyncContainer
 from loguru import logger
+from remnapy.models.users import UpdateUserRequestDto
 
 from src.bot.keyboards import get_user_keyboard
 from src.core.config import AppConfig
 from src.core.constants import CONTAINER_KEY, IS_SUPER_DEV_KEY, USER_KEY
 from src.core.enums import MiddlewareEventType, SystemNotificationType
+from src.core.utils.formatters import format_bytes_to_gb
 from src.core.utils.message_payload import MessagePayload
-from src.infrastructure.database.models.dto import UserDto
+from src.infrastructure.database.models.dto import (
+    PlanSnapshotDto,
+    SubscriptionDto,
+    UserDto,
+)
 from src.services.notification import NotificationService
 from src.services.plan import PlanService
 from src.services.referral import ReferralService
@@ -66,31 +72,64 @@ class UserMiddleware(EventTypedMiddleware):
                 )
                 if existing_users:
                     existing_user = existing_users[0]
+                    existing_tag = existing_user.tag
+                    logger.debug(
+                        f"Found existing Remnawave user {user.telegram_id} "
+                        f"with tag='{existing_tag}', status='{existing_user.status}'"
+                    )
                     if existing_user.status in ["ACTIVE", "active"]:
                         # Пытаемся найти план по тегу
-                        existing_tag = existing_user.subscription_tag
-                        try:
+                        if existing_tag:
                             matching_plan = await plan_service.get_by_tag(existing_tag)
-                            # План найден, импортируем подписку
-                            await subscription_service.create_imported(
-                                user_id=user.telegram_id,
-                                plan_id=matching_plan.id,
-                                remna_subscription_tag=existing_tag,
-                            )
-                            logger.info(
-                                f"Imported existing subscription for user {user.telegram_id} "
-                                f"with tag '{existing_tag}' and plan '{matching_plan.name}'"
-                            )
-                        except Exception as e:
-                            # План не найден, меняем тег на IMPORT
-                            logger.warning(
-                                f"No matching plan found for tag '{existing_tag}' "
-                                f"for user {user.telegram_id}, changing tag to IMPORT"
-                            )
-                            await remnawave_service.remnawave.users.update_user(
-                                telegram_id=str(user.telegram_id),
-                                tag="IMPORT",
-                            )
+                            if matching_plan:
+                                # План найден, импортируем подписку
+                                plan_snapshot = PlanSnapshotDto(
+                                    id=matching_plan.id,
+                                    name=matching_plan.name,
+                                    tag=matching_plan.tag,
+                                    type=matching_plan.type,
+                                    internal_squads=matching_plan.internal_squads,
+                                    external_squad=matching_plan.external_squad,
+                                )
+                                
+                                imported_subscription = SubscriptionDto(
+                                    user_remna_id=existing_user.uuid,
+                                    status=existing_user.status,
+                                    is_trial=False,
+                                    traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else matching_plan.traffic_limit,
+                                    device_limit=existing_user.hwid_device_limit or matching_plan.device_limit,
+                                    traffic_limit_strategy=existing_user.traffic_limit_strategy or matching_plan.traffic_limit_strategy,
+                                    tag=existing_tag,
+                                    internal_squads=matching_plan.internal_squads,
+                                    external_squad=matching_plan.external_squad,
+                                    expire_at=existing_user.expire_at,
+                                    url=existing_user.subscription_url,
+                                    plan=plan_snapshot,
+                                )
+                                
+                                await subscription_service.create(user, imported_subscription)
+                                logger.info(
+                                    f"Imported existing subscription for user {user.telegram_id} "
+                                    f"with tag '{existing_tag}' and plan '{matching_plan.name}'"
+                                )
+                            else:
+                                # План не найден, меняем тег на IMPORT
+                                logger.warning(
+                                    f"No matching plan found for tag '{existing_tag}' "
+                                    f"for user {user.telegram_id}. Changing tag to IMPORT"
+                                )
+                                await remnawave_service.remnawave.users.update_user(
+                                    UpdateUserRequestDto(
+                                        uuid=existing_user.uuid,
+                                        tag="IMPORT",
+                                    )
+                                )
+                        else:
+                            logger.debug(f"User {user.telegram_id} has no tag in Remnawave")
+                    else:
+                        logger.debug(f"User {user.telegram_id} is not active in Remnawave (status={existing_user.status})")
+                else:
+                    logger.debug(f"User {user.telegram_id} not found in Remnawave")
             except Exception as e:
                 logger.error(f"Error checking existing Remnawave subscription: {e}")
 
