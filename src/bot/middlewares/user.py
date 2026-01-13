@@ -62,7 +62,7 @@ class UserMiddleware(EventTypedMiddleware):
             # Проверяем существующую подписку в Remnawave
             try:
                 existing_users = await remnawave_service.remnawave.users.get_users_by_telegram_id(
-                    telegram_id=user.telegram_id
+                    telegram_id=str(user.telegram_id)
                 )
                 if existing_users:
                     existing_user = existing_users[0]
@@ -88,7 +88,7 @@ class UserMiddleware(EventTypedMiddleware):
                                 f"for user {user.telegram_id}, changing tag to IMPORT"
                             )
                             await remnawave_service.remnawave.users.update_user(
-                                telegram_id=user.telegram_id,
+                                telegram_id=str(user.telegram_id),
                                 tag="IMPORT",
                             )
             except Exception as e:
