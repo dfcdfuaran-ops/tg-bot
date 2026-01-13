@@ -229,12 +229,19 @@ async def subscription_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        
+        # Вычисляем бонус устройств (разница между реальным лимитом из Remnawave и планом)
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        
         result.update({
             "has_subscription": "true",
             "current_plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
             "device_limit": i18n_format_device_limit(subscription.device_limit),
             "device_limit_number": subscription.plan.device_limit,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
         })
@@ -245,6 +252,7 @@ async def subscription_getter(
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,
+            "device_limit_bonus": 0,
             "extra_devices": 0,
             "expire_time": "",
         })
