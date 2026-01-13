@@ -2403,6 +2403,10 @@ async def extra_devices_list_getter(
     extra_devices = subscription.extra_devices or 0
     device_limit_number = subscription.plan.device_limit if subscription.plan else 0
     
+    # Режим баланса
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     return {
         # Список покупок
         "purchases": formatted_purchases,
@@ -2420,6 +2424,7 @@ async def extra_devices_list_getter(
         "referral_balance": referral_balance,
         "balance": user.balance,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
         "is_trial": 1 if subscription.is_trial else 0,
         "plan_name": subscription.plan.name if subscription.plan else "Unknown",

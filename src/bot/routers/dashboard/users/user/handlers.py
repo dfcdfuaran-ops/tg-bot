@@ -1320,6 +1320,9 @@ async def on_subscription_duration_select(
         plan=plan_snapshot,
     )
     await subscription_service.create(target_user, new_subscription)
+    
+    # Очищаем кеш пользователя чтобы он увидел актуальные данные
+    await user_service.clear_user_cache(target_telegram_id)
 
     logger.info(f"{log(user)} Set plan '{selected_plan_id}' for user '{target_telegram_id}'")
     await redirect_to_main_menu_task.kiq(target_user.telegram_id)
@@ -1423,6 +1426,9 @@ async def on_subscription_duration_keep_current(
         plan=plan_snapshot,
     )
     await subscription_service.create(target_user, new_subscription)
+    
+    # Очищаем кеш пользователя чтобы он увидел актуальные данные
+    await user_service.clear_user_cache(target_telegram_id)
 
     logger.info(f"{log(user)} Changed plan to '{selected_plan_id}' for user '{target_telegram_id}' keeping exact duration")
     await redirect_to_main_menu_task.kiq(target_user.telegram_id)

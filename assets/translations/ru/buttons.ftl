@@ -1503,6 +1503,6 @@ btn-promocode-type-choice = { $selected ->
 btn-plan-access-choice = { $selected -> 
     [1] 🔘 { $plan_name }
     *[0] ⚪ { $plan_name }
-    }}
+    }
 
 btn-pay = 💳 Оплатить
