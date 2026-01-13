@@ -88,6 +88,10 @@ class UserMiddleware(EventTypedMiddleware):
                                     name=matching_plan.name,
                                     tag=matching_plan.tag,
                                     type=matching_plan.type,
+                                    traffic_limit=matching_plan.traffic_limit,
+                                    device_limit=matching_plan.device_limit,
+                                    duration=matching_plan.duration,
+                                    traffic_limit_strategy=matching_plan.traffic_limit_strategy,
                                     internal_squads=matching_plan.internal_squads,
                                     external_squad=matching_plan.external_squad,
                                 )
@@ -99,7 +103,7 @@ class UserMiddleware(EventTypedMiddleware):
                                     traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else matching_plan.traffic_limit,
                                     device_limit=existing_user.hwid_device_limit or matching_plan.device_limit,
                                     traffic_limit_strategy=existing_user.traffic_limit_strategy or matching_plan.traffic_limit_strategy,
-                                    tag=existing_tag,
+                                    tag=matching_plan.tag,
                                     internal_squads=matching_plan.internal_squads,
                                     external_squad=matching_plan.external_squad,
                                     expire_at=existing_user.expire_at,
@@ -110,20 +114,62 @@ class UserMiddleware(EventTypedMiddleware):
                                 await subscription_service.create(user, imported_subscription)
                                 logger.info(
                                     f"Imported existing subscription for user {user.telegram_id} "
-                                    f"with tag '{existing_tag}' and plan '{matching_plan.name}'"
+                                    f"with tag '{matching_plan.tag}' and plan '{matching_plan.name}'"
                                 )
                             else:
-                                # План не найден, меняем тег на IMPORT
+                                # План не найден, создаём подписку с тегом IMPORT
                                 logger.warning(
                                     f"No matching plan found for tag '{existing_tag}' "
-                                    f"for user {user.telegram_id}. Changing tag to IMPORT"
+                                    f"for user {user.telegram_id}. Creating subscription with IMPORT tag"
                                 )
-                                await remnawave_service.remnawave.users.update_user(
-                                    UpdateUserRequestDto(
-                                        uuid=existing_user.uuid,
+                                
+                                # Используем любой активный план как шаблон (берём первый доступный)
+                                all_plans = await plan_service.get_all_active()
+                                if all_plans:
+                                    template_plan = all_plans[0]
+                                    plan_snapshot = PlanSnapshotDto(
+                                        id=template_plan.id,
+                                        name="Imported",
                                         tag="IMPORT",
+                                        type=template_plan.type,
+                                        traffic_limit=template_plan.traffic_limit,
+                                        device_limit=template_plan.device_limit,
+                                        duration=template_plan.duration,
+                                        traffic_limit_strategy=template_plan.traffic_limit_strategy,
+                                        internal_squads=template_plan.internal_squads,
+                                        external_squad=template_plan.external_squad,
                                     )
-                                )
+                                    
+                                    imported_subscription = SubscriptionDto(
+                                        user_remna_id=existing_user.uuid,
+                                        status=existing_user.status,
+                                        is_trial=False,
+                                        traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else template_plan.traffic_limit,
+                                        device_limit=existing_user.hwid_device_limit or template_plan.device_limit,
+                                        traffic_limit_strategy=existing_user.traffic_limit_strategy or template_plan.traffic_limit_strategy,
+                                        tag="IMPORT",
+                                        internal_squads=template_plan.internal_squads,
+                                        external_squad=template_plan.external_squad,
+                                        expire_at=existing_user.expire_at,
+                                        url=existing_user.subscription_url,
+                                        plan=plan_snapshot,
+                                    )
+                                    
+                                    await subscription_service.create(user, imported_subscription)
+                                    
+                                    # Меняем тег в панели на IMPORT
+                                    await remnawave_service.remnawave.users.update_user(
+                                        UpdateUserRequestDto(
+                                            uuid=existing_user.uuid,
+                                            tag="IMPORT",
+                                        )
+                                    )
+                                    logger.info(
+                                        f"Created IMPORT subscription for user {user.telegram_id} "
+                                        f"and changed tag in Remnawave panel"
+                                    )
+                                else:
+                                    logger.error(f"No active plans found to create IMPORT subscription")
                         else:
                             logger.debug(f"User {user.telegram_id} has no tag in Remnawave")
                     else:
