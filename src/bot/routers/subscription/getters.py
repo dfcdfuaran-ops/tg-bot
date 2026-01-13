@@ -1646,6 +1646,10 @@ async def referral_success_getter(
         reward_type=ReferralRewardType.MONEY,
     )
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Вычисляем скидку пользователя
     from datetime import datetime, timezone
     purchase_disc = fresh_user.purchase_discount if fresh_user.purchase_discount is not None else 0
@@ -1691,6 +1695,7 @@ async def referral_success_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Subscription data (свежие данные)
         "plan_name": subscription.plan.name if subscription.plan else "Unknown",
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
