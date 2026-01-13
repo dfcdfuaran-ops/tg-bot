@@ -46,6 +46,10 @@ async def redirect_to_successed_trial_task(
     bot: FromDishka[Bot],
     bg_manager_factory: FromDishka[BgManagerFactory],
 ) -> None:
+    # Добавляем небольшую задержку для гарантии сохранения данных в БД
+    import asyncio
+    await asyncio.sleep(1.5)
+    
     bg_manager = bg_manager_factory.bg(
         bot=bot,
         user_id=user.telegram_id,

@@ -729,7 +729,7 @@ manage_update_bot() {
                     echo "$new_version" > "$PROJECT_DIR/assets/update/.version"
                 fi
                 
-                # Копируем install.sh в скрытую папку
+                # Копируем install.sh в папку assets/update
                 cp -f "install.sh" "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
                 chmod +x "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
             } &
@@ -1920,9 +1920,9 @@ INSTALL_STARTED=false
 (
     sudo tee /usr/local/bin/tg-sell-bot > /dev/null << 'EOF'
 #!/bin/bash
-# Запускаем install.sh из скрытой папки assets/update
-if [ -f "/opt/tg-sell-bot/assets/update/install.sh" ]; then
-    exec /opt/tg-sell-bot/assets/update/install.sh
+# Запускаем install.sh из папки assets/update
+if [ -f "/opt/tg-bot/assets/update/install.sh" ]; then
+    exec /opt/tg-bot/assets/update/install.sh
 else
     # Fallback на старый путь для обратной совместимости
     exec /opt/tg-bot/install.sh
