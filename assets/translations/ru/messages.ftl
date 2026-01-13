@@ -1434,13 +1434,14 @@ msg-referral-invite-edit =
 
     ✉️ Текущее сообщение:
     <blockquote>
-    <code>{ $current_message }</code>
+    { $current_message }
     </blockquote>
 
     ℹ️ Доступные переменные:
     <blockquote>
     • <code>{"{name}"}</code> - название вашего сервиса
     • <code>{"{url}"}</code> - реферальная ссылка
+    • <code>{"{space}"}</code> - пустая строка (перевод строки)
     </blockquote>
 
     <i>✏️ Введите ваше приглашение</i>
