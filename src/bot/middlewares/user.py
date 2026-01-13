@@ -144,15 +144,15 @@ class UserMiddleware(EventTypedMiddleware):
                                 # План не найден, создаём подписку с тегом IMPORT(старый_тег)
                                 # и сохраняем параметры пользователя (device_limit, expire_at) из Remnawave
                                 import_tag = f"IMPORT({existing_tag})"
-                                import_name = f"Imported ({existing_tag})"
+                                import_name = "Импорт"  # Название для отображения в профиле
                                 
                                 logger.warning(
                                     f"No matching plan found for tag '{existing_tag}' "
                                     f"for user {user.telegram_id}. Creating subscription with tag '{import_tag}'"
                                 )
                                 
-                                # Используем любой активный план как шаблон (берём первый доступный)
-                                all_plans = await plan_service.get_allowed_plans()
+                                # Используем любой план как шаблон для получения технических параметров
+                                all_plans = await plan_service.get_all()
                                 if all_plans:
                                     template_plan = all_plans[0]
                                     
