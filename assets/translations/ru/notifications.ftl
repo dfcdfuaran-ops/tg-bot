@@ -216,8 +216,6 @@ ntf-event-bot-startup =
     }.
     </blockquote>
 
-    <i>⏱ Сообщение удалится через { $countdown } сек.</i>
-
 ntf-event-bot-shutdown =
     #EventBotShutdown
 

@@ -240,9 +240,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
             logger.warning(f"DEV user creation failed. Please send /start to the bot from Telegram ID: {config.bot.dev_id}")
         
         if devs and settings_check:
-            sent_messages = []  # List of (chat_id, message_id, locale)
-            
-            # Send initial messages with countdown=5
+            # Send messages with close button
             for dev in devs:
                 try:
                     i18n = translator_hub.get_translator_by_locale(locale=dev.language)
@@ -250,42 +248,19 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         "access_mode": settings.access_mode,
                         "purchases_allowed": settings.purchases_allowed,
                         "registration_allowed": settings.registration_allowed,
-                        "countdown": 5,
                     })
                     text = i18n_postprocess_text(i18n.get("ntf-event-bot-startup", **kwargs))
-                    msg = await bot.send_message(chat_id=dev.telegram_id, text=text)
-                    sent_messages.append((dev.telegram_id, msg.message_id, dev.language))
+                    msg = await bot.send_message(
+                        chat_id=dev.telegram_id,
+                        text=text,
+                        reply_markup=await notification_service.get_notification_keyboard(
+                            add_close_button=True,
+                            locale=dev.language,
+                            auto_delete_after=None,
+                        ),
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to send startup notification to {dev.telegram_id}: {e}")
-            
-            # Countdown from 4 to 1, then delete
-            async def countdown_and_delete():
-                for countdown in range(4, 0, -1):
-                    await asyncio.sleep(1)
-                    for chat_id, message_id, locale in sent_messages:
-                        try:
-                            i18n = translator_hub.get_translator_by_locale(locale=locale)
-                            kwargs = get_translated_kwargs(i18n, {
-                                "access_mode": settings.access_mode,
-                                "purchases_allowed": settings.purchases_allowed,
-                                "registration_allowed": settings.registration_allowed,
-                                "countdown": countdown,
-                            })
-                            text = i18n_postprocess_text(i18n.get("ntf-event-bot-startup", **kwargs))
-                            await bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=text)
-                        except Exception as e:
-                            logger.debug(f"Failed to update countdown for {chat_id}: {e}")
-                
-                # Final wait and delete
-                await asyncio.sleep(1)
-                for chat_id, message_id, _ in sent_messages:
-                    try:
-                        await bot.delete_message(chat_id=chat_id, message_id=message_id)
-                        logger.debug(f"Startup message {message_id} in chat {chat_id} deleted after countdown")
-                    except Exception as e:
-                        logger.debug(f"Failed to delete startup message {message_id}: {e}")
-            
-            asyncio.create_task(countdown_and_delete())
     except Exception as e:
         logger.warning(f"Failed to send startup notification: {e}")
 
