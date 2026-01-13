@@ -18,13 +18,10 @@ if [ -z "$current_version" ]; then
     exit 1
 fi
 
-# Проверяем, была ли версия изменена в последнем коммите
-# Смотрим diff между HEAD^ и HEAD в файле версии
-version_changed_in_commit=$(git diff HEAD^ HEAD -- "$VERSION_FILE" 2>/dev/null | grep -c "^[+-]__version__" || echo "0")
-
-# Если версия уже была изменена в этом коммите, не трогаем её
-if [ "$version_changed_in_commit" -ge 2 ]; then
-    echo "ℹ️  Версия уже обновлена в текущем коммите ($current_version), пропускаем автоматическое увеличение"
+# Проверяем был ли файл версии изменён в этом коммите
+# Если в последнем коммите файл версии был затронут, пропускаем автоинкремент
+if git diff-tree --no-commit-id --name-only -r HEAD | grep -q "^$VERSION_FILE$"; then
+    echo "ℹ️  Версия обновлена в текущем коммите ($current_version), пропускаем автоматическое увеличение"
     exit 0
 fi
 
