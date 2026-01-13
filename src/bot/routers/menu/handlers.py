@@ -827,21 +827,30 @@ async def on_copy_referral_link(
     widget: Button,
     dialog_manager: DialogManager,
     i18n: FromDishka[TranslatorRunner],
+    referral_service: FromDishka[ReferralService],
 ) -> None:
     """Копирует реферальную ссылку в буфер обмена и отправляет уведомление в чат."""
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
-    referral_link = dialog_manager.dialog_data.get("referral_link", "")
     
-    # Отправляем сообщение с ссылкой (это скопирует её в буфер обмена клиента Telegram)
-    # Отправляем уведомление в чат
+    # Генерируем реферальную ссылку для пользователя
+    ref_link = await referral_service.get_ref_link(user.referral_code)
+    
+    # Отправляем сообщение с ссылкой в чат (это автоматически скопирует её в буфер обмена клиента Telegram)
     notification_msg = await callback.message.answer(
+        text=ref_link,
+        parse_mode=None,  # Отправляем как простой текст для копирования
+    )
+    
+    # Отправляем уведомление об успешном копировании
+    notification_text = await callback.message.answer(
         text=i18n.get("ntf-invite-link-copied"),
     )
     
-    # Удаляем уведомление через 5 секунд
+    # Удаляем оба сообщения через 5 секунд
     await asyncio.sleep(5)
     try:
         await notification_msg.delete()
+        await notification_text.delete()
     except Exception as e:
         logger.debug(f"Failed to delete notification message: {e}")
 
