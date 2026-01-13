@@ -29,6 +29,16 @@ from src.services.subscription import SubscriptionService
 from src.services.user import UserService
 
 
+def get_display_balance(user_balance: int, referral_balance: int, is_combined: bool) -> int:
+    """
+    Вычисляет отображаемый баланс в зависимости от режима.
+    
+    В режиме COMBINED возвращает сумму основного и бонусного баланса.
+    В режиме SEPARATE возвращает только основной баланс.
+    """
+    return user_balance + referral_balance if is_combined else user_balance
+
+
 @inject
 async def referral_code_input_getter(
     dialog_manager: DialogManager,

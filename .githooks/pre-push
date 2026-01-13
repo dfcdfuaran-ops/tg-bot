@@ -1,0 +1,39 @@
+#!/bin/bash
+# Git hook для автоматического инкремента версии перед push
+
+VERSION_FILE="src/__version__.py"
+
+# Проверяем что файл существует
+if [ ! -f "$VERSION_FILE" ]; then
+    echo "Ошибка: файл $VERSION_FILE не найден"
+    exit 1
+fi
+
+# Читаем текущую версию
+current_version=$(grep -oP '__version__ = "\K[^"]+' "$VERSION_FILE")
+
+if [ -z "$current_version" ]; then
+    echo "Ошибка: не удалось прочитать версию из $VERSION_FILE"
+    exit 1
+fi
+
+# Парсим версию (формат: major.minor.patch)
+IFS='.' read -r major minor patch <<< "$current_version"
+
+# Инкрементируем patch версию
+new_patch=$((patch + 1))
+new_version="$major.$minor.$new_patch"
+
+# Обновляем файл версии
+echo "__version__ = \"$new_version\"" > "$VERSION_FILE"
+echo ""  >> "$VERSION_FILE"
+
+# Добавляем изменённый файл в коммит
+git add "$VERSION_FILE"
+
+# Коммитим изменение версии
+git commit -m "chore: bump version to $new_version" --no-verify
+
+echo "✅ Версия обновлена: $current_version → $new_version"
+
+exit 0

@@ -25,6 +25,16 @@ from src.services.settings import SettingsService
 from src.services.subscription import SubscriptionService
 
 
+def get_display_balance(user_balance: int, referral_balance: int, is_combined: bool) -> int:
+    """
+    Вычисляет отображаемый баланс в зависимости от режима.
+    
+    В режиме COMBINED возвращает сумму основного и бонусного баланса.
+    В режиме SEPARATE возвращает только основной баланс.
+    """
+    return user_balance + referral_balance if is_combined else user_balance
+
+
 
 
 
@@ -116,6 +126,10 @@ async def menu_getter(
         else:
             discount_value = 0
 
+        # Проверяем режим баланса
+        is_balance_combined = await settings_service.is_balance_combined()
+        display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+
         base_data = {
             "user_id": str(user.telegram_id),
             "user_name": user.name,
@@ -123,7 +137,7 @@ async def menu_getter(
             "discount_is_temporary": 1 if is_temporary_discount else 0,
             "discount_is_permanent": 1 if is_permanent_discount else 0,
             "discount_remaining": discount_remaining,
-            "balance": user.balance,
+            "balance": display_balance,
             "referral_balance": referral_balance,
             "referral_code": user.referral_code,
             "support": support_link,
@@ -137,7 +151,7 @@ async def menu_getter(
             "is_tos_enabled": await settings_service.is_tos_enabled(),
             "tos_url": (await settings_service.get()).rules_link.get_secret_value() or "https://telegra.ph/",
             "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
-            "is_balance_separate": 1 if not await settings_service.is_balance_combined() else 0,
+            "is_balance_separate": 1 if not is_balance_combined else 0,
         }
 
         subscription = user.current_subscription
@@ -386,7 +400,7 @@ async def invite_getter(
         "user_id": str(user.telegram_id),
         "user_name": user.name,
         "referral_code": user.referral_code,
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "referral_balance": referral_balance if is_balance_separate else 0,  # Скрываем в режиме COMBINED
         "discount_value": discount_value,
         "discount_is_temporary": 1 if is_temporary_discount else 0,
@@ -511,6 +525,9 @@ async def balance_menu_getter(
     feature_settings = await settings_service.get_feature_settings()
     is_transfers_enabled = feature_settings.transfers.enabled
     
+    # В режиме COMBINED показываем сумму основного и бонусного баланса
+    display_balance = user.balance + referral_balance if is_balance_combined else user.balance
+    
     base_data = {
         "user_id": str(user.telegram_id),
         "user_name": user.name,
@@ -518,7 +535,7 @@ async def balance_menu_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": user.balance,
+        "balance": display_balance,  # В COMBINED режиме - сумма, в SEPARATE - только основной
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "has_referral_balance": referral_balance > 0 and is_balance_separate,  # Показываем только в режиме SEPARATE
@@ -628,7 +645,7 @@ async def balance_gateways_getter(
         # Данные пользователя для шапки
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "discount_value": discount_value,
@@ -884,9 +901,12 @@ async def transfer_menu_getter(
     dialog_manager: DialogManager,
     user: UserDto,
     settings_service: FromDishka[SettingsService],
+    referral_service: FromDishka[ReferralService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для меню перевода баланса."""
+    from src.core.enums import ReferralRewardType
+    
     settings = await settings_service.get()
     transfer_settings = settings.features.transfers
     
@@ -895,6 +915,13 @@ async def transfer_menu_getter(
     recipient_id = transfer_data.get("recipient_id")
     recipient_name = transfer_data.get("recipient_name")
     transfer_amount = transfer_data.get("amount", 0)
+    
+    # Получаем referral_balance для расчёта отображаемого баланса
+    referral_balance = await referral_service.get_pending_rewards_amount(
+        user.telegram_id,
+        ReferralRewardType.MONEY,
+    )
+    is_balance_combined = await settings_service.is_balance_combined()
     
     # Формируем описание комиссии
     if transfer_settings.commission_type == "percent":
@@ -930,7 +957,7 @@ async def transfer_menu_getter(
         message_display = "<i>Не назначено</i>"
     
     return {
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "commission_display": commission_display,
         "recipient_display": recipient_display,
         "amount_display": amount_display,
@@ -983,9 +1010,12 @@ async def transfer_amount_value_getter(
     dialog_manager: DialogManager,
     user: UserDto,
     settings_service: FromDishka[SettingsService],
+    referral_service: FromDishka[ReferralService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для окна выбора суммы перевода."""
+    from src.core.enums import ReferralRewardType
+    
     settings = await settings_service.get()
     transfer_settings = settings.features.transfers
     
@@ -993,6 +1023,13 @@ async def transfer_amount_value_getter(
     transfer_data = dialog_manager.dialog_data.get("transfer_data", {})
     current_amount = transfer_data.get("amount", 0)  # Текущая назначенная сумма
     pending_amount = transfer_data.get("pending_amount")  # Выбранная, но не принятая сумма
+    
+    # Получаем referral_balance для расчёта отображаемого баланса
+    referral_balance = await referral_service.get_pending_rewards_amount(
+        user.telegram_id,
+        ReferralRewardType.MONEY,
+    )
+    is_balance_combined = await settings_service.is_balance_combined()
     
     # current_display - текущая назначенная сумма
     current_display = f"{int(current_amount)} ₽" if current_amount else "Не назначено"
@@ -1003,7 +1040,7 @@ async def transfer_amount_value_getter(
     
     # Создаем selected значения для всех кнопок (подсветка для pending или current)
     result = {
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "min_amount": transfer_settings.min_amount if transfer_settings.min_amount else 0,
         "max_amount": transfer_settings.max_amount if transfer_settings.max_amount else 999999,
         "current_display": current_display,

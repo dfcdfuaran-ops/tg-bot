@@ -212,9 +212,19 @@ restore_env_vars() {
     fi
 }
 
+# Функция для получения версии из __version__.py
+get_version_from_file() {
+    local version_file="$1"
+    if [ -f "$version_file" ]; then
+        grep -oP '__version__ = "\K[^"]+' "$version_file" 2>/dev/null || echo ""
+    else
+        echo ""
+    fi
+}
+
 # Функция для проверки доступности обновлений
 check_updates_available() {
-    # Создаем временный файл для хранения статуса
+    # Создаем временный файл для хранения статуса и версии
     UPDATE_STATUS_FILE=$(mktemp)
     echo "0" > "$UPDATE_STATUS_FILE"
     
@@ -225,19 +235,33 @@ check_updates_available() {
         
         # Клонируем репо в фоне без вывода
         if git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_CHECK_DIR" >/dev/null 2>&1; then
-            REMOTE_HASH=$(cd "$TEMP_CHECK_DIR" && git rev-parse HEAD 2>/dev/null)
+            # Получаем версии из файлов __version__.py
+            REMOTE_VERSION=$(get_version_from_file "$TEMP_CHECK_DIR/src/__version__.py")
+            LOCAL_VERSION=$(get_version_from_file "$REPO_DIR/src/__version__.py")
             
-            LOCAL_HASH=""
-            if [ -f "$ENV_FILE" ] && grep -q "^LAST_UPDATE_HASH=" "$ENV_FILE"; then
-                LOCAL_HASH=$(grep "^LAST_UPDATE_HASH=" "$ENV_FILE" | cut -d'=' -f2)
-            elif [ -d "$PROJECT_DIR/.git" ]; then
-                LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
-            fi
-            
-            if [ "$LOCAL_HASH" != "$REMOTE_HASH" ] && [ -n "$REMOTE_HASH" ]; then
-                echo "1" > "$UPDATE_STATUS_FILE"
+            # Если версия на GitHub новее - доступно обновление
+            if [ -n "$REMOTE_VERSION" ] && [ -n "$LOCAL_VERSION" ]; then
+                if [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
+                    # Сохраняем информацию об обновлении
+                    echo "1|$REMOTE_VERSION" > "$UPDATE_STATUS_FILE"
+                else
+                    echo "0|$REMOTE_VERSION" > "$UPDATE_STATUS_FILE"
+                fi
             else
-                echo "0" > "$UPDATE_STATUS_FILE"
+                # Если не удалось прочитать версии, используем старый метод с хешами
+                REMOTE_HASH=$(cd "$TEMP_CHECK_DIR" && git rev-parse HEAD 2>/dev/null)
+                LOCAL_HASH=""
+                if [ -f "$ENV_FILE" ] && grep -q "^LAST_UPDATE_HASH=" "$ENV_FILE"; then
+                    LOCAL_HASH=$(grep "^LAST_UPDATE_HASH=" "$ENV_FILE" | cut -d'=' -f2)
+                elif [ -d "$PROJECT_DIR/.git" ]; then
+                    LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
+                fi
+                
+                if [ "$LOCAL_HASH" != "$REMOTE_HASH" ] && [ -n "$REMOTE_HASH" ]; then
+                    echo "1|unknown" > "$UPDATE_STATUS_FILE"
+                else
+                    echo "0|unknown" > "$UPDATE_STATUS_FILE"
+                fi
             fi
         fi
     } &
@@ -249,9 +273,11 @@ wait_for_update_check() {
         wait $CHECK_UPDATE_PID 2>/dev/null || true
     fi
     
-    # Читаем результат из файла
+    # Читаем результат из файла (формат: status|version)
     if [ -n "$UPDATE_STATUS_FILE" ] && [ -f "$UPDATE_STATUS_FILE" ]; then
-        UPDATE_AVAILABLE=$(cat "$UPDATE_STATUS_FILE" 2>/dev/null || echo "0")
+        local update_info=$(cat "$UPDATE_STATUS_FILE" 2>/dev/null || echo "0|unknown")
+        UPDATE_AVAILABLE=$(echo "$update_info" | cut -d'|' -f1)
+        AVAILABLE_VERSION=$(echo "$update_info" | cut -d'|' -f2)
         rm -f "$UPDATE_STATUS_FILE" 2>/dev/null || true
     fi
 }
@@ -441,14 +467,22 @@ show_full_menu() {
             if [ $i -eq $selected ]; then
                 # Для пункта "Обновить" добавляем статус если доступно обновление
                 if [ $i -eq 2 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
-                    echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление! )${NC}${NC}"
+                    if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
+                        echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
+                    else
+                        echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
+                    fi
                 else
                     echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]}${NC}"
                 fi
             else
                 # Для пункта "Обновить" добавляем статус если доступно обновление
                 if [ $i -eq 2 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
-                    echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
+                    if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
+                        echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
+                    else
+                        echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
+                    fi
                 else
                     echo "  ${options[$i]}"
                 fi
@@ -604,30 +638,39 @@ manage_update_bot() {
     kill $SPINNER_PID 2>/dev/null || true
     wait $SPINNER_PID 2>/dev/null || true
     
-    # Получаем хеш HEAD из удалённого репо
-    REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD 2>/dev/null)
+    # Получаем версии из __version__.py
+    REMOTE_VERSION=$(get_version_from_file "$TEMP_REPO/src/__version__.py")
+    LOCAL_VERSION=$(get_version_from_file "$REPO_DIR/src/__version__.py")
     
-    # Проверяем сохранённый хеш из последнего обновления
-    LOCAL_HASH=""
     UPDATE_NEEDED=1
     
-    # Сначала проверяем есть ли хеш в .env (самый надёжный способ)
-    if [ -f "$ENV_FILE" ] && grep -q "^LAST_UPDATE_HASH=" "$ENV_FILE"; then
-        LOCAL_HASH=$(grep "^LAST_UPDATE_HASH=" "$ENV_FILE" | cut -d'=' -f2)
-        
-        if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
-            UPDATE_NEEDED=0
-        fi
-    elif [ -d "$PROJECT_DIR/.git" ]; then
-        # Если это git репозиторий, просто сравним хеши
-        LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
-        
-        if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
+    # Проверяем версии
+    if [ -n "$REMOTE_VERSION" ] && [ -n "$LOCAL_VERSION" ]; then
+        if [ "$LOCAL_VERSION" = "$REMOTE_VERSION" ]; then
             UPDATE_NEEDED=0
         fi
     else
-        # Если нет .git и нет сохранённого хеша - нужно обновить
-        UPDATE_NEEDED=1
+        # Fallback на старый метод с хешами если версии не доступны
+        REMOTE_HASH=$(cd "$TEMP_REPO" && git rev-parse HEAD 2>/dev/null)
+        LOCAL_HASH=""
+        
+        if [ -f "$ENV_FILE" ] && grep -q "^LAST_UPDATE_HASH=" "$ENV_FILE"; then
+            LOCAL_HASH=$(grep "^LAST_UPDATE_HASH=" "$ENV_FILE" | cut -d'=' -f2)
+            
+            if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
+                UPDATE_NEEDED=0
+            fi
+        elif [ -d "$PROJECT_DIR/.git" ]; then
+            # Если это git репозиторий, просто сравним хеши
+            LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
+            
+            if [ "$LOCAL_HASH" = "$REMOTE_HASH" ]; then
+                UPDATE_NEEDED=0
+            fi
+        else
+            # Если нет .git и нет сохранённого хеша - нужно обновить
+            UPDATE_NEEDED=1
+        fi
     fi
     
     # Выводим результат проверки
@@ -637,7 +680,12 @@ manage_update_bot() {
         echo -e "${GREEN}       🔄 ОБНОВЛЕНИЕ TG-SELL-BOT${NC}"
         echo -e "${BLUE}========================================${NC}"
         echo
-        echo -e "${GREEN}✅ Обновление не требуется${NC}"
+        if [ -n "$LOCAL_VERSION" ] && [ "$LOCAL_VERSION" != "unknown" ]; then
+            echo -e "${GREEN}✅ Обновление не требуется${NC}"
+            echo -e "${GRAY}Текущая версия: $LOCAL_VERSION${NC}"
+        else
+            echo -e "${GREEN}✅ Обновление не требуется${NC}"
+        fi
     else
         # Автоматическое начало обновления без диалога
         clear
