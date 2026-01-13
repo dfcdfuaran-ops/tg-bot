@@ -229,12 +229,19 @@ async def subscription_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        
+        # Вычисляем бонус устройств (разница между реальным лимитом из Remnawave и планом)
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        
         result.update({
             "has_subscription": "true",
             "current_plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
             "device_limit": i18n_format_device_limit(subscription.device_limit),
             "device_limit_number": subscription.plan.device_limit,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
         })
@@ -245,6 +252,7 @@ async def subscription_getter(
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,
+            "device_limit_bonus": 0,
             "extra_devices": 0,
             "expire_time": "",
         })
@@ -340,12 +348,18 @@ async def plans_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        # Вычисляем бонус устройств
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        
         result.update({
             "has_subscription": "true",
             "current_plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
             "device_limit": i18n_format_device_limit(subscription.device_limit),
             "device_limit_number": subscription.plan.device_limit,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
         })
@@ -356,6 +370,7 @@ async def plans_getter(
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,
+            "device_limit_bonus": 0,
             "extra_devices": 0,
             "expire_time": "",
         })
@@ -521,12 +536,18 @@ async def duration_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        # Вычисляем бонус устройств
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        
         result.update({
             "has_subscription": "true",
             "current_plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
             "device_limit": i18n_format_device_limit(subscription.device_limit),
             "device_limit_number": subscription.plan.device_limit,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "has_extra_devices": 1 if extra_devices > 0 else 0,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
@@ -538,6 +559,7 @@ async def duration_getter(
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,
+            "device_limit_bonus": 0,
             "extra_devices": 0,
             "has_extra_devices": 0,
             "expire_time": "",
@@ -571,12 +593,17 @@ async def payment_method_getter(
 
     # Данные о текущей подписке (если есть)
     subscription = user.current_subscription
+    device_limit_bonus = 0
     if subscription:
         has_subscription = "true"
         current_plan_name = subscription.plan.name
         traffic_limit = i18n_format_traffic_limit(subscription.traffic_limit)
         device_limit = i18n_format_device_limit(subscription.device_limit)
         device_limit_number = subscription.plan.device_limit
+        # Вычисляем бонус устройств
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
         extra_devices = subscription.extra_devices or 0
         expire_time = i18n_format_expire_time(subscription.expire_at)
     else:
@@ -723,6 +750,7 @@ async def payment_method_getter(
         "traffic_limit": traffic_limit,
         "device_limit": device_limit_display,
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": device_limit_bonus,
         "extra_devices": extra_devices,
         "has_extra_devices": 1 if extra_devices > 0 else 0,
         "expire_time": expire_time,
@@ -867,6 +895,7 @@ async def confirm_getter(
         device_limit_current = i18n_format_device_limit(subscription.device_limit)
         device_limit_number = subscription.plan.device_limit
         extra_devices = subscription.extra_devices or 0
+        device_limit_bonus = max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0
         expire_time = i18n_format_expire_time(subscription.expire_at)
     else:
         has_subscription = "false"
@@ -875,6 +904,7 @@ async def confirm_getter(
         device_limit_current = ""
         device_limit_number = 0
         extra_devices = 0
+        device_limit_bonus = 0
         expire_time = ""
     
     return {
@@ -914,6 +944,7 @@ async def confirm_getter(
         "traffic_limit": traffic_limit,
         "device_limit_current": device_limit_current,
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": device_limit_bonus,
         "extra_devices": extra_devices,
         "expire_time": expire_time,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -1053,6 +1084,8 @@ async def confirm_balance_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        device_limit_number = subscription.plan.device_limit
+        device_limit_bonus = max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0
         
         # Получаем месячную стоимость для отображения
         # Но только если включена ежемесячная оплата (is_one_time = False)
@@ -1070,7 +1103,8 @@ async def confirm_balance_getter(
             "current_plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
             "device_limit": i18n_format_device_limit(subscription.device_limit),
-            "device_limit_number": subscription.plan.device_limit,
+            "device_limit_number": device_limit_number,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
             "extra_devices_monthly_cost": extra_devices_monthly_cost,
@@ -1089,6 +1123,7 @@ async def confirm_balance_getter(
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,
+            "device_limit_bonus": 0,
             "extra_devices": 0,
             "expire_time": "",
             "extra_devices_monthly_cost": 0,
@@ -1226,6 +1261,7 @@ async def confirm_yoomoney_getter(
         "traffic_limit": i18n_format_traffic_limit(user.current_subscription.traffic_limit) if user.current_subscription else "",
         "device_limit_current": i18n_format_device_limit(user.current_subscription.device_limit) if user.current_subscription else "",
         "device_limit_number": user.current_subscription.plan.device_limit if user.current_subscription else 0,
+        "device_limit_bonus": max(0, user.current_subscription.device_limit - user.current_subscription.plan.device_limit) if user.current_subscription and user.current_subscription.plan.device_limit > 0 else 0,
         "extra_devices": user.current_subscription.extra_devices or 0 if user.current_subscription else 0,
         "expire_time": i18n_format_expire_time(user.current_subscription.expire_at) if user.current_subscription else "",
         # Balance settings
@@ -1358,6 +1394,7 @@ async def confirm_yookassa_getter(
         "traffic_limit": i18n_format_traffic_limit(user.current_subscription.traffic_limit) if user.current_subscription else "",
         "device_limit_current": i18n_format_device_limit(user.current_subscription.device_limit) if user.current_subscription else "",
         "device_limit_number": user.current_subscription.plan.device_limit if user.current_subscription else 0,
+        "device_limit_bonus": max(0, user.current_subscription.device_limit - user.current_subscription.plan.device_limit) if user.current_subscription and user.current_subscription.plan.device_limit > 0 else 0,
         "extra_devices": user.current_subscription.extra_devices or 0 if user.current_subscription else 0,
         "expire_time": i18n_format_expire_time(user.current_subscription.expire_at) if user.current_subscription else "",
         # Balance settings
@@ -1466,6 +1503,7 @@ async def getter_connect(
         "traffic_limit": traffic_limit,
         "device_limit": device_limit,
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": expire_time,
     }
@@ -1541,6 +1579,7 @@ async def success_payment_getter(
     extra_devices = subscription.extra_devices or 0
     # device_limit_number - базовый лимит из тарифа
     device_limit_number = subscription.plan.device_limit
+    device_limit_bonus = max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0
     
     # Получаем device_count из dialog_data для ADD_DEVICE
     device_count = dialog_manager.dialog_data.get("device_count", 0)
@@ -1552,6 +1591,7 @@ async def success_payment_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
         "device_limit": i18n_format_device_limit(subscription.device_limit),
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": device_limit_bonus,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
         "added_duration": i18n_format_days(subscription.plan.duration),
@@ -1606,6 +1646,10 @@ async def referral_success_getter(
         reward_type=ReferralRewardType.MONEY,
     )
     
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     # Вычисляем скидку пользователя
     from datetime import datetime, timezone
     purchase_disc = fresh_user.purchase_discount if fresh_user.purchase_discount is not None else 0
@@ -1651,11 +1695,13 @@ async def referral_success_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Subscription data (свежие данные)
         "plan_name": subscription.plan.name if subscription.plan else "Unknown",
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
         "device_limit": i18n_format_device_limit(subscription.device_limit),
         "device_limit_number": subscription.plan.device_limit,
+        "device_limit_bonus": max(0, subscription.device_limit - subscription.plan.device_limit) if subscription.plan.device_limit > 0 else 0,
         "extra_devices": subscription.extra_devices or 0,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
     }
@@ -1756,6 +1802,7 @@ async def add_device_select_count_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
         "device_limit": i18n_format_device_limit(subscription.device_limit) if subscription else "",
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - subscription.plan.device_limit) if subscription and subscription.plan and subscription.plan.device_limit > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Цена (со скидкой)
@@ -1897,6 +1944,7 @@ async def add_device_payment_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
         "device_limit": i18n_format_device_limit(subscription.device_limit) if subscription else "",
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - subscription.plan.device_limit) if subscription and subscription.plan and subscription.plan.device_limit > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки (со скидкой)
@@ -2034,6 +2082,7 @@ async def add_device_confirm_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
         "device_limit": i18n_format_device_limit(subscription.device_limit) if subscription else "",
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - subscription.plan.device_limit) if subscription and subscription.plan and subscription.plan.device_limit > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки (со скидкой)
@@ -2169,6 +2218,7 @@ async def devices_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
         "device_limit": i18n_format_device_limit(max_count),
         "device_limit_number": base_device_limit,
+        "device_limit_bonus": max(0, max_count - base_device_limit) if base_device_limit > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
     }
@@ -2263,6 +2313,7 @@ async def add_device_success_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
         "device_limit": i18n_format_device_limit(subscription.device_limit) if subscription else "",
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number) if subscription and device_limit_number > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки
@@ -2375,6 +2426,7 @@ async def extra_devices_list_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
         "device_limit": i18n_format_device_limit(subscription.device_limit),
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
     }
@@ -2468,6 +2520,7 @@ async def extra_device_manage_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
         "device_limit": i18n_format_device_limit(subscription.device_limit),
         "device_limit_number": device_limit_number,
+        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
     }

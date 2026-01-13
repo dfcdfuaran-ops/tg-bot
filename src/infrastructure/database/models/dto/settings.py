@@ -53,9 +53,9 @@ class UserNotificationDto(TrackableDto):  # == UserNotificationType
 
 
 class ReferralRewardSettingsDto(BaseDto):
-    type: ReferralRewardType = ReferralRewardType.EXTRA_DAYS
-    strategy: ReferralRewardStrategy = ReferralRewardStrategy.AMOUNT
-    config: dict[ReferralLevel, int] = {ReferralLevel.FIRST: 5}
+    type: ReferralRewardType = ReferralRewardType.MONEY
+    strategy: ReferralRewardStrategy = ReferralRewardStrategy.PERCENT
+    config: dict[ReferralLevel, int] = {ReferralLevel.FIRST: 10}
 
     @property
     def is_identical(self) -> bool:
@@ -79,7 +79,7 @@ class ReferralRewardSettingsDto(BaseDto):
 class ReferralSettingsDto(TrackableDto):
     enable: bool = True
     level: ReferralLevel = ReferralLevel.FIRST
-    accrual_strategy: ReferralAccrualStrategy = ReferralAccrualStrategy.ON_FIRST_PAYMENT
+    accrual_strategy: ReferralAccrualStrategy = ReferralAccrualStrategy.ON_EACH_PAYMENT
     reward: ReferralRewardSettingsDto = ReferralRewardSettingsDto()
     invite_message: str = "✨ {name} - Ваш приватный интернет!\n\n➡️ Подключиться: {url}"
 

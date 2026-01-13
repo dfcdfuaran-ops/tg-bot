@@ -108,9 +108,15 @@ frg-subscription =
     <blockquote>
     • <b>Тариф:</b> { $plan_name }
     • <b>Лимит трафика</b>: { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit_number }{ $extra_devices ->
-        [0] {""}
-        *[other] {" "}(+{ $extra_devices })
+    • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
+        [0] { $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices })
+        }
+        *[other] {" "}(+{ $device_limit_bonus }){ $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices } доп.)
+        }
     }
     • <b>Осталось</b>: { $expire_time }
     </blockquote>
@@ -119,9 +125,15 @@ frg-subscription-devices =
     <blockquote>
     • <b>Тариф:</b> { $plan_name }
     • <b>Лимит трафика</b>: { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit_number }{ $extra_devices ->
-        [0] {""}
-        *[other] {" "}(+{ $extra_devices })
+    • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
+        [0] { $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices })
+        }
+        *[other] {" "}(+{ $device_limit_bonus }){ $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices } доп.)
+        }
     }
     • <b>Осталось</b>: { $expire_time }
     </blockquote>
@@ -404,9 +416,15 @@ frg-subscription-conditional =
     <blockquote>
     • <b>Тариф:</b> { $current_plan_name }
     • <b>Лимит трафика</b>: { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit_number }{ $extra_devices ->
-        [0] {""}
-        *[other] {" "}(+{ $extra_devices })
+    • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
+        [0] { $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices })
+        }
+        *[other] {" "}(+{ $device_limit_bonus }){ $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices } доп.)
+        }
     }
     • <b>Осталось</b>: { $expire_time }
     </blockquote>

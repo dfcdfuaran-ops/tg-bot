@@ -164,19 +164,27 @@ async def menu_getter(
                     "trial_available": not has_used_trial and plan,
                     "has_device_limit": False,
                     "connectable": False,
+                    "device_limit_bonus": 0,
                 }
             )
             return base_data
 
         extra_devices = subscription.extra_devices or 0
+        
+        # Вычисляем бонус устройств (разница между реальным лимитом из Remnawave и планом)
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        
         base_data.update(
             {
                 "status": subscription.get_status,
                 "type": subscription.get_subscription_type,
                 "plan_name": subscription.plan.name,
                 "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
-                "device_limit": i18n_format_device_limit(subscription.device_limit),
-                "device_limit_number": subscription.plan.device_limit,
+                "device_limit": i18n_format_device_limit(plan_device_limit if plan_device_limit > 0 else subscription.device_limit),
+                "device_limit_number": plan_device_limit if plan_device_limit > 0 else subscription.device_limit,
+                "device_limit_bonus": device_limit_bonus,
                 "extra_devices": extra_devices,
                 "expire_time": i18n_format_expire_time(subscription.expire_at),
                 "is_trial": subscription.is_trial,
@@ -359,12 +367,18 @@ async def invite_getter(
     
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        # Вычисляем бонус устройств
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        
         subscription_data = {
             "status": subscription.get_status,
             "plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
-            "device_limit": i18n_format_device_limit(subscription.device_limit),
-            "device_limit_number": subscription.plan.device_limit,
+            "device_limit": i18n_format_device_limit(plan_device_limit if plan_device_limit > 0 else subscription.device_limit),
+            "device_limit_number": plan_device_limit if plan_device_limit > 0 else subscription.device_limit,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
             "is_trial": subscription.is_trial,
@@ -375,6 +389,7 @@ async def invite_getter(
         subscription_data = {
             "status": None,
             "is_trial": False,
+            "device_limit_bonus": 0,
         }
     
     # Get total bonus
@@ -553,18 +568,25 @@ async def balance_menu_getter(
                 "status": None,
                 "is_trial": False,
                 "trial_available": not has_used_trial and plan,
+                "device_limit_bonus": 0,
             }
         )
         return base_data
 
     extra_devices = subscription.extra_devices or 0
+    # Вычисляем бонус устройств
+    plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+    actual_device_limit = subscription.device_limit
+    device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+    
     base_data.update(
         {
             "status": subscription.get_status,
             "plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
-            "device_limit": i18n_format_device_limit(subscription.device_limit),
-            "device_limit_number": subscription.plan.device_limit,
+            "device_limit": i18n_format_device_limit(plan_device_limit if plan_device_limit > 0 else subscription.device_limit),
+            "device_limit_number": plan_device_limit if plan_device_limit > 0 else subscription.device_limit,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
             "is_trial": subscription.is_trial,
@@ -660,12 +682,18 @@ async def balance_gateways_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
+        # Вычисляем бонус устройств
+        plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
+        actual_device_limit = subscription.device_limit
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        
         result.update({
             "has_subscription": "true",
             "current_plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
-            "device_limit": i18n_format_device_limit(subscription.device_limit),
-            "device_limit_number": subscription.plan.device_limit,
+            "device_limit": i18n_format_device_limit(plan_device_limit if plan_device_limit > 0 else subscription.device_limit),
+            "device_limit_number": plan_device_limit if plan_device_limit > 0 else subscription.device_limit,
+            "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
         })
@@ -676,6 +704,7 @@ async def balance_gateways_getter(
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,
+            "device_limit_bonus": 0,
             "extra_devices": 0,
             "expire_time": "",
         })
