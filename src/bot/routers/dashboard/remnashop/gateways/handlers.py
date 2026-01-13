@@ -290,8 +290,8 @@ async def on_gateways_accept(
         dialog_manager.dialog_data.pop("current_state", None)
         logger.info(f"{log(user)} Accepted all gateway changes")
     
-    # Возвращаемся на одно меню назад
-    await dialog_manager.back()
+    # Закрываем диалог и возвращаемся в главное меню
+    await dialog_manager.done()
 
 
 @inject
