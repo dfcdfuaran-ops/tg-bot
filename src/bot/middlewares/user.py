@@ -152,7 +152,7 @@ class UserMiddleware(EventTypedMiddleware):
                                 )
                                 
                                 # Используем любой активный план как шаблон (берём первый доступный)
-                                all_plans = await plan_service.get_all_active()
+                                all_plans = await plan_service.get_allowed_plans()
                                 if all_plans:
                                     template_plan = all_plans[0]
                                     
