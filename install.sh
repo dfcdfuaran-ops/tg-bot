@@ -230,39 +230,26 @@ check_updates_available() {
     
     # Проверка обновлений в фоне
     {
-        TEMP_CHECK_DIR=$(mktemp -d)
-        trap "rm -rf '$TEMP_CHECK_DIR'" RETURN
+        # Получаем локальную версию
+        LOCAL_VERSION=$(get_version_from_file "$REPO_DIR/src/__version__.py")
         
-        # Клонируем репо в фоне без вывода
-        if git clone -b "$REPO_BRANCH" --depth 1 "$REPO_URL" "$TEMP_CHECK_DIR" >/dev/null 2>&1; then
-            # Получаем версии из файлов __version__.py
-            REMOTE_VERSION=$(get_version_from_file "$TEMP_CHECK_DIR/src/__version__.py")
-            LOCAL_VERSION=$(get_version_from_file "$REPO_DIR/src/__version__.py")
-            
-            # Если версия на GitHub новее - доступно обновление
-            if [ -n "$REMOTE_VERSION" ] && [ -n "$LOCAL_VERSION" ]; then
-                if [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
-                    # Сохраняем информацию об обновлении
-                    echo "1|$REMOTE_VERSION" > "$UPDATE_STATUS_FILE"
-                else
-                    echo "0|$REMOTE_VERSION" > "$UPDATE_STATUS_FILE"
-                fi
+        # Получаем удаленную версию через GitHub raw URL
+        # Формат: https://raw.githubusercontent.com/owner/repo/branch/path/to/file
+        GITHUB_RAW_URL=$(echo "$REPO_URL" | sed 's|github.com|raw.githubusercontent.com|; s|\.git$||')
+        REMOTE_VERSION_URL="${GITHUB_RAW_URL}/${REPO_BRANCH}/src/__version__.py"
+        
+        # Скачиваем файл версии с GitHub
+        REMOTE_VERSION=$(curl -s "$REMOTE_VERSION_URL" 2>/dev/null | grep -oP '__version__ = "\K[^"]+' || echo "")
+        
+        # Сравниваем версии
+        if [ -n "$REMOTE_VERSION" ] && [ -n "$LOCAL_VERSION" ]; then
+            if [ "$LOCAL_VERSION" != "$REMOTE_VERSION" ]; then
+                echo "1|$REMOTE_VERSION" > "$UPDATE_STATUS_FILE"
             else
-                # Если не удалось прочитать версии, используем старый метод с хешами
-                REMOTE_HASH=$(cd "$TEMP_CHECK_DIR" && git rev-parse HEAD 2>/dev/null)
-                LOCAL_HASH=""
-                if [ -f "$ENV_FILE" ] && grep -q "^LAST_UPDATE_HASH=" "$ENV_FILE"; then
-                    LOCAL_HASH=$(grep "^LAST_UPDATE_HASH=" "$ENV_FILE" | cut -d'=' -f2)
-                elif [ -d "$PROJECT_DIR/.git" ]; then
-                    LOCAL_HASH=$(cd "$PROJECT_DIR" && git rev-parse HEAD 2>/dev/null || echo "")
-                fi
-                
-                if [ "$LOCAL_HASH" != "$REMOTE_HASH" ] && [ -n "$REMOTE_HASH" ]; then
-                    echo "1|unknown" > "$UPDATE_STATUS_FILE"
-                else
-                    echo "0|unknown" > "$UPDATE_STATUS_FILE"
-                fi
+                echo "0|$REMOTE_VERSION" > "$UPDATE_STATUS_FILE"
             fi
+        else
+            echo "0|unknown" > "$UPDATE_STATUS_FILE"
         fi
     } &
     CHECK_UPDATE_PID=$!
@@ -288,9 +275,6 @@ check_mode() {
     if [ "$1" = "--install" ]; then
         return 0
     fi
-    
-    # Инициализируем временный каталог для скачивания репозитория
-    TEMP_REPO=$(mktemp -d)
     
     # Проверяем обновления в фоне перед показом меню
     check_updates_available
