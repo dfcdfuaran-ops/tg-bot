@@ -13,7 +13,10 @@ from src.core.enums import MiddlewareEventType, SystemNotificationType
 from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database.models.dto import UserDto
 from src.services.notification import NotificationService
+from src.services.plan import PlanService
 from src.services.referral import ReferralService
+from src.services.remnawave import RemnaWaveService
+from src.services.subscription import SubscriptionService
 from src.services.user import UserService
 
 from .base import EventTypedMiddleware
@@ -46,12 +49,50 @@ class UserMiddleware(EventTypedMiddleware):
         config: AppConfig = await container.get(AppConfig)
         user_service: UserService = await container.get(UserService)
         referral_service: ReferralService = await container.get(ReferralService)
+        remnawave_service: RemnaWaveService = await container.get(RemnaWaveService)
+        plan_service: PlanService = await container.get(PlanService)
+        subscription_service: SubscriptionService = await container.get(SubscriptionService)
 
         user: Optional[UserDto] = await user_service.get(telegram_id=aiogram_user.id)
 
 
         if user is None:
             user = await user_service.create(aiogram_user)
+
+            # Проверяем существующую подписку в Remnawave
+            try:
+                existing_users = await remnawave_service.remnawave.users.get_users_by_telegram_id(
+                    telegram_id=user.telegram_id
+                )
+                if existing_users:
+                    existing_user = existing_users[0]
+                    if existing_user.status in ["ACTIVE", "active"]:
+                        # Пытаемся найти план по тегу
+                        existing_tag = existing_user.subscription_tag
+                        try:
+                            matching_plan = await plan_service.get_by_tag(existing_tag)
+                            # План найден, импортируем подписку
+                            await subscription_service.create_imported(
+                                user_id=user.telegram_id,
+                                plan_id=matching_plan.id,
+                                remna_subscription_tag=existing_tag,
+                            )
+                            logger.info(
+                                f"Imported existing subscription for user {user.telegram_id} "
+                                f"with tag '{existing_tag}' and plan '{matching_plan.name}'"
+                            )
+                        except Exception as e:
+                            # План не найден, меняем тег на IMPORT
+                            logger.warning(
+                                f"No matching plan found for tag '{existing_tag}' "
+                                f"for user {user.telegram_id}, changing tag to IMPORT"
+                            )
+                            await remnawave_service.remnawave.users.update_user(
+                                telegram_id=user.telegram_id,
+                                tag="IMPORT",
+                            )
+            except Exception as e:
+                logger.error(f"Error checking existing Remnawave subscription: {e}")
 
             referrer = await referral_service.get_referrer_by_event(event, user.telegram_id)
 
