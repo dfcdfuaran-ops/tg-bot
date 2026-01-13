@@ -1413,48 +1413,51 @@ async def getter_connect(
     user_service: FromDishka[UserService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    # Если нет активной подписки, перезагружаем данные пользователя с проверкой
-    if not user.current_subscription:
-        # Попытка переодичной загрузки в случае кеш-проблемы
-        fresh_user = await user_service.get(user.telegram_id)
-        if not fresh_user or not fresh_user.current_subscription:
-            # Если подписки всё ещё нет, отправляем на главное меню
-            logger.warning(
-                f"getter_connect: No active subscription for user '{user.telegram_id}', "
-                f"redirecting to main menu"
-            )
-            from src.bot.states import MainMenu
-            try:
-                await dialog_manager.done()
-                await dialog_manager.start(
-                    state=MainMenu.MAIN,
-                    mode=StartMode.RESET_STACK,
-                    show_mode=ShowMode.DELETE_AND_SEND,
-                )
-            except Exception as e:
-                logger.error(f"getter_connect: Failed to redirect: {e}")
-            
-            # Возвращаем пустые данные для безопасности
-            return {
-                "has_subscription": 0,
-                "plan_name": "N/A",
-                "traffic_limit": "N/A",
-                "device_limit": "N/A",
-                "expire_time": "N/A",
-                "user_id": str(user.telegram_id),
-                "user_name": user.name,
-                "balance": 0,
-                "referral_balance": 0,
-                "referral_code": user.referral_code,
-                "is_balance_enabled": 0,
-                "is_balance_separate": 0,
-            }
-        
-        # Если данные загружены, используем их
-        user = fresh_user
-
+    """
+    Getter для экрана подключения после успешного создания пробной подписки.
+    Безопасно работает даже если подписка не найдена сразу (может быть задержка БД).
+    """
+    
+    # Пытаемся получить подписку
     subscription = user.current_subscription
     
+    # Если нет подписки в текущих данных, пытаемся перезагрузить
+    if not subscription:
+        try:
+            fresh_user = await user_service.get(user.telegram_id)
+            if fresh_user and fresh_user.current_subscription:
+                subscription = fresh_user.current_subscription
+                user = fresh_user
+                logger.info(f"getter_connect: Loaded subscription from fresh user data for {user.telegram_id}")
+        except Exception as e:
+            logger.warning(f"getter_connect: Failed to reload user: {e}")
+    
+    # Если всё ещё нет подписки - это нормально, показываем что можем
+    # (она была только что создана, может быть задержка)
+    if not subscription:
+        logger.warning(
+            f"getter_connect: No subscription found for user '{user.telegram_id}' "
+            f"(but it should have been just created)"
+        )
+        
+        # Возвращаем безопасные данные для рендеринга
+        # Пользователь увидит экран с общей информацией
+        return {
+            "has_subscription": 0,
+            "plan_name": "Подписка активирована",
+            "traffic_limit": "Загружается...",
+            "device_limit": "Загружается...",
+            "expire_time": "Загружается...",
+            "user_id": str(user.telegram_id),
+            "user_name": user.name,
+            "balance": user.balance,
+            "referral_balance": 0,
+            "referral_code": user.referral_code,
+            "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+            "is_balance_separate": 1 if not await settings_service.is_balance_combined() else 0,
+        }
+    
+    # Есть подписка - показываем её данные
     # Get referral balance
     referral_balance = await referral_service.get_pending_rewards_amount(
         telegram_id=user.telegram_id,
