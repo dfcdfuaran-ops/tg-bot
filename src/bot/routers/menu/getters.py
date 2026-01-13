@@ -74,7 +74,8 @@ async def menu_getter(
         
         if invite_message:
             # Support both Python format {url}/{name} and legacy $url/$name
-            invite_message = invite_message.format(url=ref_link, name="VPN") if "{url}" in invite_message else invite_message.replace("$url", ref_link).replace("$name", "VPN")
+            # Also support {space} for newline
+            invite_message = invite_message.format(url=ref_link, name="VPN", space="\n") if "{url}" in invite_message else invite_message.replace("$url", ref_link).replace("$name", "VPN")
         else:
             invite_message = f"Join us! {ref_link}"
         
@@ -320,7 +321,8 @@ async def invite_getter(
     
     if invite_message:
         # Support both Python format {url}/{name} and legacy $url/$name
-        invite_message = invite_message.format(url=ref_link, name="VPN") if "{url}" in invite_message else invite_message.replace("$url", ref_link).replace("$name", "VPN")
+        # Also support {space} for newline
+        invite_message = invite_message.format(url=ref_link, name="VPN", space="\n") if "{url}" in invite_message else invite_message.replace("$url", ref_link).replace("$name", "VPN")
     else:
         invite_message = f"Join us! {ref_link}"
     
