@@ -230,8 +230,8 @@ check_updates_available() {
     
     # Проверка обновлений в фоне
     {
-        # Получаем локальную версию
-        LOCAL_VERSION=$(get_version_from_file "$REPO_DIR/src/__version__.py")
+        # Получаем локальную версию из PROJECT_DIR (production)
+        LOCAL_VERSION=$(get_version_from_file "$PROJECT_DIR/src/__version__.py")
         
         # Получаем удаленную версию через GitHub raw URL
         # Формат: https://raw.githubusercontent.com/owner/repo/branch/path/to/file
@@ -632,7 +632,7 @@ manage_update_bot() {
     
     # Получаем версии из __version__.py
     REMOTE_VERSION=$(get_version_from_file "$TEMP_REPO/src/__version__.py")
-    LOCAL_VERSION=$(get_version_from_file "$REPO_DIR/src/__version__.py")
+    LOCAL_VERSION=$(get_version_from_file "$PROJECT_DIR/src/__version__.py")
     
     UPDATE_NEEDED=1
     
