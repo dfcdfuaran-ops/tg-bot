@@ -222,6 +222,19 @@ get_version_from_file() {
     fi
 }
 
+# Функция для получения локальной версии (из .version или src/__version__.py)
+get_local_version() {
+    # Сначала пробуем .version файл
+    if [ -f "$PROJECT_DIR/.version" ]; then
+        cat "$PROJECT_DIR/.version" 2>/dev/null | tr -d '\n' || echo ""
+    # Fallback на src/__version__.py
+    elif [ -f "$PROJECT_DIR/src/__version__.py" ]; then
+        get_version_from_file "$PROJECT_DIR/src/__version__.py"
+    else
+        echo ""
+    fi
+}
+
 # Функция для проверки доступности обновлений
 check_updates_available() {
     # Создаем временный файл для хранения статуса и версии
@@ -231,7 +244,7 @@ check_updates_available() {
     # Проверка обновлений в фоне
     {
         # Получаем локальную версию из PROJECT_DIR (production)
-        LOCAL_VERSION=$(get_version_from_file "$PROJECT_DIR/src/__version__.py")
+        LOCAL_VERSION=$(get_local_version)
         
         # Получаем удаленную версию через GitHub raw URL
         # Формат: https://raw.githubusercontent.com/owner/repo/branch/path/to/file
@@ -630,9 +643,9 @@ manage_update_bot() {
     kill $SPINNER_PID 2>/dev/null || true
     wait $SPINNER_PID 2>/dev/null || true
     
-    # Получаем версии из __version__.py
+    # Получаем версии
     REMOTE_VERSION=$(get_version_from_file "$TEMP_REPO/src/__version__.py")
-    LOCAL_VERSION=$(get_version_from_file "$PROJECT_DIR/src/__version__.py")
+    LOCAL_VERSION=$(get_local_version)
     
     UPDATE_NEEDED=1
     
@@ -706,9 +719,11 @@ manage_update_bot() {
                     fi
                 done
                 
-                # Копируем __version__.py для корректной проверки версий
-                mkdir -p "$PROJECT_DIR/src" 2>/dev/null || true
-                cp -f "src/__version__.py" "$PROJECT_DIR/src/__version__.py" 2>/dev/null || true
+                # Сохраняем версию в .version файл для корректной проверки версий
+                local new_version=$(grep -oP '__version__ = "\K[^"]+' "src/__version__.py" 2>/dev/null || echo "")
+                if [ -n "$new_version" ]; then
+                    echo "$new_version" > "$PROJECT_DIR/.version"
+                fi
             } &
             show_spinner "Обновление конфигурации"
             
