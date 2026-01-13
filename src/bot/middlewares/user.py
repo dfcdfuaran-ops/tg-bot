@@ -11,7 +11,7 @@ from remnapy.models.users import UpdateUserRequestDto
 from src.bot.keyboards import get_user_keyboard
 from src.core.config import AppConfig
 from src.core.constants import CONTAINER_KEY, IS_SUPER_DEV_KEY, USER_KEY
-from src.core.enums import MiddlewareEventType, SystemNotificationType
+from src.core.enums import MiddlewareEventType, PlanType, SystemNotificationType
 from src.core.utils.formatters import format_bytes_to_gb
 from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database.models.dto import (
@@ -144,8 +144,22 @@ class UserMiddleware(EventTypedMiddleware):
                                 # План не найден, создаём подписку с тегом IMPORT_OLDTAG
                                 # и сохраняем параметры пользователя (device_limit, expire_at) из Remnawave
                                 # Используем underscore вместо скобок для совместимости с валидацией Remnawave (pattern: ^[A-Z0-9_]+$)
-                                import_tag_remnawave = f"IMPORT_{existing_tag}"  # Тег для Remnawave API
-                                import_tag_display = f"IMPORT({existing_tag})"  # Тег для отображения в боте
+                                
+                                # Проверяем, не начинается ли тег уже с IMPORT_
+                                # Если да - оставляем как есть, не меняем в Remnawave
+                                if existing_tag.startswith("IMPORT_"):
+                                    # Тег уже в формате IMPORT_xxx - используем его как есть
+                                    import_tag_remnawave = existing_tag  # Оставляем существующий тег
+                                    # Извлекаем оригинальный тег для отображения
+                                    original_tag = existing_tag[7:]  # Убираем "IMPORT_" префикс
+                                    import_tag_display = f"IMPORT({original_tag})"  # Для отображения в боте
+                                    should_update_remnawave_tag = False
+                                else:
+                                    # Обычный тег - конвертируем в IMPORT_xxx
+                                    import_tag_remnawave = f"IMPORT_{existing_tag}"  # Тег для Remnawave API
+                                    import_tag_display = f"IMPORT({existing_tag})"  # Тег для отображения в боте
+                                    should_update_remnawave_tag = True
+                                
                                 import_name = "Импорт"  # Название для отображения в профиле
                                 
                                 logger.warning(
@@ -153,53 +167,62 @@ class UserMiddleware(EventTypedMiddleware):
                                     f"for user {user.telegram_id}. Creating subscription with tag '{import_tag_display}'"
                                 )
                                 
-                                # Используем любой план как шаблон для получения технических параметров
-                                all_plans = await plan_service.get_all()
-                                if all_plans:
-                                    template_plan = all_plans[0]
-                                    
-                                    # Вычисляем duration из expire_at пользователя
-                                    if existing_user.expire_at:
-                                        now = datetime.now(timezone.utc)
-                                        time_left = existing_user.expire_at - now
-                                        duration_days = max(1, time_left.days)  # Минимум 1 день
-                                    else:
-                                        duration_days = -1  # Безлимит если нет expire_at
-                                    
-                                    # Используем device_limit пользователя из Remnawave
-                                    user_device_limit = existing_user.hwid_device_limit or template_plan.device_limit
-                                    
-                                    plan_snapshot = PlanSnapshotDto(
-                                        id=template_plan.id,
-                                        name=import_name,
-                                        tag=import_tag_display,  # В боте храним с скобками для читаемости
-                                        type=template_plan.type,
-                                        traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else template_plan.traffic_limit,
-                                        device_limit=user_device_limit,
-                                        duration=duration_days,
-                                        traffic_limit_strategy=existing_user.traffic_limit_strategy or template_plan.traffic_limit_strategy,
-                                        internal_squads=template_plan.internal_squads,
-                                        external_squad=template_plan.external_squad,
-                                    )
-                                    
-                                    imported_subscription = SubscriptionDto(
-                                        user_remna_id=existing_user.uuid,
-                                        status=existing_user.status,
-                                        is_trial=False,
-                                        traffic_limit=format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else template_plan.traffic_limit,
-                                        device_limit=user_device_limit,
-                                        traffic_limit_strategy=existing_user.traffic_limit_strategy or template_plan.traffic_limit_strategy,
-                                        tag=import_tag_display,  # В боте храним с скобками
-                                        internal_squads=template_plan.internal_squads,
-                                        external_squad=template_plan.external_squad,
-                                        expire_at=existing_user.expire_at,
-                                        url=existing_user.subscription_url,
-                                        plan=plan_snapshot,
-                                    )
-                                    
-                                    await subscription_service.create(user, imported_subscription)
-                                    
-                                    # Меняем тег в панели Remnawave на IMPORT_OLDTAG (с underscore для валидации)
+                                # Вычисляем duration из expire_at пользователя
+                                if existing_user.expire_at:
+                                    now = datetime.now(timezone.utc)
+                                    time_left = existing_user.expire_at - now
+                                    duration_days = max(1, time_left.days)  # Минимум 1 день
+                                else:
+                                    duration_days = -1  # Безлимит если нет expire_at
+                                
+                                # Используем device_limit пользователя из Remnawave, по умолчанию 3
+                                user_device_limit = existing_user.hwid_device_limit or 3
+                                
+                                # Определяем traffic_limit из данных Remnawave
+                                traffic_limit_gb = format_bytes_to_gb(existing_user.traffic_limit_bytes) if existing_user.traffic_limit_bytes else -1
+                                
+                                # Определяем тип плана на основе данных
+                                if traffic_limit_gb and traffic_limit_gb > 0 and user_device_limit and user_device_limit > 0:
+                                    plan_type = PlanType.BOTH
+                                elif traffic_limit_gb and traffic_limit_gb > 0:
+                                    plan_type = PlanType.TRAFFIC
+                                elif user_device_limit and user_device_limit > 0:
+                                    plan_type = PlanType.DEVICES
+                                else:
+                                    plan_type = PlanType.UNLIMITED
+                                
+                                plan_snapshot = PlanSnapshotDto(
+                                    id=0,  # Виртуальный ID для импортированного плана
+                                    name=import_name,
+                                    tag=import_tag_display,  # В боте храним с скобками для читаемости
+                                    type=plan_type,
+                                    traffic_limit=traffic_limit_gb,
+                                    device_limit=user_device_limit,
+                                    duration=duration_days,
+                                    traffic_limit_strategy=existing_user.traffic_limit_strategy or "NO_RESET",
+                                    internal_squads=[],
+                                    external_squad=None,
+                                )
+                                
+                                imported_subscription = SubscriptionDto(
+                                    user_remna_id=existing_user.uuid,
+                                    status=existing_user.status,
+                                    is_trial=False,
+                                    traffic_limit=traffic_limit_gb,
+                                    device_limit=user_device_limit,
+                                    traffic_limit_strategy=existing_user.traffic_limit_strategy or "NO_RESET",
+                                    tag=import_tag_display,  # В боте храним с скобками
+                                    internal_squads=[],
+                                    external_squad=None,
+                                    expire_at=existing_user.expire_at,
+                                    url=existing_user.subscription_url,
+                                    plan=plan_snapshot,
+                                )
+                                
+                                await subscription_service.create(user, imported_subscription)
+                                
+                                # Меняем тег в панели Remnawave на IMPORT_OLDTAG только если нужно
+                                if should_update_remnawave_tag:
                                     await remnawave_service.remnawave.users.update_user(
                                         UpdateUserRequestDto(
                                             uuid=existing_user.uuid,
@@ -207,19 +230,32 @@ class UserMiddleware(EventTypedMiddleware):
                                             hwid_device_limit=user_device_limit,
                                         )
                                     )
-                                    
-                                    # Инвалидируем кеш пользователя чтобы загрузить актуальные данные с подпиской
-                                    await user_service.clear_user_cache(user.telegram_id)
-                                    user = await user_service.get(telegram_id=user.telegram_id)
-                                    data[USER_KEY] = user  # Обновляем объект user в контексте
-                                    
+                                else:
+                                    # Тег уже IMPORT_xxx, обновляем только device_limit если нужно
+                                    await remnawave_service.remnawave.users.update_user(
+                                        UpdateUserRequestDto(
+                                            uuid=existing_user.uuid,
+                                            hwid_device_limit=user_device_limit,
+                                        )
+                                    )
+                                
+                                # Инвалидируем кеш пользователя чтобы загрузить актуальные данные с подпиской
+                                await user_service.clear_user_cache(user.telegram_id)
+                                user = await user_service.get(telegram_id=user.telegram_id)
+                                data[USER_KEY] = user  # Обновляем объект user в контексте
+                                
+                                if should_update_remnawave_tag:
                                     logger.info(
                                         f"Created '{import_tag_display}' subscription for user {user.telegram_id}, "
                                         f"preserved device_limit={user_device_limit}, duration={duration_days} days, "
-                                        f"Remnawave tag='{import_tag_remnawave}'"
+                                        f"Remnawave tag changed to '{import_tag_remnawave}'"
                                     )
                                 else:
-                                    logger.error(f"No active plans found to create IMPORT subscription")
+                                    logger.info(
+                                        f"Created '{import_tag_display}' subscription for user {user.telegram_id}, "
+                                        f"preserved device_limit={user_device_limit}, duration={duration_days} days, "
+                                        f"Remnawave tag kept as '{import_tag_remnawave}'"
+                                    )
                         else:
                             logger.debug(f"User {user.telegram_id} has no tag in Remnawave")
                     else:

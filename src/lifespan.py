@@ -4,10 +4,11 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import WebhookInfo, User as AiogramUser
+from aiogram.types import WebhookInfo, User as AiogramUser, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.formatting import Text
 from dishka import AsyncContainer, Scope
 from fastapi import FastAPI
+from fluentogram import TranslatorHub
 from loguru import logger
 from redis.asyncio import from_url
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
@@ -154,27 +155,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 except Exception as e:
                     logger.warning(f"Failed to delete shutdown message: {e}")
             await redis_repository.delete(shutdown_key)
-            
-            # Send startup notification after deletion of shutdown messages
-            # This indicates the bot was turned on after being turned off
-            if shutdown_messages:
-                devs = await user_service.get_by_role(role=UserRole.DEV)
-                for dev in devs:
-                    try:
-                        i18n = translator_hub.get_translator_by_locale(locale=dev.language)
-                        text = i18n_postprocess_text(i18n.get("ntf-event-bot-started"))
-                        await bot.send_message(
-                            chat_id=dev.telegram_id,
-                            text=text,
-                            reply_markup=await notification_service.get_notification_keyboard(
-                                add_close_button=True,
-                                locale=dev.language,
-                                auto_delete_after=None,
-                            ),
-                        )
-                        logger.debug(f"Sent startup notification to {dev.telegram_id}")
-                    except Exception as e:
-                        logger.warning(f"Failed to send startup notification to {dev.telegram_id}: {e}")
         except Exception as e:
             logger.warning(f"Failed to cleanup shutdown messages: {e}")
         
@@ -239,6 +219,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         from src.core.i18n.translator import get_translated_kwargs
         from src.core.utils.formatters import i18n_postprocess_text
         from fluentogram import TranslatorHub
+        from src.bot.states import Notification
         
         translator_hub: TranslatorHub = await container.get(TranslatorHub)
         
@@ -260,6 +241,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         if not devs:
             logger.warning(f"DEV user creation failed. Please send /start to the bot from Telegram ID: {config.bot.dev_id}")
         
+        logger.debug(f"Startup notification check: devs={len(devs) if devs else 0}, settings_check={settings_check}")
+        
         if devs and settings_check:
             # Send messages with close button
             for dev in devs:
@@ -271,15 +254,16 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                         "registration_allowed": settings.registration_allowed,
                     })
                     text = i18n_postprocess_text(i18n.get("ntf-event-bot-startup", **kwargs))
+                    close_btn_text = i18n.get("btn-notification-close")
+                    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                        [InlineKeyboardButton(text=close_btn_text, callback_data=Notification.CLOSE.state)]
+                    ])
                     msg = await bot.send_message(
                         chat_id=dev.telegram_id,
                         text=text,
-                        reply_markup=await notification_service.get_notification_keyboard(
-                            add_close_button=True,
-                            locale=dev.language,
-                            auto_delete_after=None,
-                        ),
+                        reply_markup=keyboard,
                     )
+                    logger.debug(f"Sent startup notification to {dev.telegram_id}")
                 except Exception as e:
                     logger.warning(f"Failed to send startup notification to {dev.telegram_id}: {e}")
     except Exception as e:
