@@ -61,16 +61,7 @@ ___
 
 ### ▶️ Полная установка в один шаг
 ```bash
-cd /tmp && git clone -b dev --depth 1 https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot > /dev/null 2>&1 && cd tg-sell-bot && ./install.sh; cd /opt && rm -rf /tmp/tg-sell-bot
-```
-
-### ▶️ Пошаговая установка
-```bash
-cd /tmp
-git clone -b dev https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot
-cd tg-sell-bot
-./install.sh
-cd /opt && rm -rf /tmp/tg-sell-bot
+cd /tmp && git clone -b main --depth 1 https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot > /dev/null 2>&1 && cd tg-sell-bot && ./install.sh; cd /opt && rm -rf /tmp/tg-sell-bot
 ```
 
 ### 📦 Что делает скрипт установки
@@ -79,7 +70,7 @@ cd /opt && rm -rf /tmp/tg-sell-bot
 - ✅ Создаст файл конфигурации `.env` с защищёнными ключами
 - ✅ Запросит обязательные параметры
 - ✅ Соберёт Docker образ
-- ✅ Запустит все сервисы (БД, Redis, Бот, Worker, Scheduler)
+- ✅ Запустит все сервисы
 - ✅ Автоматически определит и настроит реверс-прокси (Caddy/Nginx) если установлен
 
 <sub>⏱️ Среднее время установки: 1-2 минуты.</sub>
