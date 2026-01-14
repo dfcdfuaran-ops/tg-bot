@@ -1945,9 +1945,9 @@ async def add_device_payment_getter(
         context="extra_devices",
     )
     
-    # Результат в рублях, умножаем на 100 чтобы получить копейки для хранения
-    total_price_rub = int(price_details.final_amount * 100)
-    original_price_rub = int(price_details.original_amount * 100)
+    # Результат в рублях (prices are stored in rubles, not kopecks)
+    total_price_rub = int(price_details.final_amount)
+    original_price_rub = int(price_details.original_amount)
     has_discount = price_details.discount_percent > 0
     
     # Вычисляем информацию о скидке для отображения
@@ -2022,25 +2022,31 @@ async def add_device_payment_getter(
         gateway_currency = Currency.from_gateway_type(gateway.type)
         
         # Конвертируем цену в валюту способа оплаты
-        # total_price_rub и original_price_rub уже в копейках, делим на 100 для конвертации
+        # total_price_rub и original_price_rub в рублях (целые числа)
         # Результат convert_currency в рублях/долларах/евро/звёздах (Decimal)
-        # Умножаем на 100 чтобы получить копейки/центы для хранения
+        # Для USD/EUR умножаем на 100 чтобы получить центы, для RUB/XTR оставляем как есть
         converted_original_decimal = pricing_service.convert_currency(
-            Decimal(original_price_rub) / 100,
+            Decimal(original_price_rub),
             gateway_currency,
             usd_rate,
             eur_rate,
             stars_rate,
         )
         converted_total_decimal = pricing_service.convert_currency(
-            Decimal(total_price_rub) / 100,
+            Decimal(total_price_rub),
             gateway_currency,
             usd_rate,
             eur_rate,
             stars_rate,
         )
-        converted_original_price = int(converted_original_decimal * 100)
-        converted_total_price = int(converted_total_decimal * 100)
+        
+        # Для RUB и XTR цена в целых единицах, для USD/EUR умножаем на 100 для центов
+        if gateway_currency in (Currency.RUB, Currency.XTR):
+            converted_original_price = int(converted_original_decimal)
+            converted_total_price = int(converted_total_decimal)
+        else:
+            converted_original_price = int(converted_original_decimal * 100)
+            converted_total_price = int(converted_total_decimal * 100)
         
         payment_methods.append({
             "gateway_type": gateway.type,
