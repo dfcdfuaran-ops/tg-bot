@@ -113,7 +113,7 @@ frg-subscription =
             [0] {""}
             *[other] {" "}(+{ $extra_devices })
         }
-        *[other] {" "}(+{ $device_limit_bonus }){ $extra_devices ->
+        *[other] +{ $device_limit_bonus }{ $extra_devices ->
             [0] {""}
             *[other] {" "}(+{ $extra_devices } доп.)
         }
@@ -130,7 +130,7 @@ frg-subscription-devices =
             [0] {""}
             *[other] {" "}(+{ $extra_devices })
         }
-        *[other] {" "}(+{ $device_limit_bonus }){ $extra_devices ->
+        *[other] +{ $device_limit_bonus }{ $extra_devices ->
             [0] {""}
             *[other] {" "}(+{ $extra_devices } доп.)
         }
@@ -421,7 +421,7 @@ frg-subscription-conditional =
             [0] {""}
             *[other] {" "}(+{ $extra_devices })
         }
-        *[other] {" "}(+{ $device_limit_bonus }){ $extra_devices ->
+        *[other] +{ $device_limit_bonus }{ $extra_devices ->
             [0] {""}
             *[other] {" "}(+{ $extra_devices } доп.)
         }

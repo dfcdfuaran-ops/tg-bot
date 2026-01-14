@@ -22688,3 +22688,1442 @@ For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/St
 2026-01-14 04:01:23.344 | DEBUG    | src.infrastructure.database.uow:52 | Session '132564272515168' committed
 2026-01-14 04:01:23.344 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '132564272515168'
 2026-01-14 04:01:23.344 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252631 is handled. Duration 137 ms by bot id=8279788561
+2026-01-14 04:07:43.438 | INFO     | taskiq.receiver.receiver:389 | Stopping prefetching messages...
+2026-01-14 04:07:43.442 | INFO     | taskiq.receiver.receiver:389 | Stopping prefetching messages...
+2026-01-14 04:07:43.444 | INFO     | taskiq.receiver.receiver:452 | The runner is stopped.
+2026-01-14 04:07:43.445 | INFO     | taskiq.receiver.receiver:452 | The runner is stopped.
+2026-01-14 04:07:43.447 | WARNING  | taskiq.cli.worker.run:44 | Shutting down the broker.
+2026-01-14 04:07:43.449 | WARNING  | taskiq.cli.worker.run:44 | Shutting down the broker.
+2026-01-14 04:07:53.415 | INFO     | uvicorn.server:264 | Shutting down
+2026-01-14 04:07:53.416 | INFO     | uvicorn.server:264 | Shutting down
+2026-01-14 04:07:53.519 | INFO     | uvicorn.lifespan.on:67 | Waiting for application shutdown.
+2026-01-14 04:07:53.520 | INFO     | uvicorn.lifespan.on:67 | Waiting for application shutdown.
+2026-01-14 04:07:53.522 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '132564264770672'
+2026-01-14 04:07:53.525 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_by_role:DEV'. Executing function
+2026-01-14 04:07:53.565 | DEBUG    | src.services.user:226 | Retrieved '1' users with role 'DEV'
+2026-01-14 04:07:53.568 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_by_role:DEV' (ttl=600)
+2026-01-14 04:07:53.569 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_settings'. Executing function
+2026-01-14 04:07:53.595 | DEBUG    | src.services.settings:53 | Retrieved settings from DB
+2026-01-14 04:07:53.604 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_settings' (ttl=600)
+2026-01-14 04:07:53.605 | DEBUG    | src.services.notification:90 | Attempting to send user notification 'ntf-event-bot-shutdown' to '855511342'
+2026-01-14 04:07:53.677 | DEBUG    | src.lifespan:314 | Saved shutdown message 3556 for chat 855511342
+2026-01-14 04:07:53.679 | DEBUG    | src.infrastructure.database.uow:52 | Session '132564264770672' committed
+2026-01-14 04:07:53.679 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '132564264770672'
+2026-01-14 04:07:53.704 | INFO     | src.services.command:63 | Commands deleted for 'ru'
+2026-01-14 04:07:53.723 | INFO     | src.services.command:63 | Commands deleted for 'default'
+2026-01-14 04:07:53.724 | DEBUG    | src.services.webhook:49 | Bot webhook reset is disabled
+2026-01-14 04:07:53.724 | DEBUG    | src.infrastructure.di.providers.database:41 | Disposing AsyncEngine
+2026-01-14 04:07:53.732 | DEBUG    | src.infrastructure.di.providers.redis:35 | Closing Redis client and disconnecting pool
+2026-01-14 04:07:53.985 | DEBUG    | src.infrastructure.di.providers.bot:28 | Closing Bot session
+2026-01-14 04:07:53.991 | INFO     | uvicorn.lifespan.on:76 | Application shutdown complete.
+2026-01-14 04:07:53.991 | INFO     | uvicorn.lifespan.on:76 | Application shutdown complete.
+2026-01-14 04:07:53.991 | INFO     | uvicorn.server:94 | Finished server process [1]
+2026-01-14 04:07:53.992 | INFO     | uvicorn.server:94 | Finished server process [1]
+2026-01-14 04:09:24.630 | INFO     | taskiq.cli.utils:66 | Importing tasks from module src.infrastructure.taskiq.tasks
+2026-01-14 04:09:30.300 | INFO     | taskiq.cli.scheduler.run:404 | Starting scheduler.
+2026-01-14 04:09:30.346 | INFO     | taskiq.cli.scheduler.run:406 | Startup completed.
+2026-01-14 04:09:40.245 | DEBUG    | src.bot.middlewares.base:42 | ErrorMiddleware set as OUTER for: error
+2026-01-14 04:09:40.248 | DEBUG    | src.bot.middlewares.base:42 | AccessMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.252 | DEBUG    | src.bot.middlewares.base:42 | AccessMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.252 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.253 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.255 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.255 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.256 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.258 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.258 | DEBUG    | src.bot.middlewares.base:42 | RulesMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.258 | DEBUG    | src.bot.middlewares.base:42 | RulesMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.258 | DEBUG    | src.bot.middlewares.base:42 | ChannelMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.258 | DEBUG    | src.bot.middlewares.base:42 | ChannelMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.258 | DEBUG    | src.bot.middlewares.base:42 | ThrottlingMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.258 | DEBUG    | src.bot.middlewares.base:42 | ThrottlingMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.259 | DEBUG    | src.bot.middlewares.base:33 | GarbageMiddleware set as INNER for: message
+2026-01-14 04:09:40.272 | INFO     | taskiq.cli.utils:66 | Importing tasks from module src.infrastructure.taskiq.tasks
+2026-01-14 04:09:40.282 | DEBUG    | src.bot.middlewares.base:42 | ErrorMiddleware set as OUTER for: error
+2026-01-14 04:09:40.285 | DEBUG    | src.bot.middlewares.base:42 | AccessMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.285 | DEBUG    | src.bot.middlewares.base:42 | AccessMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.285 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.285 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.285 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.286 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.289 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.289 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:40.289 | DEBUG    | src.bot.middlewares.base:42 | RulesMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.289 | DEBUG    | src.bot.middlewares.base:42 | RulesMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.289 | DEBUG    | src.bot.middlewares.base:42 | ChannelMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.290 | DEBUG    | src.bot.middlewares.base:42 | ChannelMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.290 | DEBUG    | src.bot.middlewares.base:42 | ThrottlingMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.290 | DEBUG    | src.bot.middlewares.base:42 | ThrottlingMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:40.290 | DEBUG    | src.bot.middlewares.base:33 | GarbageMiddleware set as INNER for: message
+2026-01-14 04:09:40.302 | INFO     | taskiq.cli.utils:66 | Importing tasks from module src.infrastructure.taskiq.tasks
+2026-01-14 04:09:40.306 | INFO     | taskiq.receiver.receiver:334 | Listening started.
+2026-01-14 04:09:40.345 | INFO     | taskiq.receiver.receiver:334 | Listening started.
+2026-01-14 04:09:41.192 | DEBUG    | src.bot.middlewares.base:42 | ErrorMiddleware set as OUTER for: error
+2026-01-14 04:09:41.192 | DEBUG    | src.bot.middlewares.base:42 | AccessMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.193 | DEBUG    | src.bot.middlewares.base:42 | AccessMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.193 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:41.193 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:41.194 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:41.194 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:41.194 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:41.194 | DEBUG    | src.bot.middlewares.base:42 | UserMiddleware set as OUTER for: message, callback_query, error, aiogd_update, my_chat_member, pre_checkout_query
+2026-01-14 04:09:41.194 | DEBUG    | src.bot.middlewares.base:42 | RulesMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.194 | DEBUG    | src.bot.middlewares.base:42 | RulesMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.195 | DEBUG    | src.bot.middlewares.base:42 | ChannelMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.195 | DEBUG    | src.bot.middlewares.base:42 | ChannelMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.195 | DEBUG    | src.bot.middlewares.base:42 | ThrottlingMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.195 | DEBUG    | src.bot.middlewares.base:42 | ThrottlingMiddleware set as OUTER for: message, callback_query
+2026-01-14 04:09:41.195 | DEBUG    | src.bot.middlewares.base:33 | GarbageMiddleware set as INNER for: message
+2026-01-14 04:09:41.201 | INFO     | uvicorn.server:84 | Started server process [1]
+2026-01-14 04:09:41.202 | INFO     | uvicorn.server:84 | Started server process [1]
+2026-01-14 04:09:41.202 | INFO     | uvicorn.lifespan.on:48 | Waiting for application startup.
+2026-01-14 04:09:41.202 | INFO     | uvicorn.lifespan.on:48 | Waiting for application startup.
+2026-01-14 04:09:41.203 | DEBUG    | src.infrastructure.di.providers.bot:20 | Initializing Bot instance
+2026-01-14 04:09:41.220 | DEBUG    | src.infrastructure.di.providers.redis:16 | Connecting to Redis
+2026-01-14 04:09:41.226 | DEBUG    | src.infrastructure.di.providers.redis:28 | Successfully connected to Redis
+2026-01-14 04:09:47.089 | DEBUG    | src.infrastructure.di.providers.i18n:33 | Loaded TranslatorHub with locales: ['ru'], default=ru
+2026-01-14 04:09:47.091 | DEBUG    | src.infrastructure.di.providers.database:22 | Creating AsyncEngine
+2026-01-14 04:09:47.178 | DEBUG    | src.infrastructure.di.providers.database:47 | Created session maker
+2026-01-14 04:09:47.178 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548254156512'
+2026-01-14 04:09:47.181 | DEBUG    | src.infrastructure.di.providers.remnawave:14 | Initializing RemnawaveSDK
+2026-01-14 04:09:47.347 | DEBUG    | src.services.payment_gateway:166 | Retrieved payment gateway of type 'TELEGRAM_STARS'
+2026-01-14 04:09:47.350 | DEBUG    | src.services.payment_gateway:166 | Retrieved payment gateway of type 'YOOKASSA'
+2026-01-14 04:09:47.359 | DEBUG    | src.services.payment_gateway:166 | Retrieved payment gateway of type 'YOOMONEY'
+2026-01-14 04:09:47.361 | DEBUG    | src.services.payment_gateway:166 | Retrieved payment gateway of type 'CRYPTOMUS'
+2026-01-14 04:09:47.362 | DEBUG    | src.services.payment_gateway:166 | Retrieved payment gateway of type 'HELEKET'
+2026-01-14 04:09:47.363 | WARNING  | src.services.payment_gateway:163 | Payment gateway of type 'CRYPTOPAY' not found
+2026-01-14 04:09:47.364 | WARNING  | src.services.payment_gateway:130 | Unhandled payment gateway type 'CRYPTOPAY' - skipping
+2026-01-14 04:09:47.365 | WARNING  | src.services.payment_gateway:163 | Payment gateway of type 'ROBOKASSA' not found
+2026-01-14 04:09:47.365 | WARNING  | src.services.payment_gateway:130 | Unhandled payment gateway type 'ROBOKASSA' - skipping
+2026-01-14 04:09:47.366 | WARNING  | src.services.payment_gateway:163 | Payment gateway of type 'BALANCE' not found
+2026-01-14 04:09:47.366 | WARNING  | src.services.payment_gateway:130 | Unhandled payment gateway type 'BALANCE' - skipping
+2026-01-14 04:09:47.367 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:47.415 | DEBUG    | src.lifespan:154 | Deleted shutdown message 3556 in chat 855511342
+2026-01-14 04:09:47.420 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548254156512' committed
+2026-01-14 04:09:47.421 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548254156512'
+2026-01-14 04:09:47.422 | INFO     | src.services.webhook:32 | Bot webhook setup skipped, already configured
+2026-01-14 04:09:47.422 | DEBUG    | src.services.webhook:33 | Current webhook URL: 'https://**********/api/v1/telegram'
+2026-01-14 04:09:47.456 | INFO     | src.services.command:40 | Commands successfully set for language 'ru': ['start', 'paysupport', 'help']
+2026-01-14 04:09:47.473 | INFO     | src.services.command:40 | Commands successfully set for language 'default': ['start', 'paysupport', 'help']
+2026-01-14 04:09:47.498 | INFO     | src.lifespan:193 | 
+        
+    ██████╗   ███████╗  ██████╗
+    ██╔══██╗  ██╔════╝ ██╔════╝
+    ██║  ██║  █████╗   ██║     
+    ██║  ██║  ██╔══╝   ██║     
+    ██████╔╝  ██║      ╚██████╗
+    ╚═════╝   ╚═╝       ╚═════╝
+     Digital  Freedom   Core
+
+        Version: 0.1.108
+        ------------------------
+        Groups Mode  - Enabled
+        Privacy Mode - Enabled
+        Inline Mode  - Disabled
+        ------------------------
+        Bot in access mode: 'PUBLIC'
+        Purchases allowed: 'True'
+        Registration allowed: 'True'
+        
+2026-01-14 04:09:49.501 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548254156608'
+2026-01-14 04:09:49.675 | DEBUG    | src.lifespan:69 | DEV user 855511342 already exists
+2026-01-14 04:09:49.676 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548254156608' committed
+2026-01-14 04:09:49.677 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548254156608'
+2026-01-14 04:09:49.688 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_by_role:DEV'. Executing function
+2026-01-14 04:09:49.753 | DEBUG    | src.services.user:226 | Retrieved '1' users with role 'DEV'
+2026-01-14 04:09:49.755 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_by_role:DEV' (ttl=600)
+2026-01-14 04:09:49.756 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:49.757 | DEBUG    | src.lifespan:244 | Startup notification check: devs=1, settings_check=True
+2026-01-14 04:09:49.799 | DEBUG    | src.lifespan:266 | Sent startup notification to 855511342
+2026-01-14 04:09:49.948 | INFO     | uvicorn.lifespan.on:62 | Application startup complete.
+2026-01-14 04:09:49.948 | INFO     | uvicorn.lifespan.on:62 | Application startup complete.
+2026-01-14 04:09:49.949 | INFO     | uvicorn.server:216 | Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+2026-01-14 04:09:49.949 | INFO     | uvicorn.server:216 | Uvicorn running on http://0.0.0.0:5000 (Press CTRL+C to quit)
+2026-01-14 04:09:52.786 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252632' scheduled for processing
+2026-01-14 04:09:52.786 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:45104 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:09:52.793 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548251883600'
+2026-01-14 04:09:52.793 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:09:52.887 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:09:52.887 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:09:52.888 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:09:52.889 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:52.889 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:09:52.890 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:09:52.892 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:09:52.892 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:52.893 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:52.894 | INFO     | src.bot.routers.extra.notification:20 | [DEV:855511342 (Hello)] Closed notification '3557'
+2026-01-14 04:09:52.928 | DEBUG    | src.bot.routers.extra.notification:25 | Notification '3557' for user '855511342' deleted
+2026-01-14 04:09:52.930 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548251883600' committed
+2026-01-14 04:09:52.930 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548251883600'
+2026-01-14 04:09:52.931 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252632 is handled. Duration 144 ms by bot id=8279788561
+2026-01-14 04:09:53.555 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252633' scheduled for processing
+2026-01-14 04:09:53.556 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:45104 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:09:53.559 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548251892240'
+2026-01-14 04:09:53.559 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:09:53.560 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:53.560 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:09:53.561 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:09:53.562 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:09:53.563 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:53.563 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:53.566 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:09:53.568 | WARNING  | src.bot.widgets.banner:45 | Banner 'dashboard' not found in locales 'ru' or 'ru'
+2026-01-14 04:09:53.633 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548251892240' committed
+2026-01-14 04:09:53.633 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548251892240'
+2026-01-14 04:09:53.634 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252633 is handled. Duration 77 ms by bot id=8279788561
+2026-01-14 04:09:54.418 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252634' scheduled for processing
+2026-01-14 04:09:54.418 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:45104 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:09:54.421 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252078288'
+2026-01-14 04:09:54.422 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:09:54.423 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.423 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:09:54.424 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:09:54.425 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:09:54.426 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.427 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.431 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:09:54.431 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252076320'
+2026-01-14 04:09:54.465 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:09:54.469 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:09:54.481 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.499 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:09:54.500 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.501 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.501 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.502 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.503 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.503 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.504 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.505 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:09:54.510 | WARNING  | src.bot.widgets.banner:45 | Banner 'menu' not found in locales 'ru' or 'ru'
+2026-01-14 04:09:54.586 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252076320' committed
+2026-01-14 04:09:54.587 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252076320'
+2026-01-14 04:09:54.588 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252078288' committed
+2026-01-14 04:09:54.588 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252078288'
+2026-01-14 04:09:54.588 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252634 is handled. Duration 169 ms by bot id=8279788561
+2026-01-14 04:10:12.333 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252081072'
+2026-01-14 04:10:12.334 | DEBUG    | src.api.endpoints.remnawave:32 | Received Remnawave webhook payload: '{'scope': 'user', 'event': 'user.modified', 'timestamp': '2026-01-14T04:10:12.153Z', 'data': {'uuid': 'c241baef-034e-4027-b307-dc5145a685c5', 'id': 67, 'shortUuid': 'z3rZhnHnqtQfdG-0', 'username': '855511342', 'status': 'ACTIVE', 'trafficLimitBytes': 0, 'trafficLimitStrategy': 'NO_RESET', 'expireAt': '2026-04-17T00:17:22.692Z', 'telegramId': 855511342, 'email': None, 'description': 'name: Hello\nusername: StaySaved', 'tag': 'STANDART', 'hwidDeviceLimit': 3, 'externalSquadUuid': None, 'trojanPassword': '6S0u1FYY0mJJLnsnG9QC8hpRHxXWZHM4', 'vlessUuid': '8f152f11-e3c3-452a-8267-586541bdf85d', 'ssPassword': 'wxNLAD5Bkhe3huGGhbtn10M7tBFU5UBV', 'lastTriggeredThreshold': 0, 'subRevokedAt': None, 'subLastUserAgent': None, 'subLastOpenedAt': None, 'lastTrafficResetAt': '2026-01-14T00:42:15.383Z', 'createdAt': '2026-01-14T00:17:22.725Z', 'updatedAt': '2026-01-14T04:10:12.132Z', 'subscriptionUrl': 'https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0', 'activeInternalSquads': [{'uuid': 'e4c1d7c2-a862-4fe1-8ef2-6cde70114440', 'name': 'Default'}], 'userTraffic': {'usedTrafficBytes': 0, 'lifetimeUsedTrafficBytes': 0, 'onlineAt': None, 'lastConnectedNodeUuid': None, 'firstConnectedAt': None}}, 'meta': None}'
+2026-01-14 04:10:12.335 | INFO     | src.services.remnawave:879 | Received event 'user.modified' for RemnaUser '855511342'
+2026-01-14 04:10:12.336 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:12.337 | DEBUG    | src.services.remnawave:934 | RemnaUser '855511342' modified
+2026-01-14 04:10:12.337 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:12.338 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_current_subscription:855511342'. Executing function
+2026-01-14 04:10:12.370 | DEBUG    | src.services.subscription:95 | Current subscription check: Subscription '58' retrieved for user '855511342'
+2026-01-14 04:10:12.371 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_current_subscription:855511342' (ttl=60)
+2026-01-14 04:10:12.372 | INFO     | src.services.remnawave:861 | Synchronizing subscription for '855511342'
+2026-01-14 04:10:12.372 | DEBUG    | src.services.subscription:249 | Field 'device_limit' changed from '4' to '3'
+2026-01-14 04:10:12.392 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252081072' committed
+2026-01-14 04:10:12.393 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:10:12.393 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:12.394 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:12.394 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:10:12.394 | INFO     | src.services.remnawave:867 | Subscription updated for '855511342'
+2026-01-14 04:10:12.394 | INFO     | src.services.remnawave:869 | Sync completed for user '855511342'
+2026-01-14 04:10:12.394 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:58272 - "POST /api/v1/remnawave HTTP/1.1" 200
+2026-01-14 04:10:12.395 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252081072' committed
+2026-01-14 04:10:12.395 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252081072'
+2026-01-14 04:10:17.905 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252635' scheduled for processing
+2026-01-14 04:10:17.906 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:34768 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:17.914 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252071840'
+2026-01-14 04:10:17.917 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:10:17.943 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:10:17.944 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:10:17.947 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:10:17.948 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:17.949 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:17.950 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:17.953 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:17.954 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:17.956 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:17.963 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:18.072 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252071840' committed
+2026-01-14 04:10:18.073 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252071840'
+2026-01-14 04:10:18.074 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252635 is handled. Duration 164 ms by bot id=8279788561
+2026-01-14 04:10:18.717 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252636' scheduled for processing
+2026-01-14 04:10:18.718 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:34768 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:18.723 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252454832'
+2026-01-14 04:10:18.724 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:18.725 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.725 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:18.726 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:18.728 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:18.729 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.730 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.734 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:18.735 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548259420720'
+2026-01-14 04:10:18.746 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:10:18.747 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:has_used_trial:855511342'. Executing function
+2026-01-14 04:10:18.753 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:has_used_trial:855511342' (ttl=600)
+2026-01-14 04:10:18.765 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.767 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:18.768 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.768 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.769 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.769 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.770 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.770 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.771 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.771 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:18.836 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548259420720' committed
+2026-01-14 04:10:18.836 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548259420720'
+2026-01-14 04:10:18.837 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252454832' committed
+2026-01-14 04:10:18.837 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252454832'
+2026-01-14 04:10:18.837 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252636 is handled. Duration 117 ms by bot id=8279788561
+2026-01-14 04:10:29.868 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252637' scheduled for processing
+2026-01-14 04:10:29.869 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:29.873 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252082896'
+2026-01-14 04:10:29.874 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:29.875 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:29.876 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:29.876 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:29.878 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:29.878 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:29.879 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:29.883 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:30.065 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252082896' committed
+2026-01-14 04:10:30.066 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252082896'
+2026-01-14 04:10:30.066 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252637 is handled. Duration 196 ms by bot id=8279788561
+2026-01-14 04:10:34.369 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252638' scheduled for processing
+2026-01-14 04:10:34.369 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:34.372 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252074160'
+2026-01-14 04:10:34.373 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:34.373 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.374 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:34.374 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:34.375 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:34.376 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.377 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.381 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:34.381 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548259415920'
+2026-01-14 04:10:34.390 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:10:34.391 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:10:34.403 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.406 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:34.406 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.407 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.408 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.409 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.409 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.410 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.411 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.412 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:34.470 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548259415920' committed
+2026-01-14 04:10:34.470 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548259415920'
+2026-01-14 04:10:34.471 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252074160' committed
+2026-01-14 04:10:34.471 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252074160'
+2026-01-14 04:10:34.471 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252638 is handled. Duration 101 ms by bot id=8279788561
+2026-01-14 04:10:35.466 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252639' scheduled for processing
+2026-01-14 04:10:35.467 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:35.470 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548251893152'
+2026-01-14 04:10:35.471 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:35.472 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:35.472 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:35.473 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:35.474 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:35.474 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:35.475 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:35.478 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:35.479 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548259419328'
+2026-01-14 04:10:35.482 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:35.487 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:10:35.488 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:10:35.488 | INFO     | src.bot.routers.subscription.getters:136 | [subscription_getter] user=855511342: plan_name='🌐 Стандартный', is_trial_flag=False, is_trial_by_name=False, is_referral_by_name=False, is_trial_subscription=False, can_upgrade_to_referral=False
+2026-01-14 04:10:35.489 | DEBUG    | src.bot.routers.subscription.getters:153 | [subscription_getter] user=855511342: is_trial_subscription=False, safe_is_trial_subscription=0, current_subscription=id=58 user_remna_id=UUID('c241baef-034e-4027-b307-dc5145a685c5') status=<SubscriptionStatus.ACTIVE: 'ACTIVE'> is_trial=False traffic_limit=-1 device_limit=3 extra_devices=1 traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'> tag='STANDART' internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')] external_squad=None expire_at=datetime.datetime(2026, 4, 17, 0, 17, 22, 692000, tzinfo=TzInfo(UTC)) url='https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0' plan=PlanSnapshotDto(id=3, name='🌐 Стандартный', tag='STANDART', type=<PlanType.DEVICES: 'DEVICES'>, traffic_limit=-1, device_limit=2, duration=30, traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'>, internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')], external_squad=[UUID('dd81891c-45f5-42a8-9ff2-520760c50d3d')]) created_at=datetime.datetime(2026, 1, 14, 0, 17, 22, 622570, tzinfo=TzInfo(UTC)) updated_at=datetime.datetime(2026, 1, 14, 4, 10, 12, 341434, tzinfo=TzInfo(UTC)), is_trial=False, is_active=True
+2026-01-14 04:10:35.490 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:35.491 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:35.495 | WARNING  | src.bot.widgets.banner:45 | Banner 'subscription' not found in locales 'ru' or 'ru'
+2026-01-14 04:10:35.547 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548259419328' committed
+2026-01-14 04:10:35.548 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548259419328'
+2026-01-14 04:10:35.548 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548251893152' committed
+2026-01-14 04:10:35.548 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548251893152'
+2026-01-14 04:10:35.549 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252639 is handled. Duration 81 ms by bot id=8279788561
+2026-01-14 04:10:36.370 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252640' scheduled for processing
+2026-01-14 04:10:36.371 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:36.374 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548259426384'
+2026-01-14 04:10:36.374 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:36.375 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:36.375 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:36.376 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:36.377 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:36.378 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:36.379 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:36.381 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548259414240'
+2026-01-14 04:10:36.382 | INFO     | src.services.remnawave:656 | Fetching devices for RemnaUser '855511342'
+2026-01-14 04:10:36.407 | INFO     | src.services.remnawave:675 | No devices found for RemnaUser '855511342'
+2026-01-14 04:10:36.408 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:36.412 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:36.413 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:36.414 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:36.414 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:36.473 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548259414240' committed
+2026-01-14 04:10:36.473 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548259414240'
+2026-01-14 04:10:36.474 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548259426384' committed
+2026-01-14 04:10:36.474 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548259426384'
+2026-01-14 04:10:36.474 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252640 is handled. Duration 103 ms by bot id=8279788561
+2026-01-14 04:10:37.544 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252641' scheduled for processing
+2026-01-14 04:10:37.545 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:37.548 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548259418128'
+2026-01-14 04:10:37.549 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:37.550 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:37.550 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:37.551 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:37.552 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:37.552 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:37.553 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:37.556 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548251667296'
+2026-01-14 04:10:37.587 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:37.588 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:37.588 | DEBUG    | src.services.settings:114 | Retrieved default currency 'RUB'
+2026-01-14 04:10:37.588 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:10:37.589 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:10:37.589 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:10:37.589 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:10:37.595 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:10:37.595 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:10:37.595 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:10:37.595 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:10:37.601 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:37.602 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:37.603 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:37.603 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:37.661 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548251667296' committed
+2026-01-14 04:10:37.662 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548251667296'
+2026-01-14 04:10:37.662 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548259418128' committed
+2026-01-14 04:10:37.662 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548259418128'
+2026-01-14 04:10:37.663 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252641 is handled. Duration 117 ms by bot id=8279788561
+2026-01-14 04:10:39.461 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252642' scheduled for processing
+2026-01-14 04:10:39.461 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:39.467 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548251665472'
+2026-01-14 04:10:39.468 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:39.469 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.469 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:39.470 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:39.472 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:39.472 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.473 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.477 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252828112'
+2026-01-14 04:10:39.515 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252828112' committed
+2026-01-14 04:10:39.516 | INFO     | src.services.extra_device:125 | Deleted extra device purchase '3'
+2026-01-14 04:10:39.532 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252828112' committed
+2026-01-14 04:10:39.533 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:10:39.534 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:39.534 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:39.534 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:10:39.535 | INFO     | src.services.remnawave:554 | Updating RemnaUser '855511342' from subscription '58'
+2026-01-14 04:10:39.550 | WARNING  | src.services.remnawave:154 | External squad dd81891c-45f5-42a8-9ff2-520760c50d3d provided but skipped to avoid potential foreign key constraint errors
+2026-01-14 04:10:39.594 | INFO     | src.services.remnawave:626 | RemnaUser '855511342' updated successfully
+2026-01-14 04:10:39.595 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:39.596 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:39.596 | INFO     | src.bot.routers.subscription.handlers:1597 | [DEV:855511342 (Hello)] Deleted extra device purchase '3', removed 1 devices
+2026-01-14 04:10:39.597 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.597 | DEBUG    | src.services.notification:90 | Attempting to send user notification 'ntf-extra-device-deleted' to '855511342'
+2026-01-14 04:10:39.606 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252754160'
+2026-01-14 04:10:39.607 | DEBUG    | src.api.endpoints.remnawave:32 | Received Remnawave webhook payload: '{'scope': 'user', 'event': 'user.modified', 'timestamp': '2026-01-14T04:10:39.585Z', 'data': {'uuid': 'c241baef-034e-4027-b307-dc5145a685c5', 'id': 67, 'shortUuid': 'z3rZhnHnqtQfdG-0', 'username': '855511342', 'status': 'ACTIVE', 'trafficLimitBytes': 0, 'trafficLimitStrategy': 'NO_RESET', 'expireAt': '2026-04-17T00:17:22.692Z', 'telegramId': 855511342, 'email': None, 'description': 'name: Hello\nusername: StaySaved', 'tag': 'STANDART', 'hwidDeviceLimit': 2, 'externalSquadUuid': None, 'trojanPassword': '6S0u1FYY0mJJLnsnG9QC8hpRHxXWZHM4', 'vlessUuid': '8f152f11-e3c3-452a-8267-586541bdf85d', 'ssPassword': 'wxNLAD5Bkhe3huGGhbtn10M7tBFU5UBV', 'lastTriggeredThreshold': 0, 'subRevokedAt': None, 'subLastUserAgent': None, 'subLastOpenedAt': None, 'lastTrafficResetAt': '2026-01-14T00:42:15.383Z', 'createdAt': '2026-01-14T00:17:22.725Z', 'updatedAt': '2026-01-14T04:10:39.576Z', 'subscriptionUrl': 'https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0', 'activeInternalSquads': [{'uuid': 'e4c1d7c2-a862-4fe1-8ef2-6cde70114440', 'name': 'Default'}], 'userTraffic': {'usedTrafficBytes': 0, 'lifetimeUsedTrafficBytes': 0, 'onlineAt': None, 'lastConnectedNodeUuid': None, 'firstConnectedAt': None}}, 'meta': None}'
+2026-01-14 04:10:39.608 | INFO     | src.services.remnawave:879 | Received event 'user.modified' for RemnaUser '855511342'
+2026-01-14 04:10:39.608 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:10:39.620 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:10:39.620 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:10:39.621 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:10:39.622 | DEBUG    | src.services.remnawave:934 | RemnaUser '855511342' modified
+2026-01-14 04:10:39.622 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:39.623 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_current_subscription:855511342'. Executing function
+2026-01-14 04:10:39.634 | DEBUG    | src.services.notification:310 | Scheduling message '3558' for auto-deletion in '5' (chat '855511342')
+2026-01-14 04:10:39.650 | DEBUG    | src.services.subscription:95 | Current subscription check: Subscription '58' retrieved for user '855511342'
+2026-01-14 04:10:39.651 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_current_subscription:855511342' (ttl=60)
+2026-01-14 04:10:39.652 | INFO     | src.services.remnawave:861 | Synchronizing subscription for '855511342'
+2026-01-14 04:10:39.667 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252754160' committed
+2026-01-14 04:10:39.669 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:10:39.712 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:39.713 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:39.713 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:10:39.713 | INFO     | src.services.remnawave:867 | Subscription updated for '855511342'
+2026-01-14 04:10:39.713 | INFO     | src.services.remnawave:869 | Sync completed for user '855511342'
+2026-01-14 04:10:39.713 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/remnawave HTTP/1.1" 200
+2026-01-14 04:10:39.715 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252754160' committed
+2026-01-14 04:10:39.715 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252754160'
+2026-01-14 04:10:39.731 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.732 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.733 | DEBUG    | src.services.settings:114 | Retrieved default currency 'RUB'
+2026-01-14 04:10:39.736 | DEBUG    | src.services.pricing:185 | Converting 0 RUB to RUB
+2026-01-14 04:10:39.758 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:39.759 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.761 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:39.761 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:39.820 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252828112' committed
+2026-01-14 04:10:39.820 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252828112'
+2026-01-14 04:10:39.820 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548251665472' committed
+2026-01-14 04:10:39.820 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548251665472'
+2026-01-14 04:10:39.821 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252642 is handled. Duration 358 ms by bot id=8279788561
+2026-01-14 04:10:42.631 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252643' scheduled for processing
+2026-01-14 04:10:42.631 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:42.635 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548259425136'
+2026-01-14 04:10:42.636 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:10:42.648 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:10:42.649 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:10:42.649 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:10:42.650 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:42.651 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:42.651 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:42.653 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:42.653 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:42.654 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:42.657 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252078432'
+2026-01-14 04:10:42.658 | INFO     | src.services.remnawave:656 | Fetching devices for RemnaUser '855511342'
+2026-01-14 04:10:42.667 | INFO     | src.services.remnawave:675 | No devices found for RemnaUser '855511342'
+2026-01-14 04:10:42.668 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:42.672 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:42.673 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:42.673 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:42.674 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:42.743 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252078432' committed
+2026-01-14 04:10:42.743 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252078432'
+2026-01-14 04:10:42.744 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548259425136' committed
+2026-01-14 04:10:42.744 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548259425136'
+2026-01-14 04:10:42.744 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252643 is handled. Duration 112 ms by bot id=8279788561
+2026-01-14 04:10:44.653 | DEBUG    | src.services.notification:316 | Message '3558' in chat '855511342' deleted after '5' seconds
+2026-01-14 04:10:46.403 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252644' scheduled for processing
+2026-01-14 04:10:46.404 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:46.409 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252839440'
+2026-01-14 04:10:46.410 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:46.410 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:46.411 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:46.411 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:46.413 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:46.413 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:46.414 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:46.417 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548251892720'
+2026-01-14 04:10:46.422 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:46.423 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:46.424 | DEBUG    | src.services.pricing:24 | Calculating price for amount '100' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:10:46.424 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:10:46.424 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:10:46.425 | INFO     | src.services.pricing:127 | Price calculated: original='100', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='100', context='extra_devices'
+2026-01-14 04:10:46.425 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:46.426 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:46.426 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:46.427 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-full' transformed mapping: {'device_price': 100}
+2026-01-14 04:10:46.490 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548251892720' committed
+2026-01-14 04:10:46.490 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548251892720'
+2026-01-14 04:10:46.491 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252839440' committed
+2026-01-14 04:10:46.491 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252839440'
+2026-01-14 04:10:46.491 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252644 is handled. Duration 85 ms by bot id=8279788561
+2026-01-14 04:10:47.398 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252645' scheduled for processing
+2026-01-14 04:10:47.399 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:47.402 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548251886096'
+2026-01-14 04:10:47.403 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:47.404 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.404 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:47.405 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:47.406 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:47.407 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.407 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.410 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252834112'
+2026-01-14 04:10:47.411 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.415 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:47.416 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.417 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.417 | DEBUG    | src.services.pricing:24 | Calculating price for amount '50' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:10:47.417 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:47.417 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:47.417 | INFO     | src.services.pricing:127 | Price calculated: original='50', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='50', context='extra_devices'
+2026-01-14 04:10:47.419 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.420 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.432 | DEBUG    | src.services.payment_gateway:197 | Filtered active gateways: 'True', found '5'
+2026-01-14 04:10:47.433 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:47.433 | DEBUG    | src.services.settings:114 | Retrieved default currency 'RUB'
+2026-01-14 04:10:47.434 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to XTR
+2026-01-14 04:10:47.434 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '33.33333333333333333333333333' and currency 'XTR'
+2026-01-14 04:10:47.434 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '33'
+2026-01-14 04:10:47.434 | DEBUG    | src.services.pricing:203 | Converted amount: 33 XTR
+2026-01-14 04:10:47.434 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to XTR
+2026-01-14 04:10:47.435 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '33.33333333333333333333333333' and currency 'XTR'
+2026-01-14 04:10:47.435 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '33'
+2026-01-14 04:10:47.435 | DEBUG    | src.services.pricing:203 | Converted amount: 33 XTR
+2026-01-14 04:10:47.435 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to RUB
+2026-01-14 04:10:47.435 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:47.435 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:47.435 | DEBUG    | src.services.pricing:203 | Converted amount: 50 RUB
+2026-01-14 04:10:47.436 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to RUB
+2026-01-14 04:10:47.436 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:47.436 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:47.436 | DEBUG    | src.services.pricing:203 | Converted amount: 50 RUB
+2026-01-14 04:10:47.436 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to RUB
+2026-01-14 04:10:47.436 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:47.437 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:47.437 | DEBUG    | src.services.pricing:203 | Converted amount: 50 RUB
+2026-01-14 04:10:47.437 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to RUB
+2026-01-14 04:10:47.437 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:47.437 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:47.437 | DEBUG    | src.services.pricing:203 | Converted amount: 50 RUB
+2026-01-14 04:10:47.437 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to USD
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '0.6341154090044388078630310717' and currency 'USD'
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '0.63'
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:203 | Converted amount: 0.63 USD
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to USD
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '0.6341154090044388078630310717' and currency 'USD'
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '0.63'
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:203 | Converted amount: 0.63 USD
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to USD
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '0.6341154090044388078630310717' and currency 'USD'
+2026-01-14 04:10:47.438 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '0.63'
+2026-01-14 04:10:47.439 | DEBUG    | src.services.pricing:203 | Converted amount: 0.63 USD
+2026-01-14 04:10:47.439 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to USD
+2026-01-14 04:10:47.439 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '0.6341154090044388078630310717' and currency 'USD'
+2026-01-14 04:10:47.439 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '0.63'
+2026-01-14 04:10:47.439 | DEBUG    | src.services.pricing:203 | Converted amount: 0.63 USD
+2026-01-14 04:10:47.439 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:47.440 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-payment-full' transformed mapping: {'device_count': 1}
+2026-01-14 04:10:47.441 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.BALANCE: 'BALANCE'>, 'price': '50 ₽', 'original_price': '50 ₽', 'currency': '₽', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:10:47.441 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.TELEGRAM_STARS: 'TELEGRAM_STARS'>, 'price': '33 ★', 'original_price': '33 ★', 'currency': '★', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:10:47.442 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.YOOKASSA: 'YOOKASSA'>, 'price': '50 ₽', 'original_price': '50 ₽', 'currency': '₽', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:10:47.442 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.YOOMONEY: 'YOOMONEY'>, 'price': '50 ₽', 'original_price': '50 ₽', 'currency': '₽', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:10:47.442 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.CRYPTOMUS: 'CRYPTOMUS'>, 'price': '0.63 $', 'original_price': '0.63 $', 'currency': '$', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:10:47.442 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.HELEKET: 'HELEKET'>, 'price': '0.63 $', 'original_price': '0.63 $', 'currency': '$', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:10:47.523 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252834112' committed
+2026-01-14 04:10:47.524 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252834112'
+2026-01-14 04:10:47.524 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548251886096' committed
+2026-01-14 04:10:47.524 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548251886096'
+2026-01-14 04:10:47.525 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252645 is handled. Duration 125 ms by bot id=8279788561
+2026-01-14 04:10:48.729 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252646' scheduled for processing
+2026-01-14 04:10:48.729 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:48.733 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252833056'
+2026-01-14 04:10:48.734 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:48.734 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.734 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:48.735 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:48.736 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:48.736 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.737 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.740 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252750656'
+2026-01-14 04:10:48.740 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:48.741 | INFO     | src.bot.routers.subscription.handlers:1263 | [DEV:855511342 (Hello)] Selected payment method 'BALANCE' for adding device
+2026-01-14 04:10:48.741 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.742 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.745 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:48.746 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.746 | DEBUG    | src.services.pricing:24 | Calculating price for amount '50' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:10:48.746 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:48.746 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:48.746 | INFO     | src.services.pricing:127 | Price calculated: original='50', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='50', context='extra_devices'
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to RUB
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:203 | Converted amount: 50 RUB
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:185 | Converting 50 RUB to RUB
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '50' and currency 'RUB'
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '50'
+2026-01-14 04:10:48.747 | DEBUG    | src.services.pricing:203 | Converted amount: 50 RUB
+2026-01-14 04:10:48.748 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.748 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:48.749 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-confirm-full' transformed mapping: {'device_count': 1, 'selected_method': 'С баланса', 'balance': 2250, 'currency': '₽', 'new_balance': 2200}
+2026-01-14 04:10:48.806 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252750656' committed
+2026-01-14 04:10:48.806 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252750656'
+2026-01-14 04:10:48.807 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252833056' committed
+2026-01-14 04:10:48.807 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252833056'
+2026-01-14 04:10:48.807 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252646 is handled. Duration 76 ms by bot id=8279788561
+2026-01-14 04:10:50.356 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252647' scheduled for processing
+2026-01-14 04:10:50.357 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:50.362 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252748400'
+2026-01-14 04:10:50.362 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:50.363 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.364 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:50.364 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:50.366 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:50.367 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.367 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.370 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252755792'
+2026-01-14 04:10:50.371 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:50.372 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.373 | DEBUG    | src.services.pricing:24 | Calculating price for amount '100' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:10:50.373 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:10:50.373 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:10:50.374 | INFO     | src.services.pricing:127 | Price calculated: original='100', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='100', context='extra_devices'
+2026-01-14 04:10:50.374 | INFO     | src.bot.routers.subscription.handlers:1372 | [DEV:855511342 (Hello)] Confirmed adding 1 devices with payment method 'BALANCE', discount=0%, price=100
+2026-01-14 04:10:50.374 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:50.375 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.378 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2250' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:50.379 | INFO     | src.services.user:445 | Subtracted '100' from user '855511342': 0 from main, 100 from bonus (combined=True)
+2026-01-14 04:10:50.380 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:50.380 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:50.431 | INFO     | src.services.referral:178 | Withdrew '100' of '100' pending rewards for user '855511342' for type 'MONEY'
+2026-01-14 04:10:50.450 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252755792' committed
+2026-01-14 04:10:50.450 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:10:50.451 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:50.451 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:50.452 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:10:50.497 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252755792' committed
+2026-01-14 04:10:50.498 | INFO     | src.services.extra_device:64 | Created extra device purchase for user '855511342': device_count=1, price=100, expires_at=2026-02-13 04:10:50.452403+00:00
+2026-01-14 04:10:50.498 | INFO     | src.services.remnawave:554 | Updating RemnaUser '855511342' from subscription '58'
+2026-01-14 04:10:50.509 | WARNING  | src.services.remnawave:154 | External squad dd81891c-45f5-42a8-9ff2-520760c50d3d provided but skipped to avoid potential foreign key constraint errors
+2026-01-14 04:10:50.531 | INFO     | src.services.remnawave:626 | RemnaUser '855511342' updated successfully
+2026-01-14 04:10:50.533 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:50.533 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:50.534 | INFO     | src.bot.routers.subscription.handlers:1446 | [DEV:855511342 (Hello)] Added 1 devices from balance (discount=0%). New device limit: 3
+2026-01-14 04:10:50.537 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_by_role:DEV'. Executing function
+2026-01-14 04:10:50.555 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548253536224'
+2026-01-14 04:10:50.556 | DEBUG    | src.api.endpoints.remnawave:32 | Received Remnawave webhook payload: '{'scope': 'user', 'event': 'user.modified', 'timestamp': '2026-01-14T04:10:50.524Z', 'data': {'uuid': 'c241baef-034e-4027-b307-dc5145a685c5', 'id': 67, 'shortUuid': 'z3rZhnHnqtQfdG-0', 'username': '855511342', 'status': 'ACTIVE', 'trafficLimitBytes': 0, 'trafficLimitStrategy': 'NO_RESET', 'expireAt': '2026-04-17T00:17:22.692Z', 'telegramId': 855511342, 'email': None, 'description': 'name: Hello\nusername: StaySaved', 'tag': 'STANDART', 'hwidDeviceLimit': 3, 'externalSquadUuid': None, 'trojanPassword': '6S0u1FYY0mJJLnsnG9QC8hpRHxXWZHM4', 'vlessUuid': '8f152f11-e3c3-452a-8267-586541bdf85d', 'ssPassword': 'wxNLAD5Bkhe3huGGhbtn10M7tBFU5UBV', 'lastTriggeredThreshold': 0, 'subRevokedAt': None, 'subLastUserAgent': None, 'subLastOpenedAt': None, 'lastTrafficResetAt': '2026-01-14T00:42:15.383Z', 'createdAt': '2026-01-14T00:17:22.725Z', 'updatedAt': '2026-01-14T04:10:50.520Z', 'subscriptionUrl': 'https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0', 'activeInternalSquads': [{'uuid': 'e4c1d7c2-a862-4fe1-8ef2-6cde70114440', 'name': 'Default'}], 'userTraffic': {'usedTrafficBytes': 0, 'lifetimeUsedTrafficBytes': 0, 'onlineAt': None, 'lastConnectedNodeUuid': None, 'firstConnectedAt': None}}, 'meta': None}'
+2026-01-14 04:10:50.556 | INFO     | src.services.remnawave:879 | Received event 'user.modified' for RemnaUser '855511342'
+2026-01-14 04:10:50.558 | DEBUG    | src.services.user:226 | Retrieved '1' users with role 'DEV'
+2026-01-14 04:10:50.559 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:10:50.563 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_by_role:DEV' (ttl=600)
+2026-01-14 04:10:50.565 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.566 | DEBUG    | src.services.notification:110 | Attempting to send system notification 'ntf-event-extra-devices-balance' to '1' devs
+2026-01-14 04:10:50.578 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:10:50.579 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:10:50.580 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:10:50.580 | DEBUG    | src.services.remnawave:934 | RemnaUser '855511342' modified
+2026-01-14 04:10:50.581 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:50.582 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_current_subscription:855511342'. Executing function
+2026-01-14 04:10:50.602 | DEBUG    | src.services.subscription:95 | Current subscription check: Subscription '58' retrieved for user '855511342'
+2026-01-14 04:10:50.603 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_current_subscription:855511342' (ttl=60)
+2026-01-14 04:10:50.603 | INFO     | src.services.remnawave:861 | Synchronizing subscription for '855511342'
+2026-01-14 04:10:50.613 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548253536224' committed
+2026-01-14 04:10:50.614 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:10:50.614 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:10:50.615 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:10:50.615 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:10:50.615 | INFO     | src.services.remnawave:867 | Subscription updated for '855511342'
+2026-01-14 04:10:50.615 | INFO     | src.services.remnawave:869 | Sync completed for user '855511342'
+2026-01-14 04:10:50.616 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/remnawave HTTP/1.1" 200
+2026-01-14 04:10:50.616 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548253536224' committed
+2026-01-14 04:10:50.617 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548253536224'
+2026-01-14 04:10:50.632 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:10:50.642 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:10:50.642 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:10:50.643 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:10:50.645 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:50.645 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.646 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:50.647 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-success-full' transformed mapping: {'device_count': 1, 'device_count_word': 'устройство'}
+2026-01-14 04:10:50.728 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252755792' committed
+2026-01-14 04:10:50.728 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252755792'
+2026-01-14 04:10:50.729 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252748400' committed
+2026-01-14 04:10:50.729 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252748400'
+2026-01-14 04:10:50.729 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252647 is handled. Duration 371 ms by bot id=8279788561
+2026-01-14 04:10:51.988 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252648' scheduled for processing
+2026-01-14 04:10:51.988 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:51.992 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252756560'
+2026-01-14 04:10:51.992 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:51.993 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:51.993 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:51.994 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:51.995 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:51.996 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:51.997 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:51.997 | INFO     | src.bot.routers.extra.notification:20 | [DEV:855511342 (Hello)] Closed notification '3559'
+2026-01-14 04:10:52.035 | DEBUG    | src.bot.routers.extra.notification:25 | Notification '3559' for user '855511342' deleted
+2026-01-14 04:10:52.036 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252756560' committed
+2026-01-14 04:10:52.036 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252756560'
+2026-01-14 04:10:52.037 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252648 is handled. Duration 47 ms by bot id=8279788561
+2026-01-14 04:10:52.701 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252649' scheduled for processing
+2026-01-14 04:10:52.702 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:60808 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:10:52.705 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252750512'
+2026-01-14 04:10:52.706 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:52.706 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.706 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:10:52.707 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:10:52.708 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:10:52.708 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.710 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.713 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:10:52.713 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252756272'
+2026-01-14 04:10:52.743 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:10:52.744 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:has_used_trial:855511342'. Executing function
+2026-01-14 04:10:52.746 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:has_used_trial:855511342' (ttl=600)
+2026-01-14 04:10:52.759 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.761 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:10:52.762 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.762 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.763 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.763 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.764 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.764 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.764 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.765 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:10:52.827 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252756272' committed
+2026-01-14 04:10:52.827 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252756272'
+2026-01-14 04:10:52.827 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252750512' committed
+2026-01-14 04:10:52.828 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252750512'
+2026-01-14 04:10:52.828 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252649 is handled. Duration 125 ms by bot id=8279788561
+2026-01-14 04:11:00.211 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252650' scheduled for processing
+2026-01-14 04:11:00.212 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:32796 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:00.216 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252748880'
+2026-01-14 04:11:00.217 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:00.218 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:00.219 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:00.220 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:00.221 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:00.222 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:00.223 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:00.227 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:00.228 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249718080'
+2026-01-14 04:11:00.232 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:00.241 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:11:00.242 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:11:00.242 | INFO     | src.bot.routers.subscription.getters:136 | [subscription_getter] user=855511342: plan_name='🌐 Стандартный', is_trial_flag=False, is_trial_by_name=False, is_referral_by_name=False, is_trial_subscription=False, can_upgrade_to_referral=False
+2026-01-14 04:11:00.243 | DEBUG    | src.bot.routers.subscription.getters:153 | [subscription_getter] user=855511342: is_trial_subscription=False, safe_is_trial_subscription=0, current_subscription=id=58 user_remna_id=UUID('c241baef-034e-4027-b307-dc5145a685c5') status=<SubscriptionStatus.ACTIVE: 'ACTIVE'> is_trial=False traffic_limit=-1 device_limit=3 extra_devices=1 traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'> tag='STANDART' internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')] external_squad=None expire_at=datetime.datetime(2026, 4, 17, 0, 17, 22, 692000, tzinfo=TzInfo(UTC)) url='https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0' plan=PlanSnapshotDto(id=3, name='🌐 Стандартный', tag='STANDART', type=<PlanType.DEVICES: 'DEVICES'>, traffic_limit=-1, device_limit=2, duration=30, traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'>, internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')], external_squad=[UUID('dd81891c-45f5-42a8-9ff2-520760c50d3d')]) created_at=datetime.datetime(2026, 1, 14, 0, 17, 22, 622570, tzinfo=TzInfo(UTC)) updated_at=datetime.datetime(2026, 1, 14, 4, 10, 50, 378178, tzinfo=TzInfo(UTC)), is_trial=False, is_active=True
+2026-01-14 04:11:00.243 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:00.244 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:00.366 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249718080' committed
+2026-01-14 04:11:00.367 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249718080'
+2026-01-14 04:11:00.367 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252748880' committed
+2026-01-14 04:11:00.368 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252748880'
+2026-01-14 04:11:00.368 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252650 is handled. Duration 155 ms by bot id=8279788561
+2026-01-14 04:11:01.187 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252651' scheduled for processing
+2026-01-14 04:11:01.187 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:32796 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:01.191 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249726864'
+2026-01-14 04:11:01.192 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:01.193 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:01.194 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:01.194 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:01.196 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:01.196 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:01.197 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:01.200 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249947552'
+2026-01-14 04:11:01.201 | INFO     | src.services.remnawave:656 | Fetching devices for RemnaUser '855511342'
+2026-01-14 04:11:01.214 | INFO     | src.services.remnawave:675 | No devices found for RemnaUser '855511342'
+2026-01-14 04:11:01.215 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:01.219 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:01.219 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:01.220 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:01.220 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:01.285 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249947552' committed
+2026-01-14 04:11:01.286 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249947552'
+2026-01-14 04:11:01.286 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249726864' committed
+2026-01-14 04:11:01.286 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249726864'
+2026-01-14 04:11:01.287 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252651 is handled. Duration 98 ms by bot id=8279788561
+2026-01-14 04:11:06.870 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252652' scheduled for processing
+2026-01-14 04:11:06.871 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:06.875 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249952784'
+2026-01-14 04:11:06.877 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:06.878 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:06.878 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:06.879 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:06.881 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:06.881 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:06.882 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:06.886 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249949952'
+2026-01-14 04:11:06.905 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:06.906 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:06.906 | DEBUG    | src.services.settings:114 | Retrieved default currency 'RUB'
+2026-01-14 04:11:06.906 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:06.906 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:06.906 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:06.907 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:06.909 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:06.909 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:06.909 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:06.909 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:06.911 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:06.912 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:06.913 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:06.914 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:06.987 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249949952' committed
+2026-01-14 04:11:06.988 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249949952'
+2026-01-14 04:11:06.989 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249952784' committed
+2026-01-14 04:11:06.989 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249952784'
+2026-01-14 04:11:06.989 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252652 is handled. Duration 117 ms by bot id=8279788561
+2026-01-14 04:11:08.347 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252653' scheduled for processing
+2026-01-14 04:11:08.348 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:08.351 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249952160'
+2026-01-14 04:11:08.352 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:08.353 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:08.354 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:08.355 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:08.356 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:08.357 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:08.357 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:08.360 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249951824'
+2026-01-14 04:11:08.361 | INFO     | src.services.remnawave:656 | Fetching devices for RemnaUser '855511342'
+2026-01-14 04:11:08.375 | INFO     | src.services.remnawave:675 | No devices found for RemnaUser '855511342'
+2026-01-14 04:11:08.376 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:08.380 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:08.381 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:08.382 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:08.382 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:08.438 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249951824' committed
+2026-01-14 04:11:08.438 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249951824'
+2026-01-14 04:11:08.438 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249952160' committed
+2026-01-14 04:11:08.439 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249952160'
+2026-01-14 04:11:08.439 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252653 is handled. Duration 90 ms by bot id=8279788561
+2026-01-14 04:11:09.126 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252654' scheduled for processing
+2026-01-14 04:11:09.126 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:09.129 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249945728'
+2026-01-14 04:11:09.130 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:09.131 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:09.131 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:09.132 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:09.133 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:09.134 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:09.134 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:09.137 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250208400'
+2026-01-14 04:11:09.140 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:09.141 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:09.141 | DEBUG    | src.services.pricing:24 | Calculating price for amount '100' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:11:09.141 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:09.141 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:09.141 | INFO     | src.services.pricing:127 | Price calculated: original='100', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='100', context='extra_devices'
+2026-01-14 04:11:09.142 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:09.142 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:09.143 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:09.143 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-full' transformed mapping: {'device_price': 100}
+2026-01-14 04:11:09.199 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250208400' committed
+2026-01-14 04:11:09.199 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250208400'
+2026-01-14 04:11:09.200 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249945728' committed
+2026-01-14 04:11:09.200 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249945728'
+2026-01-14 04:11:09.200 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252654 is handled. Duration 73 ms by bot id=8279788561
+2026-01-14 04:11:10.727 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252655' scheduled for processing
+2026-01-14 04:11:10.727 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:10.732 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249959024'
+2026-01-14 04:11:10.732 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:10.733 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.734 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:10.734 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:10.736 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:10.736 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.737 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.740 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250207152'
+2026-01-14 04:11:10.742 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.747 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:10.748 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.749 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.749 | DEBUG    | src.services.pricing:24 | Calculating price for amount '100' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:11:10.749 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:10.749 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:10.750 | INFO     | src.services.pricing:127 | Price calculated: original='100', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='100', context='extra_devices'
+2026-01-14 04:11:10.750 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.751 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.759 | DEBUG    | src.services.payment_gateway:197 | Filtered active gateways: 'True', found '5'
+2026-01-14 04:11:10.761 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:10.761 | DEBUG    | src.services.settings:114 | Retrieved default currency 'RUB'
+2026-01-14 04:11:10.761 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to XTR
+2026-01-14 04:11:10.761 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '66.66666666666666666666666667' and currency 'XTR'
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '66'
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:203 | Converted amount: 66 XTR
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to XTR
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '66.66666666666666666666666667' and currency 'XTR'
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '66'
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:203 | Converted amount: 66 XTR
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:10.762 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:10.763 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:10.764 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:10.764 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:10.764 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:10.764 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:10.765 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to USD
+2026-01-14 04:11:10.766 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '1.268230818008877615726062143' and currency 'USD'
+2026-01-14 04:11:10.766 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '1.27'
+2026-01-14 04:11:10.766 | DEBUG    | src.services.pricing:203 | Converted amount: 1.27 USD
+2026-01-14 04:11:10.766 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to USD
+2026-01-14 04:11:10.766 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '1.268230818008877615726062143' and currency 'USD'
+2026-01-14 04:11:10.767 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '1.27'
+2026-01-14 04:11:10.767 | DEBUG    | src.services.pricing:203 | Converted amount: 1.27 USD
+2026-01-14 04:11:10.767 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to USD
+2026-01-14 04:11:10.767 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '1.268230818008877615726062143' and currency 'USD'
+2026-01-14 04:11:10.768 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '1.27'
+2026-01-14 04:11:10.768 | DEBUG    | src.services.pricing:203 | Converted amount: 1.27 USD
+2026-01-14 04:11:10.768 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to USD
+2026-01-14 04:11:10.768 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '1.268230818008877615726062143' and currency 'USD'
+2026-01-14 04:11:10.768 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '1.27'
+2026-01-14 04:11:10.768 | DEBUG    | src.services.pricing:203 | Converted amount: 1.27 USD
+2026-01-14 04:11:10.769 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:10.769 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-payment-full' transformed mapping: {'device_count': 2}
+2026-01-14 04:11:10.770 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.BALANCE: 'BALANCE'>, 'price': '100 ₽', 'original_price': '100 ₽', 'currency': '₽', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:11:10.771 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.TELEGRAM_STARS: 'TELEGRAM_STARS'>, 'price': '66 ★', 'original_price': '66 ★', 'currency': '★', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:11:10.771 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.YOOKASSA: 'YOOKASSA'>, 'price': '100 ₽', 'original_price': '100 ₽', 'currency': '₽', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:11:10.772 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.YOOMONEY: 'YOOMONEY'>, 'price': '100 ₽', 'original_price': '100 ₽', 'currency': '₽', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:11:10.772 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.CRYPTOMUS: 'CRYPTOMUS'>, 'price': '1.27 $', 'original_price': '1.27 $', 'currency': '$', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:11:10.773 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'btn-subscription-payment-method' transformed mapping: {'gateway_type': <PaymentGatewayType.HELEKET: 'HELEKET'>, 'price': '1.27 $', 'original_price': '1.27 $', 'currency': '$', 'discount_percent': 0, 'has_discount': 0}
+2026-01-14 04:11:10.897 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250207152' committed
+2026-01-14 04:11:10.898 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250207152'
+2026-01-14 04:11:10.898 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249959024' committed
+2026-01-14 04:11:10.898 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249959024'
+2026-01-14 04:11:10.898 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252655 is handled. Duration 169 ms by bot id=8279788561
+2026-01-14 04:11:12.026 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252656' scheduled for processing
+2026-01-14 04:11:12.027 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:12.032 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249959456'
+2026-01-14 04:11:12.033 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:12.034 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.034 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:12.035 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:12.037 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:12.037 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.038 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.042 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252759104'
+2026-01-14 04:11:12.043 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:12.043 | INFO     | src.bot.routers.subscription.handlers:1263 | [DEV:855511342 (Hello)] Selected payment method 'BALANCE' for adding device
+2026-01-14 04:11:12.044 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.045 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.050 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:12.050 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.051 | DEBUG    | src.services.pricing:24 | Calculating price for amount '100' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:11:12.051 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:12.051 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:12.051 | INFO     | src.services.pricing:127 | Price calculated: original='100', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='100', context='extra_devices'
+2026-01-14 04:11:12.052 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:12.052 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:12.052 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:12.052 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:12.052 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:11:12.053 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:11:12.053 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:11:12.053 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:11:12.053 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.054 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:12.055 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-confirm-full' transformed mapping: {'device_count': 2, 'selected_method': 'С баланса', 'balance': 2150, 'currency': '₽', 'new_balance': 2050}
+2026-01-14 04:11:12.136 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252759104' committed
+2026-01-14 04:11:12.136 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252759104'
+2026-01-14 04:11:12.137 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249959456' committed
+2026-01-14 04:11:12.137 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249959456'
+2026-01-14 04:11:12.138 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252656 is handled. Duration 109 ms by bot id=8279788561
+2026-01-14 04:11:13.138 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252657' scheduled for processing
+2026-01-14 04:11:13.139 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:13.142 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252755360'
+2026-01-14 04:11:13.142 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:13.143 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.143 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:13.144 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:13.145 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:13.145 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.146 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.148 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249951920'
+2026-01-14 04:11:13.149 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:13.150 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.150 | DEBUG    | src.services.pricing:24 | Calculating price for amount '200' and currency 'RUB' for user '855511342', context='extra_devices'
+2026-01-14 04:11:13.150 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '200' and currency 'RUB'
+2026-01-14 04:11:13.151 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '200'
+2026-01-14 04:11:13.151 | INFO     | src.services.pricing:127 | Price calculated: original='200', global_discount='0', personal_discount_percent='0', total_discount_percent='0', final='200', context='extra_devices'
+2026-01-14 04:11:13.151 | INFO     | src.bot.routers.subscription.handlers:1372 | [DEV:855511342 (Hello)] Confirmed adding 2 devices with payment method 'BALANCE', discount=0%, price=200
+2026-01-14 04:11:13.151 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:13.152 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.155 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '2150' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:13.155 | INFO     | src.services.user:445 | Subtracted '200' from user '855511342': 0 from main, 200 from bonus (combined=True)
+2026-01-14 04:11:13.156 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:11:13.156 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:11:13.184 | INFO     | src.services.referral:178 | Withdrew '200' of '200' pending rewards for user '855511342' for type 'MONEY'
+2026-01-14 04:11:13.201 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249951920' committed
+2026-01-14 04:11:13.202 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:11:13.203 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:11:13.203 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:11:13.203 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:11:13.214 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249951920' committed
+2026-01-14 04:11:13.214 | INFO     | src.services.extra_device:64 | Created extra device purchase for user '855511342': device_count=2, price=200, expires_at=2026-02-13 04:11:13.203776+00:00
+2026-01-14 04:11:13.215 | INFO     | src.services.remnawave:554 | Updating RemnaUser '855511342' from subscription '58'
+2026-01-14 04:11:13.222 | WARNING  | src.services.remnawave:154 | External squad dd81891c-45f5-42a8-9ff2-520760c50d3d provided but skipped to avoid potential foreign key constraint errors
+2026-01-14 04:11:13.240 | INFO     | src.services.remnawave:626 | RemnaUser '855511342' updated successfully
+2026-01-14 04:11:13.242 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:11:13.242 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:11:13.242 | INFO     | src.bot.routers.subscription.handlers:1446 | [DEV:855511342 (Hello)] Added 2 devices from balance (discount=0%). New device limit: 5
+2026-01-14 04:11:13.243 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_by_role:DEV'. Executing function
+2026-01-14 04:11:13.259 | DEBUG    | src.services.user:226 | Retrieved '1' users with role 'DEV'
+2026-01-14 04:11:13.261 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_by_role:DEV' (ttl=600)
+2026-01-14 04:11:13.262 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.263 | DEBUG    | src.services.notification:110 | Attempting to send system notification 'ntf-event-extra-devices-balance' to '1' devs
+2026-01-14 04:11:13.276 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250221504'
+2026-01-14 04:11:13.278 | DEBUG    | src.api.endpoints.remnawave:32 | Received Remnawave webhook payload: '{'scope': 'user', 'event': 'user.modified', 'timestamp': '2026-01-14T04:11:13.235Z', 'data': {'uuid': 'c241baef-034e-4027-b307-dc5145a685c5', 'id': 67, 'shortUuid': 'z3rZhnHnqtQfdG-0', 'username': '855511342', 'status': 'ACTIVE', 'trafficLimitBytes': 0, 'trafficLimitStrategy': 'NO_RESET', 'expireAt': '2026-04-17T00:17:22.692Z', 'telegramId': 855511342, 'email': None, 'description': 'name: Hello\nusername: StaySaved', 'tag': 'STANDART', 'hwidDeviceLimit': 5, 'externalSquadUuid': None, 'trojanPassword': '6S0u1FYY0mJJLnsnG9QC8hpRHxXWZHM4', 'vlessUuid': '8f152f11-e3c3-452a-8267-586541bdf85d', 'ssPassword': 'wxNLAD5Bkhe3huGGhbtn10M7tBFU5UBV', 'lastTriggeredThreshold': 0, 'subRevokedAt': None, 'subLastUserAgent': None, 'subLastOpenedAt': None, 'lastTrafficResetAt': '2026-01-14T00:42:15.383Z', 'createdAt': '2026-01-14T00:17:22.725Z', 'updatedAt': '2026-01-14T04:11:13.230Z', 'subscriptionUrl': 'https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0', 'activeInternalSquads': [{'uuid': 'e4c1d7c2-a862-4fe1-8ef2-6cde70114440', 'name': 'Default'}], 'userTraffic': {'usedTrafficBytes': 0, 'lifetimeUsedTrafficBytes': 0, 'onlineAt': None, 'lastConnectedNodeUuid': None, 'firstConnectedAt': None}}, 'meta': None}'
+2026-01-14 04:11:13.279 | INFO     | src.services.remnawave:879 | Received event 'user.modified' for RemnaUser '855511342'
+2026-01-14 04:11:13.280 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:11:13.303 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:11:13.305 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:11:13.314 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:11:13.315 | DEBUG    | src.services.remnawave:934 | RemnaUser '855511342' modified
+2026-01-14 04:11:13.316 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:13.317 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:13.319 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_current_subscription:855511342'. Executing function
+2026-01-14 04:11:13.320 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:13.322 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.325 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:13.326 | DEBUG    | src.bot.widgets.i18n_format:48 | Key 'msg-add-device-success-full' transformed mapping: {'device_count': 2, 'device_count_word': 'устройства'}
+2026-01-14 04:11:13.351 | DEBUG    | src.services.subscription:95 | Current subscription check: Subscription '58' retrieved for user '855511342'
+2026-01-14 04:11:13.352 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_current_subscription:855511342' (ttl=60)
+2026-01-14 04:11:13.352 | INFO     | src.services.remnawave:861 | Synchronizing subscription for '855511342'
+2026-01-14 04:11:13.362 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250221504' committed
+2026-01-14 04:11:13.363 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:11:13.364 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:11:13.364 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:11:13.365 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:11:13.365 | INFO     | src.services.remnawave:867 | Subscription updated for '855511342'
+2026-01-14 04:11:13.365 | INFO     | src.services.remnawave:869 | Sync completed for user '855511342'
+2026-01-14 04:11:13.365 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/remnawave HTTP/1.1" 200
+2026-01-14 04:11:13.366 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250221504' committed
+2026-01-14 04:11:13.367 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250221504'
+2026-01-14 04:11:13.398 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249951920' committed
+2026-01-14 04:11:13.399 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249951920'
+2026-01-14 04:11:13.399 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252755360' committed
+2026-01-14 04:11:13.399 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252755360'
+2026-01-14 04:11:13.399 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252657 is handled. Duration 260 ms by bot id=8279788561
+2026-01-14 04:11:14.457 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252658' scheduled for processing
+2026-01-14 04:11:14.458 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:14.461 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249957248'
+2026-01-14 04:11:14.462 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:11:14.473 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:11:14.474 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:11:14.475 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:11:14.475 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:14.476 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:14.476 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:14.478 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:14.478 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:14.479 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:14.480 | INFO     | src.bot.routers.extra.notification:20 | [DEV:855511342 (Hello)] Closed notification '3560'
+2026-01-14 04:11:14.608 | DEBUG    | src.bot.routers.extra.notification:25 | Notification '3560' for user '855511342' deleted
+2026-01-14 04:11:14.610 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249957248' committed
+2026-01-14 04:11:14.611 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249957248'
+2026-01-14 04:11:14.611 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252658 is handled. Duration 151 ms by bot id=8279788561
+2026-01-14 04:11:15.209 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252659' scheduled for processing
+2026-01-14 04:11:15.209 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:15.212 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252756656'
+2026-01-14 04:11:15.213 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:15.214 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.214 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:15.214 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:15.216 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:15.216 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.216 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.219 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:15.220 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250214160'
+2026-01-14 04:11:15.227 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:11:15.228 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:has_used_trial:855511342'. Executing function
+2026-01-14 04:11:15.230 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:has_used_trial:855511342' (ttl=600)
+2026-01-14 04:11:15.243 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.246 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:15.247 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.247 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.248 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.249 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.249 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.250 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.251 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.251 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:15.367 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250214160' committed
+2026-01-14 04:11:15.368 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250214160'
+2026-01-14 04:11:15.368 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252756656' committed
+2026-01-14 04:11:15.368 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252756656'
+2026-01-14 04:11:15.369 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252659 is handled. Duration 158 ms by bot id=8279788561
+2026-01-14 04:11:16.107 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252660' scheduled for processing
+2026-01-14 04:11:16.108 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:16.112 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250222032'
+2026-01-14 04:11:16.113 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:16.113 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:16.114 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:16.114 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:16.116 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:16.116 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:16.117 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:16.121 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:16.240 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250222032' committed
+2026-01-14 04:11:16.241 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250222032'
+2026-01-14 04:11:16.241 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252660 is handled. Duration 132 ms by bot id=8279788561
+2026-01-14 04:11:17.025 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252661' scheduled for processing
+2026-01-14 04:11:17.026 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:51886 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:17.030 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250218384'
+2026-01-14 04:11:17.032 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:17.032 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.033 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:17.033 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:17.035 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:17.035 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.036 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.039 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:17.039 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244301072'
+2026-01-14 04:11:17.049 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:11:17.050 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:11:17.063 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.065 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:17.066 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.067 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.068 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.069 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.070 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.070 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.071 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.072 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:17.183 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244301072' committed
+2026-01-14 04:11:17.184 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244301072'
+2026-01-14 04:11:17.184 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250218384' committed
+2026-01-14 04:11:17.184 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250218384'
+2026-01-14 04:11:17.185 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252661 is handled. Duration 157 ms by bot id=8279788561
+2026-01-14 04:11:32.571 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244294928'
+2026-01-14 04:11:32.572 | DEBUG    | src.api.endpoints.remnawave:32 | Received Remnawave webhook payload: '{'scope': 'user', 'event': 'user.modified', 'timestamp': '2026-01-14T04:11:32.547Z', 'data': {'uuid': 'c241baef-034e-4027-b307-dc5145a685c5', 'id': 67, 'shortUuid': 'z3rZhnHnqtQfdG-0', 'username': '855511342', 'status': 'ACTIVE', 'trafficLimitBytes': 0, 'trafficLimitStrategy': 'NO_RESET', 'expireAt': '2026-04-17T00:17:22.692Z', 'telegramId': 855511342, 'email': None, 'description': 'name: Hello\nusername: StaySaved', 'tag': 'STANDART', 'hwidDeviceLimit': 10, 'externalSquadUuid': None, 'trojanPassword': '6S0u1FYY0mJJLnsnG9QC8hpRHxXWZHM4', 'vlessUuid': '8f152f11-e3c3-452a-8267-586541bdf85d', 'ssPassword': 'wxNLAD5Bkhe3huGGhbtn10M7tBFU5UBV', 'lastTriggeredThreshold': 0, 'subRevokedAt': None, 'subLastUserAgent': None, 'subLastOpenedAt': None, 'lastTrafficResetAt': '2026-01-14T00:42:15.383Z', 'createdAt': '2026-01-14T00:17:22.725Z', 'updatedAt': '2026-01-14T04:11:32.542Z', 'subscriptionUrl': 'https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0', 'activeInternalSquads': [{'uuid': 'e4c1d7c2-a862-4fe1-8ef2-6cde70114440', 'name': 'Default'}], 'userTraffic': {'usedTrafficBytes': 0, 'lifetimeUsedTrafficBytes': 0, 'onlineAt': None, 'lastConnectedNodeUuid': None, 'firstConnectedAt': None}}, 'meta': None}'
+2026-01-14 04:11:32.573 | INFO     | src.services.remnawave:879 | Received event 'user.modified' for RemnaUser '855511342'
+2026-01-14 04:11:32.574 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:32.574 | DEBUG    | src.services.remnawave:934 | RemnaUser '855511342' modified
+2026-01-14 04:11:32.575 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:32.575 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_current_subscription:855511342'. Executing function
+2026-01-14 04:11:32.603 | DEBUG    | src.services.subscription:95 | Current subscription check: Subscription '58' retrieved for user '855511342'
+2026-01-14 04:11:32.604 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_current_subscription:855511342' (ttl=60)
+2026-01-14 04:11:32.604 | INFO     | src.services.remnawave:861 | Synchronizing subscription for '855511342'
+2026-01-14 04:11:32.605 | DEBUG    | src.services.subscription:249 | Field 'device_limit' changed from '5' to '10'
+2026-01-14 04:11:32.617 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244294928' committed
+2026-01-14 04:11:32.617 | DEBUG    | src.services.subscription:164 | Cache for subscription '58' invalidated
+2026-01-14 04:11:32.618 | DEBUG    | src.services.user:508 | List caches invalidated
+2026-01-14 04:11:32.618 | DEBUG    | src.services.user:494 | User cache for '855511342' invalidated
+2026-01-14 04:11:32.618 | INFO     | src.services.subscription:136 | Updated subscription '58' successfully
+2026-01-14 04:11:32.619 | INFO     | src.services.remnawave:867 | Subscription updated for '855511342'
+2026-01-14 04:11:32.619 | INFO     | src.services.remnawave:869 | Sync completed for user '855511342'
+2026-01-14 04:11:32.620 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:41580 - "POST /api/v1/remnawave HTTP/1.1" 200
+2026-01-14 04:11:32.620 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244294928' committed
+2026-01-14 04:11:32.621 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244294928'
+2026-01-14 04:11:34.807 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252662' scheduled for processing
+2026-01-14 04:11:34.808 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:41580 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:34.812 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244304288'
+2026-01-14 04:11:34.813 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:get_user:855511342'. Executing function
+2026-01-14 04:11:34.827 | DEBUG    | src.services.user:114 | Retrieved user '855511342'
+2026-01-14 04:11:34.827 | DEBUG    | src.services.user:118 | 🔍 DEBUG get: User 855511342, is_invited_user=False
+2026-01-14 04:11:34.828 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:get_user:855511342' (ttl=300)
+2026-01-14 04:11:34.828 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:34.829 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:34.829 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:34.831 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:34.831 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:34.833 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:34.839 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:34.940 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244304288' committed
+2026-01-14 04:11:34.940 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244304288'
+2026-01-14 04:11:34.941 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252662 is handled. Duration 132 ms by bot id=8279788561
+2026-01-14 04:11:35.528 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252663' scheduled for processing
+2026-01-14 04:11:35.529 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:41580 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:35.532 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244304624'
+2026-01-14 04:11:35.533 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:35.534 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.534 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:35.535 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:35.536 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:35.537 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.537 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.541 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:35.541 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244298000'
+2026-01-14 04:11:35.550 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:11:35.550 | DEBUG    | src.infrastructure.redis.cache:57 | Cache miss: 'cache:has_used_trial:855511342'. Executing function
+2026-01-14 04:11:35.553 | DEBUG    | src.infrastructure.redis.cache:63 | Result cached: 'cache:has_used_trial:855511342' (ttl=600)
+2026-01-14 04:11:35.565 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.568 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:35.568 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.569 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.569 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.570 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.570 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.571 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.572 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.572 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:35.637 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244298000' committed
+2026-01-14 04:11:35.638 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244298000'
+2026-01-14 04:11:35.638 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244304624' committed
+2026-01-14 04:11:35.638 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244304624'
+2026-01-14 04:11:35.638 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252663 is handled. Duration 108 ms by bot id=8279788561
+2026-01-14 04:11:54.350 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252664' scheduled for processing
+2026-01-14 04:11:54.350 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:37524 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:54.354 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244292144'
+2026-01-14 04:11:54.354 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:54.355 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:54.355 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:54.356 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:54.357 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:54.357 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:54.358 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:54.361 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:54.361 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250221552'
+2026-01-14 04:11:54.365 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:54.369 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:11:54.369 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:11:54.370 | INFO     | src.bot.routers.subscription.getters:136 | [subscription_getter] user=855511342: plan_name='🌐 Стандартный', is_trial_flag=False, is_trial_by_name=False, is_referral_by_name=False, is_trial_subscription=False, can_upgrade_to_referral=False
+2026-01-14 04:11:54.370 | DEBUG    | src.bot.routers.subscription.getters:153 | [subscription_getter] user=855511342: is_trial_subscription=False, safe_is_trial_subscription=0, current_subscription=id=58 user_remna_id=UUID('c241baef-034e-4027-b307-dc5145a685c5') status=<SubscriptionStatus.ACTIVE: 'ACTIVE'> is_trial=False traffic_limit=-1 device_limit=10 extra_devices=3 traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'> tag='STANDART' internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')] external_squad=None expire_at=datetime.datetime(2026, 4, 17, 0, 17, 22, 692000, tzinfo=TzInfo(UTC)) url='https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0' plan=PlanSnapshotDto(id=3, name='🌐 Стандартный', tag='STANDART', type=<PlanType.DEVICES: 'DEVICES'>, traffic_limit=-1, device_limit=2, duration=30, traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'>, internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')], external_squad=[UUID('dd81891c-45f5-42a8-9ff2-520760c50d3d')]) created_at=datetime.datetime(2026, 1, 14, 0, 17, 22, 622570, tzinfo=TzInfo(UTC)) updated_at=datetime.datetime(2026, 1, 14, 4, 11, 32, 579161, tzinfo=TzInfo(UTC)), is_trial=False, is_active=True
+2026-01-14 04:11:54.370 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:54.371 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:54.450 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250221552' committed
+2026-01-14 04:11:54.450 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250221552'
+2026-01-14 04:11:54.451 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244292144' committed
+2026-01-14 04:11:54.451 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244292144'
+2026-01-14 04:11:54.451 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252664 is handled. Duration 100 ms by bot id=8279788561
+2026-01-14 04:11:56.567 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252665' scheduled for processing
+2026-01-14 04:11:56.568 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:37524 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:11:56.573 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244298000'
+2026-01-14 04:11:56.575 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:56.576 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.577 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:11:56.579 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:11:56.581 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:11:56.582 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.583 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.589 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:11:56.590 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250207488'
+2026-01-14 04:11:56.601 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:11:56.602 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:11:56.616 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.619 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:11:56.620 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.621 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.622 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.623 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.623 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.624 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.625 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.626 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:11:56.715 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250207488' committed
+2026-01-14 04:11:56.715 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250207488'
+2026-01-14 04:11:56.715 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244298000' committed
+2026-01-14 04:11:56.716 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244298000'
+2026-01-14 04:11:56.716 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252665 is handled. Duration 146 ms by bot id=8279788561
+2026-01-14 04:12:06.804 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252666' scheduled for processing
+2026-01-14 04:12:06.804 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:47910 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:12:06.807 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548252757856'
+2026-01-14 04:12:06.809 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:06.810 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:06.810 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:12:06.811 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:06.812 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:12:06.812 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:06.813 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:06.816 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:12:06.816 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250213536'
+2026-01-14 04:12:06.819 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:12:06.824 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:12:06.825 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:12:06.825 | INFO     | src.bot.routers.subscription.getters:136 | [subscription_getter] user=855511342: plan_name='🌐 Стандартный', is_trial_flag=False, is_trial_by_name=False, is_referral_by_name=False, is_trial_subscription=False, can_upgrade_to_referral=False
+2026-01-14 04:12:06.825 | DEBUG    | src.bot.routers.subscription.getters:153 | [subscription_getter] user=855511342: is_trial_subscription=False, safe_is_trial_subscription=0, current_subscription=id=58 user_remna_id=UUID('c241baef-034e-4027-b307-dc5145a685c5') status=<SubscriptionStatus.ACTIVE: 'ACTIVE'> is_trial=False traffic_limit=-1 device_limit=10 extra_devices=3 traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'> tag='STANDART' internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')] external_squad=None expire_at=datetime.datetime(2026, 4, 17, 0, 17, 22, 692000, tzinfo=TzInfo(UTC)) url='https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0' plan=PlanSnapshotDto(id=3, name='🌐 Стандартный', tag='STANDART', type=<PlanType.DEVICES: 'DEVICES'>, traffic_limit=-1, device_limit=2, duration=30, traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'>, internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')], external_squad=[UUID('dd81891c-45f5-42a8-9ff2-520760c50d3d')]) created_at=datetime.datetime(2026, 1, 14, 0, 17, 22, 622570, tzinfo=TzInfo(UTC)) updated_at=datetime.datetime(2026, 1, 14, 4, 11, 32, 579161, tzinfo=TzInfo(UTC)), is_trial=False, is_active=True
+2026-01-14 04:12:06.826 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:06.826 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:06.904 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250213536' committed
+2026-01-14 04:12:06.905 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250213536'
+2026-01-14 04:12:06.905 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548252757856' committed
+2026-01-14 04:12:06.905 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548252757856'
+2026-01-14 04:12:06.905 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252666 is handled. Duration 100 ms by bot id=8279788561
+2026-01-14 04:12:08.583 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252667' scheduled for processing
+2026-01-14 04:12:08.583 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:47910 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:12:08.587 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548250212624'
+2026-01-14 04:12:08.588 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:08.589 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:08.589 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:12:08.590 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:08.591 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:12:08.592 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:08.592 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:08.595 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249954560'
+2026-01-14 04:12:08.596 | INFO     | src.services.remnawave:656 | Fetching devices for RemnaUser '855511342'
+2026-01-14 04:12:08.610 | INFO     | src.services.remnawave:675 | No devices found for RemnaUser '855511342'
+2026-01-14 04:12:08.610 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:08.614 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:12:08.615 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:08.616 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:08.616 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:12:08.737 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249954560' committed
+2026-01-14 04:12:08.737 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249954560'
+2026-01-14 04:12:08.738 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548250212624' committed
+2026-01-14 04:12:08.738 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548250212624'
+2026-01-14 04:12:08.738 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252667 is handled. Duration 153 ms by bot id=8279788561
+2026-01-14 04:12:09.690 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252668' scheduled for processing
+2026-01-14 04:12:09.690 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:47910 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:12:09.694 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249949136'
+2026-01-14 04:12:09.695 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:09.696 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:09.696 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:12:09.697 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:09.700 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:12:09.700 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:09.701 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:09.705 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244577104'
+2026-01-14 04:12:09.723 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:09.724 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:09.724 | DEBUG    | src.services.settings:114 | Retrieved default currency 'RUB'
+2026-01-14 04:12:09.724 | DEBUG    | src.services.pricing:185 | Converting 100 RUB to RUB
+2026-01-14 04:12:09.725 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '100' and currency 'RUB'
+2026-01-14 04:12:09.725 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '100'
+2026-01-14 04:12:09.725 | DEBUG    | src.services.pricing:203 | Converted amount: 100 RUB
+2026-01-14 04:12:09.725 | DEBUG    | src.services.pricing:185 | Converting 200 RUB to RUB
+2026-01-14 04:12:09.725 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '200' and currency 'RUB'
+2026-01-14 04:12:09.726 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '200'
+2026-01-14 04:12:09.726 | DEBUG    | src.services.pricing:203 | Converted amount: 200 RUB
+2026-01-14 04:12:09.728 | DEBUG    | src.services.pricing:185 | Converting 300 RUB to RUB
+2026-01-14 04:12:09.728 | DEBUG    | src.services.pricing:159 | Applying currency rules for amount '300' and currency 'RUB'
+2026-01-14 04:12:09.728 | DEBUG    | src.services.pricing:173 | Final amount after currency rules: '300'
+2026-01-14 04:12:09.728 | DEBUG    | src.services.pricing:203 | Converted amount: 300 RUB
+2026-01-14 04:12:09.731 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:12:09.732 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:09.733 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:09.733 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:12:09.799 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244577104' committed
+2026-01-14 04:12:09.800 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244577104'
+2026-01-14 04:12:09.800 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249949136' committed
+2026-01-14 04:12:09.801 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249949136'
+2026-01-14 04:12:09.801 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252668 is handled. Duration 109 ms by bot id=8279788561
+2026-01-14 04:12:11.317 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252669' scheduled for processing
+2026-01-14 04:12:11.317 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:47910 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:12:11.322 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548249959504'
+2026-01-14 04:12:11.323 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:11.324 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:11.324 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:12:11.325 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:11.326 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:12:11.327 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:11.328 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:11.331 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244576192'
+2026-01-14 04:12:11.332 | INFO     | src.services.remnawave:656 | Fetching devices for RemnaUser '855511342'
+2026-01-14 04:12:11.345 | INFO     | src.services.remnawave:675 | No devices found for RemnaUser '855511342'
+2026-01-14 04:12:11.347 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:11.350 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:12:11.351 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:11.352 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:11.353 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:12:11.419 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244576192' committed
+2026-01-14 04:12:11.420 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244576192'
+2026-01-14 04:12:11.420 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548249959504' committed
+2026-01-14 04:12:11.420 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548249959504'
+2026-01-14 04:12:11.421 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252669 is handled. Duration 101 ms by bot id=8279788561
+2026-01-14 04:12:15.588 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252670' scheduled for processing
+2026-01-14 04:12:15.588 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:47910 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:12:15.591 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244577200'
+2026-01-14 04:12:15.592 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:15.593 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:15.593 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:12:15.594 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:15.595 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:12:15.595 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:15.596 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:15.598 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:12:15.598 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244574032'
+2026-01-14 04:12:15.602 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:12:15.608 | DEBUG    | src.services.plan:225 | Available TRIAL plan '🎁 Пробный' found for user '855511342' (for trial eligibility check)
+2026-01-14 04:12:15.609 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:has_used_trial:855511342'
+2026-01-14 04:12:15.609 | INFO     | src.bot.routers.subscription.getters:136 | [subscription_getter] user=855511342: plan_name='🌐 Стандартный', is_trial_flag=False, is_trial_by_name=False, is_referral_by_name=False, is_trial_subscription=False, can_upgrade_to_referral=False
+2026-01-14 04:12:15.609 | DEBUG    | src.bot.routers.subscription.getters:153 | [subscription_getter] user=855511342: is_trial_subscription=False, safe_is_trial_subscription=0, current_subscription=id=58 user_remna_id=UUID('c241baef-034e-4027-b307-dc5145a685c5') status=<SubscriptionStatus.ACTIVE: 'ACTIVE'> is_trial=False traffic_limit=-1 device_limit=10 extra_devices=3 traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'> tag='STANDART' internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')] external_squad=None expire_at=datetime.datetime(2026, 4, 17, 0, 17, 22, 692000, tzinfo=TzInfo(UTC)) url='https://test-s.dfc-online.com/z3rZhnHnqtQfdG-0' plan=PlanSnapshotDto(id=3, name='🌐 Стандартный', tag='STANDART', type=<PlanType.DEVICES: 'DEVICES'>, traffic_limit=-1, device_limit=2, duration=30, traffic_limit_strategy=<TrafficLimitStrategy.NO_RESET: 'NO_RESET'>, internal_squads=[UUID('e4c1d7c2-a862-4fe1-8ef2-6cde70114440')], external_squad=[UUID('dd81891c-45f5-42a8-9ff2-520760c50d3d')]) created_at=datetime.datetime(2026, 1, 14, 0, 17, 22, 622570, tzinfo=TzInfo(UTC)) updated_at=datetime.datetime(2026, 1, 14, 4, 11, 32, 579161, tzinfo=TzInfo(UTC)), is_trial=False, is_active=True
+2026-01-14 04:12:15.610 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:15.610 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:15.676 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244574032' committed
+2026-01-14 04:12:15.676 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244574032'
+2026-01-14 04:12:15.677 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244577200' committed
+2026-01-14 04:12:15.677 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244577200'
+2026-01-14 04:12:15.677 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252670 is handled. Duration 88 ms by bot id=8279788561
+2026-01-14 04:12:17.073 | DEBUG    | src.api.endpoints.telegram:61 | Update '663252671' scheduled for processing
+2026-01-14 04:12:17.074 | INFO     | uvicorn.protocols.http.h11_impl:473 | 172.18.0.5:47910 - "POST /api/v1/telegram HTTP/1.1" 200
+2026-01-14 04:12:17.077 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244580416'
+2026-01-14 04:12:17.077 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:17.078 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:17.079 | INFO     | src.services.access:92 | Access allowed for user '855511342' (privileged)
+2026-01-14 04:12:17.079 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_user:855511342'
+2026-01-14 04:12:17.080 | DEBUG    | src.services.user:514 | User '855511342' activity updated in recent cache
+2026-01-14 04:12:17.081 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:17.081 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:17.083 | DEBUG    | src.infrastructure.database.uow:22 | Opened session '136548244583392'
+2026-01-14 04:12:17.084 | INFO     | src.services.remnawave:656 | Fetching devices for RemnaUser '855511342'
+2026-01-14 04:12:17.096 | INFO     | src.services.remnawave:675 | No devices found for RemnaUser '855511342'
+2026-01-14 04:12:17.097 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:17.100 | DEBUG    | src.services.referral:130 | Retrieved pending rewards amount as '1950' for user '855511342' for type 'MONEY'
+2026-01-14 04:12:17.101 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:17.102 | DEBUG    | src.infrastructure.redis.cache:51 | Cache hit: 'cache:get_settings'
+2026-01-14 04:12:17.102 | DEBUG    | src.infrastructure.di.providers.i18n:51 | Translator for user '855511342' with locale=ru
+2026-01-14 04:12:17.177 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244583392' committed
+2026-01-14 04:12:17.177 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244583392'
+2026-01-14 04:12:17.178 | DEBUG    | src.infrastructure.database.uow:52 | Session '136548244580416' committed
+2026-01-14 04:12:17.178 | DEBUG    | src.infrastructure.database.uow:46 | Closed session '136548244580416'
+2026-01-14 04:12:17.178 | INFO     | aiogram.dispatcher.dispatcher:172 | Update id=663252671 is handled. Duration 103 ms by bot id=8279788561
