@@ -1036,6 +1036,10 @@ async def confirm_balance_getter(
     else:
         discount_value = 0
 
+    # Вычисляем доступный баланс с учётом режима (COMBINED или SEPARATE)
+    is_balance_combined = await settings_service.is_balance_combined()
+    available_balance = user.balance + referral_balance if is_balance_combined else user.balance
+
     result = {
         "purchase_type": purchase_type,
         "plan": plan.name,
@@ -1079,7 +1083,6 @@ async def confirm_balance_getter(
     result["is_balance_enabled"] = 1 if is_balance_enabled else 0
     
     # Проверяем режим баланса (раздельный или объединённый)
-    is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     result["is_balance_separate"] = 1 if is_balance_separate else 0
 
@@ -1089,9 +1092,6 @@ async def confirm_balance_getter(
     # Получаем сохранённые данные о стоимости из dialog_data
     base_subscription_price = dialog_manager.dialog_data.get("base_subscription_price", int(pricing.original_amount))
     saved_extra_devices_cost = dialog_manager.dialog_data.get("extra_devices_cost", 0)
-
-    # Вычисляем доступный баланс с учётом режима (COMBINED или SEPARATE)
-    available_balance = user.balance + referral_balance if is_balance_combined else user.balance
 
     # Данные о текущей подписке (если есть)
     subscription = user.current_subscription
