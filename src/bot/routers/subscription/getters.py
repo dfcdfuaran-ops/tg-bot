@@ -670,6 +670,12 @@ async def payment_method_getter(
 
     payment_methods = []
     
+    # Получаем бонусный баланс пользователя
+    referral_balance = await referral_service.get_pending_rewards_amount(
+        telegram_id=user.telegram_id,
+        reward_type=ReferralRewardType.MONEY,
+    )
+    
     # Получаем курсы валют для конвертации
     settings = await settings_service.get()
     rates = settings.features.currency_rates
