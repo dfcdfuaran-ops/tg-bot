@@ -15,7 +15,7 @@ ENV_FILE="$PROJECT_DIR/.env"
 REPO_DIR="/opt/tg-bot"
 REMNAWAVE_DIR="/opt/remnawave"
 REPO_URL="https://github.com/dfcdfuaran-ops/tg-bot.git"
-REPO_BRANCH="dev"
+REPO_BRANCH="main"
 
 # Статус обновлений
 UPDATE_AVAILABLE=0
