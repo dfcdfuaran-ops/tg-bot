@@ -1982,11 +1982,11 @@ INSTALL_STARTED=false
 (
     sudo tee /usr/local/bin/tg-sell-bot > /dev/null << 'EOF'
 #!/bin/bash
-# Запускаем install.sh из папки assets/setup
-if [ -f "/opt/tg-bot/assets/setup/install.sh" ]; then
-    exec /opt/tg-bot/assets/setup/install.sh
+# Запускаем install.sh из папки assets/update
+if [ -f "/opt/tg-bot/assets/update/install.sh" ]; then
+    exec /opt/tg-bot/assets/update/install.sh
 else
-    # Fallback на старый путь для обратной совместимости
+    # Fallback на основной install.sh для обратной совместимости
     exec /opt/tg-bot/install.sh
 fi
 EOF
