@@ -2437,6 +2437,13 @@ async def add_device_success_getter(
                        "устройства" if device_count % 10 in [2, 3, 4] and device_count not in [12, 13, 14] else \
                        "устройств"
     
+    # Вычисляем отображаемый баланс
+    display_balance = get_display_balance(
+        fresh_user.balance,
+        referral_balance,
+        is_balance_combined,
+    )
+    
     return {
         # Данные пользователя
         "user_id": str(fresh_user.telegram_id),
@@ -2446,7 +2453,7 @@ async def add_device_success_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": fresh_user.balance,
+        "balance": display_balance,
         "referral_balance": referral_balance,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,
@@ -2590,7 +2597,7 @@ async def extra_devices_list_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "referral_balance": referral_balance,
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
@@ -2668,6 +2675,9 @@ async def extra_device_manage_getter(
     extra_devices = subscription.extra_devices or 0
     device_limit_number = subscription.plan.device_limit if subscription.plan else 0
     
+    # Режим баланса
+    is_balance_combined = await settings_service.is_balance_combined()
+    
     return {
         # Данные покупки
         "purchase_id": purchase.id,
@@ -2685,7 +2695,7 @@ async def extra_device_manage_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "referral_balance": referral_balance,
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
         # Данные подписки
         "is_trial": 1 if subscription.is_trial else 0,
