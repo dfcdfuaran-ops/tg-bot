@@ -224,15 +224,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         translator_hub: TranslatorHub = await container.get(TranslatorHub)
         
         # Ensure DEV user exists (creates if not)
-        dev_user_created = await ensure_dev_user_exists(config, bot)
+        # dev_user_created = await ensure_dev_user_exists(config, bot)
         
         # Clear user cache if we just created DEV user
-        if dev_user_created:
-            try:
-                await redis_repository.delete_pattern("cache:get_by_role:*")
-                await redis_repository.delete_pattern("cache:get_user:*")
-            except Exception as e:
-                logger.debug(f"Failed to clear cache after DEV user creation: {e}")
+        # if dev_user_created:
+        #     try:
+        #         await redis_repository.delete_pattern("cache:get_by_role:*")
+        #         await redis_repository.delete_pattern("cache:get_user:*")
+        #     except Exception as e:
+        #         logger.debug(f"Failed to clear cache after DEV user creation: {e}")
         
         # Fetch DEV users (should include newly created user)
         devs = await user_service.get_by_role(role=UserRole.DEV)
