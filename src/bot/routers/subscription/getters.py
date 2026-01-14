@@ -197,6 +197,9 @@ async def subscription_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
+    # Вычисляем отображаемый баланс
+    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+    
     result = {
         "has_active_subscription": has_active,
         "is_not_unlimited": not is_unlimited,
@@ -213,7 +216,7 @@ async def subscription_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": user.balance,
+        "balance": display_balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -329,6 +332,9 @@ async def plans_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
+    # Вычисляем отображаемый баланс
+    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+    
     result = {
         "plans": formatted_plans,
         # Данные пользователя для шапки
@@ -338,7 +344,7 @@ async def plans_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": user.balance,
+        "balance": display_balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -496,6 +502,9 @@ async def duration_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
+    # Вычисляем отображаемый баланс
+    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+    
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)
     
@@ -519,7 +528,7 @@ async def duration_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": user.balance,
+        "balance": display_balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -783,7 +792,7 @@ async def payment_method_getter(
         # Данные пользователя для шапки
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -942,7 +951,7 @@ async def confirm_getter(
         # Данные пользователя для шапки
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": user.balance,
+        "balance": get_display_balance(user.balance, referral_balance, is_balance_combined),
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "discount_value": discount_value,
