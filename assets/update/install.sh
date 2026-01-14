@@ -707,17 +707,32 @@ manage_update_bot() {
                     if [ -e "$item" ]; then
                         if [ -d "$item" ]; then
                             mkdir -p "$PROJECT_DIR/$item" 2>/dev/null || true
-                            # Копируем все содержимое, исключая папку banners (она содержит пользовательские логотипы)
+                            # Копируем всё содержимое
                             if [ "$item" = "assets" ]; then
-                                # Для папки assets копируем всё кроме banners
+                                # Для папки assets копируем всё содержимое
                                 for subitem in "$item"/*; do
                                     subname=$(basename "$subitem")
-                                    if [ "$subname" != "banners" ]; then
-                                        if [ -d "$subitem" ]; then
-                                            cp -r "$subitem" "$PROJECT_DIR/$item/" 2>/dev/null || true
+                                    if [ -d "$subitem" ]; then
+                                        # Для папки banners - копируем только если папка не существует
+                                        if [ "$subname" = "banners" ]; then
+                                            if [ ! -d "$PROJECT_DIR/$item/banners" ]; then
+                                                cp -r "$subitem" "$PROJECT_DIR/$item/" 2>/dev/null || true
+                                            else
+                                                # Папка существует, копируем всё кроме default.jpg (пользовательский баннер)
+                                                for banner_file in "$subitem"/*; do
+                                                    banner_name=$(basename "$banner_file")
+                                                    if [ "$banner_name" != "default.jpg" ]; then
+                                                        if [ -f "$banner_file" ]; then
+                                                            cp -f "$banner_file" "$PROJECT_DIR/$item/banners/" 2>/dev/null || true
+                                                        fi
+                                                    fi
+                                                done
+                                            fi
                                         else
-                                            cp -f "$subitem" "$PROJECT_DIR/$item/" 2>/dev/null || true
+                                            cp -r "$subitem" "$PROJECT_DIR/$item/" 2>/dev/null || true
                                         fi
+                                    else
+                                        cp -f "$subitem" "$PROJECT_DIR/$item/" 2>/dev/null || true
                                     fi
                                 done
                             else
