@@ -103,15 +103,26 @@ async def _create_payment_and_get_data(
     # Добавляем стоимость доп. устройств для RENEW и CHANGE
     # Но только если включена ежемесячная оплата (is_one_time = False)
     extra_devices_cost = 0
+    extra_devices_cost_rub = 0  # Для хранения стоимости в рублях
     is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
     
     if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
         if not is_extra_devices_one_time:
             extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
             months = duration.days / 30
-            extra_devices_cost = int(extra_devices_monthly_cost * months) if extra_devices_monthly_cost > 0 else 0
+            extra_devices_cost_rub = int(extra_devices_monthly_cost * months) if extra_devices_monthly_cost > 0 else 0
+            
+            # Конвертируем стоимость доп. устройств в валюту шлюза
+            if extra_devices_cost_rub > 0:
+                extra_devices_cost = pricing_service.convert_currency(
+                    Decimal(extra_devices_cost_rub),
+                    payment_gateway.currency,
+                    rates.usd_rate,
+                    rates.eur_rate,
+                    rates.stars_rate,
+                )
     
-    # Итоговая цена = базовая подписка + доп. устройства
+    # Итоговая цена = базовая подписка + доп. устройства (оба в валюте шлюза)
     total_price = base_price + Decimal(extra_devices_cost)
     pricing = pricing_service.calculate(user, total_price, payment_gateway.currency, global_discount, context="subscription")
 
@@ -1276,8 +1287,10 @@ async def on_add_device_payment_select(
     # Для оплаты картой - создаём платеж
     if selected_payment_method != PaymentGatewayType.BALANCE:
         try:
-            DEVICE_PRICE = 100  # Стоимость дополнительного устройства за месяц
             device_count = dialog_manager.dialog_data.get("device_count", 1)
+            
+            # Получаем цену устройства из настроек
+            device_price = await settings_service.get_extra_device_price()
             
             # Получаем глобальную скидку
             global_discount = await settings_service.get_global_discount_settings()
@@ -1292,7 +1305,7 @@ async def on_add_device_payment_select(
                 return
             
             # Рассчитываем цену
-            original_price = DEVICE_PRICE * device_count
+            original_price = device_price * device_count
             pricing = pricing_service.calculate(
                 user=user,
                 price=Decimal(original_price),
@@ -1348,16 +1361,18 @@ async def on_add_device_confirm(
     from decimal import Decimal
     
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
-    DEVICE_PRICE = 100  # Стоимость дополнительного устройства за месяц
     
     selected_payment_method = dialog_manager.dialog_data.get("selected_payment_method")
     device_count = dialog_manager.dialog_data.get("device_count", 1)
+    
+    # Получаем цену устройства из настроек
+    device_price = await settings_service.get_extra_device_price()
     
     # Получаем глобальную скидку
     global_discount = await settings_service.get_global_discount_settings()
     
     # Вычисляем цену со скидкой используя PricingService (учитывает все скидки)
-    original_price = DEVICE_PRICE * device_count
+    original_price = device_price * device_count
     price_details = pricing_service.calculate(
         user=user,
         price=Decimal(original_price),

@@ -728,8 +728,20 @@ async def payment_method_getter(
             continue
             
         gateway_base_price = duration.get_price(gateway.currency, usd_rate, eur_rate, stars_rate)
-        # Добавляем стоимость доп. устройств (если есть)
-        gateway_total_price = gateway_base_price + extra_devices_cost if extra_devices_cost > 0 else gateway_base_price
+        
+        # Конвертируем стоимость доп. устройств в валюту шлюза (extra_devices_cost в рублях)
+        gateway_extra_devices_cost = Decimal(0)
+        if extra_devices_cost > 0:
+            gateway_extra_devices_cost = pricing_service.convert_currency(
+                Decimal(extra_devices_cost),
+                gateway.currency,
+                usd_rate,
+                eur_rate,
+                stars_rate,
+            )
+        
+        # Добавляем стоимость доп. устройств (оба значения теперь в валюте шлюза)
+        gateway_total_price = gateway_base_price + gateway_extra_devices_cost
         
         # Используем pricing_service для правильного расчёта с учётом всех скидок
         gateway_price = pricing_service.calculate(user, gateway_total_price, gateway.currency, global_discount, context="subscription")
@@ -823,6 +835,7 @@ async def confirm_getter(
     referral_service: FromDishka[ReferralService],
     settings_service: FromDishka[SettingsService],
     extra_device_service: FromDishka[ExtraDeviceService],
+    pricing_service: FromDishka[PricingService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     adapter = DialogDataAdapter(dialog_manager)
@@ -897,18 +910,18 @@ async def confirm_getter(
     is_balance_separate = not is_balance_combined
     
     # Получаем стоимость доп. устройств из dialog_data (сохранена при создании платежа)
-    extra_devices_cost = dialog_manager.dialog_data.get("extra_devices_cost", 0)
+    extra_devices_cost_rub = dialog_manager.dialog_data.get("extra_devices_cost", 0)
     base_subscription_price = dialog_manager.dialog_data.get("base_subscription_price", 0)
     
     # Рассчитываем месячную стоимость для отображения
     # Но только если включена ежемесячная оплата (is_one_time = False)
     from src.core.enums import PurchaseType
-    extra_devices_monthly_cost = 0
+    extra_devices_monthly_cost_rub = 0
     is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
     
     if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
         if not is_extra_devices_one_time:
-            extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
+            extra_devices_monthly_cost_rub = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
     
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)
@@ -977,10 +990,16 @@ async def confirm_getter(
         "expire_time": expire_time,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,
-        # Данные о стоимости доп. устройств
-        "extra_devices_monthly_cost": extra_devices_monthly_cost,
-        "extra_devices_cost": extra_devices_cost,
-        "has_extra_devices_cost": 1 if extra_devices_cost > 0 else 0,
+        # Данные о стоимости доп. устройств - конвертируем в валюту gateway и форматируем
+        "extra_devices_monthly_cost": format_price(
+            int(pricing_service.convert_currency(Decimal(extra_devices_monthly_cost_rub), payment_gateway.currency, pricing.rates)),
+            payment_gateway.currency
+        ) if extra_devices_monthly_cost_rub > 0 else "0",
+        "extra_devices_cost": format_price(
+            int(pricing_service.convert_currency(Decimal(extra_devices_cost_rub), payment_gateway.currency, pricing.rates)),
+            payment_gateway.currency
+        ) if extra_devices_cost_rub > 0 else "0",
+        "has_extra_devices_cost": 1 if extra_devices_cost_rub > 0 else 0,
         "total_payment": format_price(int(pricing.original_amount), payment_gateway.currency),
         # Планируемые дополнительные устройства
         "planned_extra_devices": planned_extra_devices,
@@ -1067,18 +1086,18 @@ async def confirm_balance_getter(
         "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
         "period": i18n.get(key, **kw),
-        "final_amount": pricing.final_amount,
+        "final_amount": format_price(int(pricing.final_amount), Currency.RUB),
         "discount_percent": pricing.discount_percent,
-        "original_amount": pricing.original_amount,
+        "original_amount": format_price(int(pricing.original_amount), Currency.RUB),
         "currency": currency,
-        "user_balance": available_balance,
-        "balance_after": available_balance - pricing.final_amount,
+        "user_balance": format_price(int(available_balance), Currency.RUB),
+        "balance_after": format_price(int(available_balance - pricing.final_amount), Currency.RUB),
         "only_single_duration": only_single_duration,
         # Данные пользователя для профиля
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": available_balance,
-        "referral_balance": referral_balance,
+        "balance": format_price(int(available_balance), Currency.RUB),
+        "referral_balance": format_price(int(referral_balance), Currency.RUB),
         "referral_code": user.referral_code,
         "discount_value": discount_value,
         "discount_is_temporary": 1 if is_temporary_discount else 0,
@@ -1139,12 +1158,13 @@ async def confirm_balance_getter(
             "device_limit_bonus": device_limit_bonus,
             "extra_devices": extra_devices,
             "expire_time": i18n_format_expire_time(subscription.expire_at),
-            "extra_devices_monthly_cost": extra_devices_monthly_cost,
-            "extra_devices_cost": saved_extra_devices_cost,
+            "extra_devices_monthly_cost": format_price(int(extra_devices_monthly_cost), Currency.RUB) if extra_devices_monthly_cost > 0 else "0",
+            "extra_devices_cost": format_price(int(saved_extra_devices_cost), Currency.RUB) if saved_extra_devices_cost > 0 else "0",
             "has_extra_devices_cost": 1 if saved_extra_devices_cost > 0 else 0,
-            "total_payment": total_payment,
-            "balance_after": available_balance - pricing.final_amount,
-            "original_amount": base_subscription_price,  # Цена подписки БЕЗ доп. устройств
+            "total_payment": format_price(int(total_payment), Currency.RUB),
+            "balance_after": format_price(int(available_balance - pricing.final_amount), Currency.RUB),
+            "original_amount": format_price(int(base_subscription_price), Currency.RUB),  # Цена подписки БЕЗ доп. устройств
+            "user_balance": format_price(int(available_balance), Currency.RUB),
             "planned_extra_devices": planned_extra_devices,
             "has_planned_extra_devices": 1 if planned_extra_devices > 0 else 0,
         })
@@ -1159,10 +1179,10 @@ async def confirm_balance_getter(
             "device_limit_bonus": 0,
             "extra_devices": 0,
             "expire_time": "",
-            "extra_devices_monthly_cost": 0,
-            "extra_devices_cost": 0,
+            "extra_devices_monthly_cost": "0",
+            "extra_devices_cost": "0",
             "has_extra_devices_cost": 0,
-            "total_payment": pricing.original_amount,
+            "total_payment": format_price(int(pricing.original_amount), Currency.RUB),
             "planned_extra_devices": planned_extra_devices,
             "has_planned_extra_devices": 1 if planned_extra_devices > 0 else 0,
         })
@@ -1264,16 +1284,16 @@ async def confirm_yoomoney_getter(
         "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
         "period": i18n.get(key, **kw),
-        "final_amount": pricing.final_amount,
+        "final_amount": format_price(int(pricing.final_amount), Currency.RUB),
         "discount_percent": pricing.discount_percent,
-        "original_amount": base_subscription_price,  # Цена подписки БЕЗ доп. устройств
+        "original_amount": format_price(int(base_subscription_price), Currency.RUB),  # Цена подписки БЕЗ доп. устройств
         "currency": currency,
         "url": result_url,
         # Данные о стоимости доп. устройств
-        "extra_devices_monthly_cost": extra_devices_monthly_cost,
-        "extra_devices_cost": saved_extra_devices_cost,
+        "extra_devices_monthly_cost": format_price(int(extra_devices_monthly_cost), Currency.RUB) if extra_devices_monthly_cost > 0 else "0",
+        "extra_devices_cost": format_price(int(saved_extra_devices_cost), Currency.RUB) if saved_extra_devices_cost > 0 else "0",
         "has_extra_devices_cost": 1 if saved_extra_devices_cost > 0 else 0,
-        "total_payment": pricing.final_amount,
+        "total_payment": format_price(int(pricing.final_amount), Currency.RUB),
         # Планируемые дополнительные устройства
         "planned_extra_devices": planned_extra_devices,
         "has_planned_extra_devices": 1 if planned_extra_devices > 0 else 0,
@@ -1398,16 +1418,16 @@ async def confirm_yookassa_getter(
         "devices": i18n_format_device_limit(plan.device_limit),
         "traffic": i18n_format_traffic_limit(plan.traffic_limit),
         "period": i18n.get(key, **kw),
-        "final_amount": pricing.final_amount,
+        "final_amount": format_price(int(pricing.final_amount), Currency.RUB),
         "discount_percent": pricing.discount_percent,
-        "original_amount": base_subscription_price,  # Цена подписки БЕЗ доп. устройств
+        "original_amount": format_price(int(base_subscription_price), Currency.RUB),  # Цена подписки БЕЗ доп. устройств
         "currency": currency,
         "url": result_url,
         # Данные о стоимости доп. устройств
-        "extra_devices_monthly_cost": extra_devices_monthly_cost,
-        "extra_devices_cost": saved_extra_devices_cost,
+        "extra_devices_monthly_cost": format_price(int(extra_devices_monthly_cost), Currency.RUB) if extra_devices_monthly_cost > 0 else "0",
+        "extra_devices_cost": format_price(int(saved_extra_devices_cost), Currency.RUB) if saved_extra_devices_cost > 0 else "0",
         "has_extra_devices_cost": 1 if saved_extra_devices_cost > 0 else 0,
-        "total_payment": pricing.final_amount,
+        "total_payment": format_price(int(pricing.final_amount), Currency.RUB),
         # Планируемые дополнительные устройства
         "planned_extra_devices": planned_extra_devices,
         "has_planned_extra_devices": 1 if planned_extra_devices > 0 else 0,

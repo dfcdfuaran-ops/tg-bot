@@ -150,9 +150,9 @@ frg-payment-info =
     • <b>Сумма</b>: { frg-payment-amount }
     </blockquote>
 
-frg-payment-amount = { $final_amount } { $currency } { $discount_percent -> 
+frg-payment-amount = { $final_amount } { $discount_percent -> 
     [0] { space }
-    *[more] { space } <strike>{ $original_amount } { $currency }</strike> (-{ $discount_percent }%)
+    *[more] { space } <strike>{ $original_amount }</strike> (-{ $discount_percent }%)
     }
 
 frg-plan-snapshot =

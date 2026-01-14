@@ -1716,9 +1716,9 @@ msg-subscription-confirm-balance =
         [RENEW] { $has_extra_devices_cost ->
             [1] <b>📋 Разбор стоимости:</b>
     <blockquote>
-    • <b>Подписка:</b> { $original_amount } { $currency }
-    • <b>Доп. устройства:</b> { $extra_devices_cost } { $currency } ({ $extra_devices_monthly_cost } { $currency }/мес)
-    • <b>Итого к оплате:</b> { $total_payment } { $currency }
+    • <b>Подписка:</b> { $original_amount }
+    • <b>Доп. устройства:</b> { $extra_devices_cost } ({ $extra_devices_monthly_cost }/мес)
+    • <b>Итого к оплате:</b> { $total_payment }
     </blockquote>
             *[0] {""}
         }
@@ -1728,8 +1728,8 @@ msg-subscription-confirm-balance =
     <b>📋 Способ оплаты:</b>
     <blockquote>
     <b>💳 Метод:</b> С баланса
-    <b>📊 Текущий баланс:</b> { $user_balance } { $currency }
-    <b>📊 Баланс после:</b> { $balance_after } { $currency }
+    <b>📊 Текущий баланс:</b> { $user_balance }
+    <b>📊 Баланс после:</b> { $balance_after }
     </blockquote>
 
     { frg-purchase-type-warning }
@@ -1749,9 +1749,9 @@ msg-subscription-confirm-yoomoney =
         [RENEW] { $has_extra_devices_cost ->
             [1] <b>📋 Разбор стоимости:</b>
     <blockquote>
-    • <b>Подписка:</b> { $original_amount } { $currency }
-    • <b>Доп. устройства:</b> { $extra_devices_cost } { $currency } ({ $extra_devices_monthly_cost } { $currency }/мес)
-    • <b>Итого к оплате:</b> { $total_payment } { $currency }
+    • <b>Подписка:</b> { $original_amount }
+    • <b>Доп. устройства:</b> { $extra_devices_cost } ({ $extra_devices_monthly_cost }/мес)
+    • <b>Итого к оплате:</b> { $total_payment }
     </blockquote>
             *[0] {""}
         }
@@ -1780,16 +1780,16 @@ msg-subscription-confirm-yookassa =
         [RENEW] { $has_extra_devices_cost ->
             [1] <b>📋 Разбор стоимости:</b>
     <blockquote>
-    • <b>Подписка:</b> { $original_amount } { $currency }
-    • <b>Доп. устройства:</b> { $extra_devices_cost } { $currency } ({ $extra_devices_monthly_cost } { $currency }/мес)
-    • <b>Итого к оплате:</b> { $total_payment } { $currency }
+    • <b>Подписка:</b> { $original_amount }
+    • <b>Доп. устройства:</b> { $extra_devices_cost } ({ $extra_devices_monthly_cost }/мес)
+    • <b>Итого к оплате:</b> { $total_payment }
     </blockquote>
             *[0] {""}
         }
         *[OTHER] {""}
     }
 
-    <b>� Способ оплаты:</b>
+    <b>📋 Способ оплаты:</b>
     <blockquote>
     <b>💳 Метод:</b> Банковская карта
     </blockquote>
@@ -1811,9 +1811,9 @@ msg-subscription-confirm =
         [RENEW] { $has_extra_devices_cost ->
             [1] <b>📋 Разбор стоимости:</b>
     <blockquote>
-    • <b>Подписка:</b> { $original_amount } { $currency }
-    • <b>Доп. устройства:</b> { $extra_devices_cost } { $currency } ({ $extra_devices_monthly_cost } { $currency }/мес)
-    • <b>Итого к оплате:</b> { $total_payment } { $currency }
+    • <b>Подписка:</b> { $original_amount }
+    • <b>Доп. устройства:</b> { $extra_devices_cost } ({ $extra_devices_monthly_cost }/мес)
+    • <b>Итого к оплате:</b> { $total_payment }
     </blockquote>
             *[0] {""}
         }
