@@ -1796,7 +1796,7 @@ async def add_device_select_count_getter(
     from decimal import Decimal
     
     # Получаем цену дополнительного устройства из настроек
-    extra_devices_price = await settings_service.get_extra_devices_price()
+    extra_devices_price = await settings_service.get_extra_device_price()
     DEVICE_PRICE = int(extra_devices_price) if extra_devices_price else 100
     
     # Получаем реферальный баланс
