@@ -2170,29 +2170,37 @@ async def add_device_confirm_getter(
         context="extra_devices",
     )
 
-    # Вычисляем итоговую цену за все устройства (в рублях), умножаем на 100 для копеек
-    total_price_rub_amount = int(price_details.final_amount)
-    original_price_rub_amount = int(price_details.original_amount)
+    # Вычисляем итоговую цену за все устройства (в копейках)
+    # pricing_service возвращает цену в рублях, умножаем на 100 для копеек
+    total_price_rub_amount = int(price_details.final_amount * 100)
+    original_price_rub_amount = int(price_details.original_amount * 100)
     
     # Конвертируем цену в валюту выбранного способа оплаты
     # Результат convert_currency в целевой валюте (Decimal)
-    # Умножаем на 100 для центов/минимальных единиц (баланс хранится в рублях, а не копейках)
+    # Для RUB цена уже в копейках, для других валют нужно умножить на 100
     original_price_decimal = pricing_service.convert_currency(
-        Decimal(original_price_rub_amount),
+        Decimal(original_price_rub_amount / 100),  # Конвертируем обратно в рубли для convert_currency
         currency,
         usd_rate,
         eur_rate,
         stars_rate,
     )
     total_price_decimal = pricing_service.convert_currency(
-        Decimal(total_price_rub_amount),
+        Decimal(total_price_rub_amount / 100),  # Конвертируем обратно в рубли для convert_currency
         currency,
         usd_rate,
         eur_rate,
         stars_rate,
     )
-    original_price = int(original_price_decimal * 100)
-    total_price = int(total_price_decimal * 100)
+    
+    # Для RUB возвращаем напрямую (уже в копейках), для других умножаем на 100
+    if currency == Currency.RUB:
+        original_price = original_price_rub_amount
+        total_price = total_price_rub_amount
+    else:
+        original_price = int(original_price_decimal * 100)
+        total_price = int(total_price_decimal * 100)
+    
     has_discount = price_details.discount_percent > 0
 
     # Флаг для условного отображения баланса (показываем только при оплате с баланса)
