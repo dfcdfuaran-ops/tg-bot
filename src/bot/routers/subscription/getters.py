@@ -1912,8 +1912,9 @@ async def add_device_payment_getter(
         context="extra_devices",
     )
     
-    total_price_rub = int(price_details.final_amount)
-    original_price_rub = int(price_details.original_amount)
+    # Результат в рублях, умножаем на 100 чтобы получить копейки для хранения
+    total_price_rub = int(price_details.final_amount * 100)
+    original_price_rub = int(price_details.original_amount * 100)
     has_discount = price_details.discount_percent > 0
     
     # Вычисляем информацию о скидке для отображения
@@ -1987,20 +1988,24 @@ async def add_device_payment_getter(
         gateway_currency = Currency.from_gateway_type(gateway.type)
         
         # Конвертируем цену в валюту способа оплаты
-        converted_original_price = int(pricing_service.convert_currency(
+        # Результат convert_currency в рублях/долларах/евро/звёздах (Decimal)
+        # Умножаем на 100 чтобы получить копейки/центы для хранения
+        converted_original_decimal = pricing_service.convert_currency(
             Decimal(original_price_rub),
             gateway_currency,
             usd_rate,
             eur_rate,
             stars_rate,
-        ))
-        converted_total_price = int(pricing_service.convert_currency(
+        )
+        converted_total_decimal = pricing_service.convert_currency(
             Decimal(total_price_rub),
             gateway_currency,
             usd_rate,
             eur_rate,
             stars_rate,
-        ))
+        )
+        converted_original_price = int(converted_original_decimal * 100)
+        converted_total_price = int(converted_total_decimal * 100)
         
         payment_methods.append({
             "gateway_type": gateway.type,
@@ -2131,25 +2136,28 @@ async def add_device_confirm_getter(
         context="extra_devices",
     )
 
-    # Вычисляем итоговую цену за все устройства (в рублях)
-    total_price_rub = int(price_details.final_amount)
-    original_price_rub_final = int(price_details.original_amount)
+    # Вычисляем итоговую цену за все устройства (в рублях), умножаем на 100 для копеек
+    total_price_rub_amount = int(price_details.final_amount)
+    original_price_rub_amount = int(price_details.original_amount)
     
     # Конвертируем цену в валюту выбранного способа оплаты
-    original_price = int(pricing_service.convert_currency(
-        Decimal(original_price_rub_final),
+    # Результат convert_currency в целевой валюте (Decimal), умножаем на 100 для центов
+    original_price_decimal = pricing_service.convert_currency(
+        Decimal(original_price_rub_amount),
         currency,
         usd_rate,
         eur_rate,
         stars_rate,
-    ))
-    total_price = int(pricing_service.convert_currency(
-        Decimal(total_price_rub),
+    )
+    total_price_decimal = pricing_service.convert_currency(
+        Decimal(total_price_rub_amount),
         currency,
         usd_rate,
         eur_rate,
         stars_rate,
-    ))
+    )
+    original_price = int(original_price_decimal * 100)
+    total_price = int(total_price_decimal * 100)
     has_discount = price_details.discount_percent > 0
 
     # Флаг для условного отображения баланса (показываем только при оплате с баланса)
