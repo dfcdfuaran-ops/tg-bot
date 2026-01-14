@@ -683,13 +683,17 @@ async def payment_method_getter(
     total_price = base_price + extra_devices_cost if extra_devices_cost > 0 else base_price
     price = pricing_service.calculate(user, total_price, currency, global_discount, context="subscription")
     
+    # Вычисляем доступный баланс с учётом режима (COMBINED или SEPARATE)
+    is_balance_combined = await settings_service.is_balance_combined()
+    available_balance = user.balance + referral_balance if is_balance_combined else user.balance
+    
     payment_methods.append(
         {
             "gateway_type": PaymentGatewayType.BALANCE,
             "price": price.final_amount,
             "original_price": price.original_amount,
             "currency": currency.symbol,
-            "user_balance": user.balance,
+            "user_balance": available_balance,
             "discount_percent": price.discount_percent,
             "has_discount": 1 if price.discount_percent > 0 else 0,
         }
@@ -1039,13 +1043,13 @@ async def confirm_balance_getter(
         "discount_percent": pricing.discount_percent,
         "original_amount": pricing.original_amount,
         "currency": currency,
-        "user_balance": user.balance,
-        "balance_after": user.balance - pricing.final_amount,
+        "user_balance": available_balance,
+        "balance_after": available_balance - pricing.final_amount,
         "only_single_duration": only_single_duration,
         # Данные пользователя для профиля
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": user.balance,
+        "balance": available_balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "discount_value": discount_value,
@@ -1080,6 +1084,9 @@ async def confirm_balance_getter(
     base_subscription_price = dialog_manager.dialog_data.get("base_subscription_price", int(pricing.original_amount))
     saved_extra_devices_cost = dialog_manager.dialog_data.get("extra_devices_cost", 0)
 
+    # Вычисляем доступный баланс с учётом режима (COMBINED или SEPARATE)
+    available_balance = user.balance + referral_balance if is_balance_combined else user.balance
+
     # Данные о текущей подписке (если есть)
     subscription = user.current_subscription
     if subscription:
@@ -1111,7 +1118,7 @@ async def confirm_balance_getter(
             "extra_devices_cost": saved_extra_devices_cost,
             "has_extra_devices_cost": 1 if saved_extra_devices_cost > 0 else 0,
             "total_payment": total_payment,
-            "balance_after": user.balance - pricing.final_amount,
+            "balance_after": available_balance - pricing.final_amount,
             "original_amount": base_subscription_price,  # Цена подписки БЕЗ доп. устройств
             "planned_extra_devices": planned_extra_devices,
             "has_planned_extra_devices": 1 if planned_extra_devices > 0 else 0,

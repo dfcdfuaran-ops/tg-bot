@@ -619,6 +619,7 @@ async def on_confirm_balance_payment(
     user_service: FromDishka[UserService],
     settings_service: FromDishka[SettingsService],
     extra_device_service: FromDishka[ExtraDeviceService],
+    referral_service: FromDishka[ReferralService],
 ) -> None:
     """Handle confirmation of balance payment."""
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
