@@ -707,7 +707,22 @@ manage_update_bot() {
                     if [ -e "$item" ]; then
                         if [ -d "$item" ]; then
                             mkdir -p "$PROJECT_DIR/$item" 2>/dev/null || true
-                            cp -r "$item"/* "$PROJECT_DIR/$item/" 2>/dev/null || true
+                            # Копируем все содержимое, исключая папку banners (она содержит пользовательские логотипы)
+                            if [ "$item" = "assets" ]; then
+                                # Для папки assets копируем всё кроме banners
+                                for subitem in "$item"/*; do
+                                    subname=$(basename "$subitem")
+                                    if [ "$subname" != "banners" ]; then
+                                        if [ -d "$subitem" ]; then
+                                            cp -r "$subitem" "$PROJECT_DIR/$item/" 2>/dev/null || true
+                                        else
+                                            cp -f "$subitem" "$PROJECT_DIR/$item/" 2>/dev/null || true
+                                        fi
+                                    fi
+                                done
+                            else
+                                cp -r "$item"/* "$PROJECT_DIR/$item/" 2>/dev/null || true
+                            fi
                         else
                             cp -f "$item" "$PROJECT_DIR/" 2>/dev/null || true
                         fi
