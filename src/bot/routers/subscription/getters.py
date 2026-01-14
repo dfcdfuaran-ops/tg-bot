@@ -1973,7 +1973,6 @@ async def add_device_payment_getter(
         "gateway_type": PaymentGatewayType.BALANCE,
         "price": format_price(total_price_rub, currency),
         "original_price": format_price(original_price_rub, currency),
-        "currency": currency.symbol,
         "has_discount": 1 if has_discount else 0,
         "discount_percent": price_details.discount_percent,
     })
@@ -1988,17 +1987,18 @@ async def add_device_payment_getter(
         gateway_currency = Currency.from_gateway_type(gateway.type)
         
         # Конвертируем цену в валюту способа оплаты
+        # total_price_rub и original_price_rub уже в копейках, делим на 100 для конвертации
         # Результат convert_currency в рублях/долларах/евро/звёздах (Decimal)
         # Умножаем на 100 чтобы получить копейки/центы для хранения
         converted_original_decimal = pricing_service.convert_currency(
-            Decimal(original_price_rub),
+            Decimal(original_price_rub) / 100,
             gateway_currency,
             usd_rate,
             eur_rate,
             stars_rate,
         )
         converted_total_decimal = pricing_service.convert_currency(
-            Decimal(total_price_rub),
+            Decimal(total_price_rub) / 100,
             gateway_currency,
             usd_rate,
             eur_rate,
@@ -2011,7 +2011,6 @@ async def add_device_payment_getter(
             "gateway_type": gateway.type,
             "price": format_price(converted_total_price, gateway_currency),
             "original_price": format_price(converted_original_price, gateway_currency),
-            "currency": gateway_currency.symbol,
             "has_discount": 1 if has_discount else 0,
             "discount_percent": price_details.discount_percent,
         })
