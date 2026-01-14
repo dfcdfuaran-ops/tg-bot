@@ -121,22 +121,8 @@ frg-subscription =
     • <b>Осталось</b>: { $expire_time }
     </blockquote>
 
-frg-subscription-devices =
-    <blockquote>
-    • <b>Тариф:</b> { $plan_name }
-    • <b>Лимит трафика</b>: { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
-        [0] { $extra_devices ->
-            [0] {""}
-            *[other] {" "}(+{ $extra_devices })
-        }
-        *[other] +{ $device_limit_bonus }{ $extra_devices ->
-            [0] {""}
-            *[other] {" "}(+{ $extra_devices } доп.)
-        }
-    }
-    • <b>Осталось</b>: { $expire_time }
-    </blockquote>
+# Примечание: frg-subscription-devices убран как дубликат frg-subscription
+# Используйте { frg-subscription } вместо { frg-subscription-devices }
 
 frg-subscription-details =
     <blockquote>
@@ -419,24 +405,11 @@ reward-strategy = { $reward_strategy_type ->
     }
 
 # Фрагмент: Текущая подписка с проверкой наличия
+# Примечание: используйте plan_name вместо current_plan_name для согласованности
 frg-subscription-conditional =
     { $has_subscription ->
     [true]
-    <blockquote>
-    • <b>Тариф:</b> { $current_plan_name }
-    • <b>Лимит трафика</b>: { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
-        [0] { $extra_devices ->
-            [0] {""}
-            *[other] {" "}(+{ $extra_devices })
-        }
-        *[other] +{ $device_limit_bonus }{ $extra_devices ->
-            [0] {""}
-            *[other] {" "}(+{ $extra_devices } доп.)
-        }
-    }
-    • <b>Осталось</b>: { $expire_time }
-    </blockquote>
+    { frg-subscription }
     *[false]
     <blockquote>
     • У вас нет оформленной подписки.

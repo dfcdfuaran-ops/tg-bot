@@ -708,6 +708,7 @@ async def balance_gateways_getter(
         result.update({
             "has_subscription": "true",
             "current_plan_name": subscription.plan.name,
+            "plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
             "device_limit": i18n_format_device_limit(plan_device_limit if plan_device_limit > 0 else subscription.device_limit),
             "device_limit_number": plan_device_limit if plan_device_limit > 0 else subscription.device_limit,
@@ -719,6 +720,7 @@ async def balance_gateways_getter(
         result.update({
             "has_subscription": "false",
             "current_plan_name": "",
+            "plan_name": "",
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,

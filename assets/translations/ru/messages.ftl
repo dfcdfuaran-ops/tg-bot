@@ -306,7 +306,7 @@ msg-menu-devices =
     { frg-user }
 
     { hdr-subscription }
-    { frg-subscription-devices }
+    { frg-subscription }
 
     📱 <b>Управление устройствами:</b>
 
