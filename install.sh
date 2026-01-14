@@ -222,10 +222,13 @@ get_version_from_file() {
     fi
 }
 
-# Функция для получения локальной версии (из assets/setup/.version или src/__version__.py)
+# Функция для получения локальной версии (из assets/update/.version или src/__version__.py)
 get_local_version() {
-    # Сначала пробуем assets/setup/.version файл
-    if [ -f "$PROJECT_DIR/assets/setup/.version" ]; then
+    # Сначала пробуем assets/update/.version файл
+    if [ -f "$PROJECT_DIR/assets/update/.version" ]; then
+        cat "$PROJECT_DIR/assets/update/.version" 2>/dev/null | tr -d '\n' || echo ""
+    # Fallback на старый путь assets/setup/.version (для совместимости)
+    elif [ -f "$PROJECT_DIR/assets/setup/.version" ]; then
         cat "$PROJECT_DIR/assets/setup/.version" 2>/dev/null | tr -d '\n' || echo ""
     # Fallback на старый путь .version
     elif [ -f "$PROJECT_DIR/.version" ]; then
@@ -468,7 +471,7 @@ show_full_menu() {
                 # Для пункта "Обновить" добавляем статус если доступно обновление
                 if [ $i -eq 0 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
                     if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
-                        echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
+                        echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION ! )${NC}"
                     else
                         echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
                     fi
@@ -479,7 +482,7 @@ show_full_menu() {
                 # Для пункта "Обновить" добавляем статус если доступно обновление
                 if [ $i -eq 0 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
                     if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
-                        echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
+                        echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION ! )${NC}"
                     else
                         echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
                     fi
@@ -711,16 +714,16 @@ manage_update_bot() {
                     fi
                 done
                 
-                # Сохраняем версию в assets/setup/.version файл для корректной проверки версий
-                mkdir -p "$PROJECT_DIR/assets/setup" 2>/dev/null || true
+                # Сохраняем версию в assets/update/.version файл для корректной проверки версий
+                mkdir -p "$PROJECT_DIR/assets/update" 2>/dev/null || true
                 local new_version=$(grep -oP '__version__ = "\K[^"]+' "src/__version__.py" 2>/dev/null || echo "")
                 if [ -n "$new_version" ]; then
-                    echo "$new_version" > "$PROJECT_DIR/assets/setup/.version"
+                    echo "$new_version" > "$PROJECT_DIR/assets/update/.version"
                 fi
                 
-                # Копируем install.sh в папку assets/setup
-                cp -f "install.sh" "$PROJECT_DIR/assets/setup/install.sh" 2>/dev/null || true
-                chmod +x "$PROJECT_DIR/assets/setup/install.sh" 2>/dev/null || true
+                # Копируем install.sh в папку assets/update
+                cp -f "install.sh" "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
+                chmod +x "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
             } &
             show_spinner "Обновление конфигурации"
             
@@ -930,6 +933,60 @@ manage_restart_bot_with_logs() {
     tput civis 2>/dev/null || true
     echo -e "${DARKGRAY}Нажмите Enter для возврата в меню${NC}"
     read -p ""
+}
+
+# Функция переустановки бота с удалением всех данных
+manage_reinstall_bot() {
+    clear
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${GREEN}      🔄 ПЕРЕУСТАНОВКА TG-SELL-BOT${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo
+    echo -e "${RED}⚠️  ВНИМАНИЕ!${NC}"
+    echo -e "${RED}Это действие удалит весь бот и ВСЕ данные:${NC}"
+    echo -e "  - База данных PostgreSQL"
+    echo -e "  - Redis/Valkey"
+    echo -e "  - Все конфигурационные файлы"
+    echo -e "  - Логи и кэш"
+    echo
+    echo -e "${YELLOW}После этого будет произведена чистая переустановка бота.${NC}"
+    echo
+    
+    if ! confirm_action; then
+        return
+    fi
+    
+    echo
+    
+    # Удаляем контейнеры и данные
+    {
+        cd "$PROJECT_DIR" || return
+        docker compose down -v >/dev/null 2>&1 || true
+        
+        # Удаляем все локальные данные
+        rm -rf "$PROJECT_DIR/db_data" 2>/dev/null || true
+        rm -rf "$PROJECT_DIR/redis_data" 2>/dev/null || true
+        rm -rf "$PROJECT_DIR/.env" 2>/dev/null || true
+    } &
+    show_spinner "Удаление данных и контейнеров"
+    
+    echo
+    
+    # Запускаем переустановку
+    if confirm_action "Начать переустановку?"; then
+        # Восстанавливаем нормальные настройки терминала
+        stty sane 2>/dev/null || true
+        tput cnorm 2>/dev/null || true
+        
+        # Запускаем скрипт установки
+        exec "$0" --install
+    else
+        echo -e "${YELLOW}Переустановка отменена${NC}"
+        echo
+        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+        read -p ""
+        tput civis 2>/dev/null || true
+    fi
 }
 
 # Функция выключения бота
