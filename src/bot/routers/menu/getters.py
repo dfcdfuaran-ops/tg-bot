@@ -281,12 +281,26 @@ async def devices_getter(
     ]
 
     dialog_manager.dialog_data["hwid_map"] = formatted_devices
+    
+    # Добавляем данные подписки для отображения в frg-subscription-devices
+    subscription = user.current_subscription
+    extra_devices = subscription.extra_devices or 0
+    plan_device_limit = subscription.plan.device_limit if subscription.plan and subscription.plan.device_limit > 0 else 0
+    actual_device_limit = subscription.device_limit
+    device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
 
     return {
         "current_count": len(devices),
-        "max_count": i18n_format_device_limit(user.current_subscription.device_limit),
+        "max_count": i18n_format_device_limit(subscription.device_limit),
         "devices": formatted_devices,
         "devices_empty": len(devices) == 0,
+        # Данные подписки
+        "plan_name": subscription.plan.name if subscription.plan else "Unknown",
+        "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
+        "device_limit_number": plan_device_limit if plan_device_limit > 0 else subscription.device_limit,
+        "device_limit_bonus": device_limit_bonus,
+        "extra_devices": extra_devices,
+        "expire_time": i18n_format_expire_time(subscription.expire_at),
     }
 
 
