@@ -714,7 +714,7 @@ async def payment_method_getter(
             "gateway_type": PaymentGatewayType.BALANCE,
             "price": price.final_amount,
             "original_price": price.original_amount,
-            "currency": currency.symbol,
+            "currency": Currency.RUB.symbol,
             "user_balance": available_balance,
             "discount_percent": price.discount_percent,
             "has_discount": 1 if price.discount_percent > 0 else 0,
@@ -2007,7 +2007,7 @@ async def add_device_payment_getter(
         "gateway_type": PaymentGatewayType.BALANCE,
         "price": total_price_rub,
         "original_price": original_price_rub,
-        "currency": currency.symbol,
+        "currency": Currency.RUB.symbol,
         "has_discount": 1 if has_discount else 0,
         "discount_percent": price_details.discount_percent,
     })
