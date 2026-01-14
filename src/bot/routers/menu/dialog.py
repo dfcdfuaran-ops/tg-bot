@@ -58,6 +58,7 @@ from .handlers import (
     on_balance_transfer_amount_manual_input_click,
     on_balance_transfer_amount_manual_value_input,
     on_balance_transfer_amount_preset_select,
+    on_try_free,
     on_balance_transfer_cancel,
     on_balance_transfer_click,
     on_balance_transfer_message_accept,
@@ -89,6 +90,15 @@ from .handlers import (
 menu = Window(
     Banner(BannerName.MENU),
     I18nFormat("msg-main-menu"),
+    # [Попробовать бесплатно]
+    Row(
+        Button(
+            text=I18nFormat("btn-menu-try-free"),
+            id="try_free",
+            on_click=on_try_free,
+            when=F["trial_available"],
+        ),
+    ),
     # [Баланс]
     Row(
         Button(

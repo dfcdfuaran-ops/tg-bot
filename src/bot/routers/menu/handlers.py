@@ -1622,3 +1622,40 @@ async def on_balance_transfer_cancel(
     dialog_manager.dialog_data.pop("transfer_data", None)
     
     await dialog_manager.switch_to(MainMenu.BALANCE)
+
+@inject
+async def on_try_free(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    subscription_service: FromDishka[SubscriptionService],
+    plan_service: FromDishka[PlanService],
+) -> None:
+    """Получить пробную/реферальную подписку."""
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    logger.info(f"{log(user)} Trying to get free trial subscription")
+    
+    try:
+        # Проверяем, может ли пользователь получить пробную подписку
+        has_used_trial = await subscription_service.has_used_trial(user.telegram_id)
+        if has_used_trial:
+            logger.warning(f"{log(user)} User already used trial")
+            return
+        
+        # Определяем тип плана (TRIAL или INVITED)
+        from src.core.enums import PlanType
+        is_invited = user.inviter_id is not None
+        plan = await plan_service.get_appropriate_trial_plan(user, is_invited=is_invited)
+        
+        if not plan:
+            logger.warning(f"{log(user)} No trial plan available")
+            return
+        
+        # Создаем пробную подписку
+        await subscription_service.create_trial_subscription(user.telegram_id, plan.id)
+        logger.info(f"{log(user)} Successfully created trial subscription with plan {plan.id}")
+        
+        # Возвращаемся в главное меню
+        await dialog_manager.switch_to(MainMenu.MAIN)
+    except Exception as e:
+        logger.error(f"{log(user)} Error creating trial subscription: {e}")
