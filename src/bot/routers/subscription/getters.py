@@ -2386,7 +2386,7 @@ async def devices_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
         "device_limit": i18n_format_device_limit(max_count),
         "device_limit_number": base_device_limit,
-        "device_limit_bonus": max(0, max_count - base_device_limit) if base_device_limit > 0 else 0,
+        "device_limit_bonus": max(0, max_count - base_device_limit - extra_devices) if base_device_limit > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
     }
