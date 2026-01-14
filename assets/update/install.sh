@@ -222,10 +222,13 @@ get_version_from_file() {
     fi
 }
 
-# Функция для получения локальной версии (из assets/setup/.version или src/__version__.py)
+# Функция для получения локальной версии (из assets/update/.version или src/__version__.py)
 get_local_version() {
-    # Сначала пробуем assets/setup/.version файл
-    if [ -f "$PROJECT_DIR/assets/setup/.version" ]; then
+    # Сначала пробуем assets/update/.version файл
+    if [ -f "$PROJECT_DIR/assets/update/.version" ]; then
+        cat "$PROJECT_DIR/assets/update/.version" 2>/dev/null | tr -d '\n' || echo ""
+    # Fallback на старый путь assets/setup/.version (для совместимости)
+    elif [ -f "$PROJECT_DIR/assets/setup/.version" ]; then
         cat "$PROJECT_DIR/assets/setup/.version" 2>/dev/null | tr -d '\n' || echo ""
     # Fallback на старый путь .version
     elif [ -f "$PROJECT_DIR/.version" ]; then
@@ -442,7 +445,7 @@ show_full_menu() {
     wait_for_update_check
     
     # Формируем опции меню
-    local options=("ℹ️   Просмотр логов" "📊  Логи в реальном времени" "⚙️   Изменить настройки" "🔄  Обновить" "🔃  Перезагрузить бота" "🔃📊  Перезагрузить с логами" "⬇️   Выключить бота" "⬆️   Включить бота" "🔄  Переустановить" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
+    local options=("🔄  Обновить" "ℹ️   Просмотр логов" "📊  Логи в реальном времени" "🔃  Перезагрузить бота" "🔃  Перезагрузить с логами" "⬆️   Включить бота" "⬇️   Выключить бота" "🔄  Переустановить" "⚙️   Изменить настройки" "🧹  Очистить данные" "🗑️   Удалить бота" "❌  Выход")
     local num_options=${#options[@]}
     
     # Сохраняем текущие настройки терминала
@@ -466,9 +469,9 @@ show_full_menu() {
         for i in "${!options[@]}"; do
             if [ $i -eq $selected ]; then
                 # Для пункта "Обновить" добавляем статус если доступно обновление
-                if [ $i -eq 3 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
+                if [ $i -eq 0 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
                     if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
-                        echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
+                        echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION ! )${NC}"
                     else
                         echo -e "${BLUE}▶${NC} ${GREEN}${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
                     fi
@@ -477,9 +480,9 @@ show_full_menu() {
                 fi
             else
                 # Для пункта "Обновить" добавляем статус если доступно обновление
-                if [ $i -eq 3 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
+                if [ $i -eq 0 ] && [ $UPDATE_AVAILABLE -eq 1 ]; then
                     if [ -n "$AVAILABLE_VERSION" ] && [ "$AVAILABLE_VERSION" != "unknown" ]; then
-                        echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION )${NC}"
+                        echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление - версия $AVAILABLE_VERSION ! )${NC}"
                     else
                         echo -e "  ${options[$i]} ${YELLOW}( Доступно обновление! )${NC}"
                     fi
@@ -488,8 +491,8 @@ show_full_menu() {
                 fi
             fi
             
-            # Разделители после пунктов 3, 6 и 9
-            if [ $i -eq 3 ] || [ $i -eq 6 ] || [ $i -eq 9 ]; then
+            # Разделители после пунктов 2, 6 и 10
+            if [ $i -eq 2 ] || [ $i -eq 6 ] || [ $i -eq 10 ]; then
                 echo -e "${BLUE}----------------------------------${NC}"
             fi
         done
@@ -545,63 +548,52 @@ show_full_menu() {
                 stty "$original_stty" 2>/dev/null || true
                 
                 case $selected in
-                    0)  # Просмотр логов
+                    0)  # Обновить
+                        manage_update_bot
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
+                        ;;
+                    1)  # Просмотр логов
                         manage_view_logs
                         # Возвращаемся в raw mode
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    1)  # Логи в реальном времени
+                    2)  # Логи в реальном времени
                         manage_view_logs_live
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    2)  # Изменить настройки
-                        manage_change_settings
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    3)  # Обновить
-                        manage_update_bot
-                        stty -icanon -echo min 1 time 0 2>/dev/null || true
-                        tput civis 2>/dev/null || true
-                        ;;
-                    4)  # Перезагрузить бота
+                    3)  # Перезагрузить бота
                         manage_restart_bot
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    5)  # Перезагрузить с логами
+                    4)  # Перезагрузить с логами
                         manage_restart_bot_with_logs
+                        ;;
+                    5)  # Включить бота
+                        manage_start_bot
+                        stty -icanon -echo min 1 time 0 2>/dev/null || true
+                        tput civis 2>/dev/null || true
                         ;;
                     6)  # Выключить бота
                         manage_stop_bot
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    7)  # Включить бота
-                        manage_start_bot
+                    7)  # Переустановить
+                        manage_reinstall_bot
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
-                    8)  # Переустановить
-                        clear
-                        echo -e "${BLUE}========================================${NC}"
-                        echo -e "${GREEN}       🔄 ПЕРЕУСТАНОВКА TG-SELL-BOT${NC}"
-                        echo -e "${BLUE}========================================${NC}"
-                        echo
-                        echo -e "${RED}⚠️  Внимание!${NC} Это переустановит бот с потерей данных!"
-                        echo
-                        
-                        if confirm_action; then
-                            exec "$0" --install
-                        fi
-                        # Возвращаемся в raw mode
+                    8)  # Изменить настройки
+                        manage_change_settings
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
                     9)  # Очистить данные
-                        manage_cleanup_database
+                        manage_reset_data
                         stty -icanon -echo min 1 time 0 2>/dev/null || true
                         tput civis 2>/dev/null || true
                         ;;
@@ -722,16 +714,16 @@ manage_update_bot() {
                     fi
                 done
                 
-                # Сохраняем версию в assets/setup/.version файл для корректной проверки версий
-                mkdir -p "$PROJECT_DIR/assets/setup" 2>/dev/null || true
+                # Сохраняем версию в assets/update/.version файл для корректной проверки версий
+                mkdir -p "$PROJECT_DIR/assets/update" 2>/dev/null || true
                 local new_version=$(grep -oP '__version__ = "\K[^"]+' "src/__version__.py" 2>/dev/null || echo "")
                 if [ -n "$new_version" ]; then
-                    echo "$new_version" > "$PROJECT_DIR/assets/setup/.version"
+                    echo "$new_version" > "$PROJECT_DIR/assets/update/.version"
                 fi
                 
-                # Копируем install.sh в папку assets/setup
-                cp -f "install.sh" "$PROJECT_DIR/assets/setup/install.sh" 2>/dev/null || true
-                chmod +x "$PROJECT_DIR/assets/setup/install.sh" 2>/dev/null || true
+                # Копируем install.sh в папку assets/update
+                cp -f "install.sh" "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
+                chmod +x "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
             } &
             show_spinner "Обновление конфигурации"
             
@@ -871,19 +863,36 @@ manage_restart_bot() {
     echo
     
     # Ждем появления логотипа DFC в логах (строка с "Digital  Freedom   Core")
-    local max_attempts=60
+    local max_attempts=90
     local attempt=0
+    local dfc_found=false
+    local error_found=false
+    
     while [ $attempt -lt $max_attempts ]; do
-        if docker compose logs remnashop 2>&1 | grep -q "Digital.*Freedom.*Core"; then
-            # Логотип найден - бот загружен
-            echo -e "${GREEN}✅ Бот успешно перезагружен${NC}"
+        local logs=$(docker compose logs remnashop 2>&1)
+        
+        # Проверяем наличие логотипа DFC
+        if echo "$logs" | grep -q "Digital.*Freedom.*Core"; then
+            dfc_found=true
             break
         fi
+        
+        # Проверяем наличие критических ошибок
+        if echo "$logs" | grep -E "^\s*(ERROR|CRITICAL|Traceback)" >/dev/null 2>&1; then
+            error_found=true
+            break
+        fi
+        
         ((attempt++))
         sleep 1
     done
     
-    if [ $attempt -eq $max_attempts ]; then
+    echo
+    if [ "$dfc_found" = true ]; then
+        echo -e "${GREEN}✅ Бот успешно перезагружен${NC}"
+    elif [ "$error_found" = true ]; then
+        echo -e "${RED}❌ Обнаружена ошибка при запуске. Проверьте логи.${NC}"
+    else
         echo -e "${YELLOW}⚠️  Превышено время ожидания (${max_attempts}сек), но бот может быть готов${NC}"
     fi
     
@@ -924,6 +933,60 @@ manage_restart_bot_with_logs() {
     tput civis 2>/dev/null || true
     echo -e "${DARKGRAY}Нажмите Enter для возврата в меню${NC}"
     read -p ""
+}
+
+# Функция переустановки бота с удалением всех данных
+manage_reinstall_bot() {
+    clear
+    echo -e "${BLUE}========================================${NC}"
+    echo -e "${GREEN}      🔄 ПЕРЕУСТАНОВКА TG-SELL-BOT${NC}"
+    echo -e "${BLUE}========================================${NC}"
+    echo
+    echo -e "${RED}⚠️  ВНИМАНИЕ!${NC}"
+    echo -e "${RED}Это действие удалит весь бот и ВСЕ данные:${NC}"
+    echo -e "  - База данных PostgreSQL"
+    echo -e "  - Redis/Valkey"
+    echo -e "  - Все конфигурационные файлы"
+    echo -e "  - Логи и кэш"
+    echo
+    echo -e "${YELLOW}После этого будет произведена чистая переустановка бота.${NC}"
+    echo
+    
+    if ! confirm_action; then
+        return
+    fi
+    
+    echo
+    
+    # Удаляем контейнеры и данные
+    {
+        cd "$PROJECT_DIR" || return
+        docker compose down -v >/dev/null 2>&1 || true
+        
+        # Удаляем все локальные данные
+        rm -rf "$PROJECT_DIR/db_data" 2>/dev/null || true
+        rm -rf "$PROJECT_DIR/redis_data" 2>/dev/null || true
+        rm -rf "$PROJECT_DIR/.env" 2>/dev/null || true
+    } &
+    show_spinner "Удаление данных и контейнеров"
+    
+    echo
+    
+    # Запускаем переустановку
+    if confirm_action "Начать переустановку?"; then
+        # Восстанавливаем нормальные настройки терминала
+        stty sane 2>/dev/null || true
+        tput cnorm 2>/dev/null || true
+        
+        # Запускаем скрипт установки
+        exec "$0" --install
+    else
+        echo -e "${YELLOW}Переустановка отменена${NC}"
+        echo
+        echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+        read -p ""
+        tput civis 2>/dev/null || true
+    fi
 }
 
 # Функция выключения бота
@@ -1312,11 +1375,11 @@ manage_uninstall_bot() {
     
     echo
     
-    # Удаляем блок из Caddyfile
+    # Подготовка к удалению
     {
-        remove_from_caddy
+        remove_from_caddy >/dev/null 2>&1 || true
     } &
-    show_spinner "Удаление из Caddyfile"
+    show_spinner "Подготовка к удалению"
     
     # Остановка контейнеров и удаление
     {
@@ -1334,9 +1397,9 @@ manage_uninstall_bot() {
     show_spinner "Удаление ярлыка команды"
     
     echo
-    echo -e "${GREEN}✅ Бот успешно удален${NC}"
+    echo -e "${GREEN}✅ Бот успешно удален!${NC}"
     echo
-    echo -e "${DARKGRAY}Нажмите Enter для продолжения${NC}"
+    echo -e "${DARKGRAY}Нажмите Enter для продолжения.${NC}"
     read -p ""
     clear
     exit 0
