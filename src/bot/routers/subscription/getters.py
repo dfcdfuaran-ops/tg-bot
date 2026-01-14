@@ -2334,6 +2334,16 @@ async def devices_getter(
             discount_value = purchase_disc
     else:
         discount_value = 0
+    
+    # Режим баланса
+    is_balance_combined = await settings_service.is_balance_combined()
+    
+    # Вычисляем отображаемый баланс
+    display_balance = get_display_balance(
+        user.balance,
+        referral_balance,
+        is_balance_combined,
+    )
 
     return {
         # Данные устройств
@@ -2351,9 +2361,9 @@ async def devices_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "referral_balance": referral_balance,
-        "balance": user.balance,
+        "balance": display_balance,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
-        "is_balance_separate": 1 if not await settings_service.is_balance_combined() else 0,
+        "is_balance_separate": 1 if not is_balance_combined else 0,
         # Данные подписки
         "is_trial": 1 if subscription.is_trial else 0,
         "plan_name": subscription.plan.name if subscription.plan else "Unknown",
