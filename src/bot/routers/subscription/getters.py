@@ -1879,7 +1879,8 @@ async def add_device_payment_getter(
     """Геттер для окна выбора способа оплаты при добавлении устройств."""
     from decimal import Decimal
     
-    DEVICE_PRICE = 100
+    # Получаем цену дополнительного устройства из настроек (за месяц, в рублях)
+    device_price_rub = await settings_service.get_extra_device_price()
     
     # Получаем количество устройств из dialog_data
     device_count = dialog_manager.dialog_data.get("device_count", 1)
@@ -1893,8 +1894,15 @@ async def add_device_payment_getter(
     # Получаем глобальную скидку
     global_discount = await settings_service.get_global_discount_settings()
     
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    usd_rate = rates.usd_rate
+    eur_rate = rates.eur_rate
+    stars_rate = rates.stars_rate
+    
     # Вычисляем цену со скидкой используя PricingService
-    original_price = DEVICE_PRICE * device_count
+    original_price = device_price_rub * device_count
     price_details = pricing_service.calculate(
         user=user,
         price=Decimal(original_price),
@@ -1903,7 +1911,8 @@ async def add_device_payment_getter(
         context="extra_devices",
     )
     
-    total_price = int(price_details.final_amount)
+    total_price_rub = int(price_details.final_amount)
+    original_price_rub = int(price_details.original_amount)
     has_discount = price_details.discount_percent > 0
     
     # Вычисляем информацию о скидке для отображения
@@ -1956,8 +1965,8 @@ async def add_device_payment_getter(
     # Добавляем оплату с баланса ВСЕГДА ПЕРВОЙ (даже если баланса недостаточно)
     payment_methods.append({
         "gateway_type": PaymentGatewayType.BALANCE,
-        "price": total_price,
-        "original_price": original_price,
+        "price": total_price_rub,
+        "original_price": original_price_rub,
         "currency": currency.symbol,
         "has_discount": 1 if has_discount else 0,
         "discount_percent": price_details.discount_percent,
@@ -1971,10 +1980,15 @@ async def add_device_payment_getter(
             
         # Получаем валюту для конкретного шлюза
         gateway_currency = Currency.from_gateway_type(gateway.type)
+        
+        # Конвертируем цену в валюту способа оплаты
+        converted_original_price = int(original_price_rub * gateway_currency.get_rate(usd_rate, eur_rate, stars_rate))
+        converted_total_price = int(total_price_rub * gateway_currency.get_rate(usd_rate, eur_rate, stars_rate))
+        
         payment_methods.append({
             "gateway_type": gateway.type,
-            "price": total_price,
-            "original_price": original_price,
+            "price": converted_total_price,
+            "original_price": converted_original_price,
             "currency": gateway_currency.symbol,
             "has_discount": 1 if has_discount else 0,
             "discount_percent": price_details.discount_percent,
@@ -2019,7 +2033,8 @@ async def add_device_confirm_getter(
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для окна подтверждения покупки устройств."""
-    DEVICE_PRICE = 100
+    # Получаем цену дополнительного устройства из настроек (за месяц, в рублях)
+    device_price_rub = await settings_service.get_extra_device_price()
     
     # Получаем данные из dialog_data
     device_count = dialog_manager.dialog_data.get("device_count", 1)
@@ -2030,6 +2045,13 @@ async def add_device_confirm_getter(
         currency = Currency.from_gateway_type(selected_method)
     else:
         currency = await settings_service.get_default_currency()
+    
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    usd_rate = rates.usd_rate
+    eur_rate = rates.eur_rate
+    stars_rate = rates.stars_rate
     
     # Форматируем название способа оплаты
     if selected_method == PaymentGatewayType.BALANCE:
@@ -2083,18 +2105,23 @@ async def add_device_confirm_getter(
         discount_value = 0
 
     # Используем PricingService для расчета цены с учетом глобальной скидки
+    original_price_rub = device_price_rub * device_count
     price_details = pricing_service.calculate(
         user=user,
-        price=Decimal(DEVICE_PRICE),
+        price=Decimal(original_price_rub),
         currency=Currency.RUB,
         global_discount=global_discount,
         context="extra_devices",
     )
 
-    # Вычисляем итоговую цену за все устройства
-    discounted_device_price = int(price_details.final_amount)
-    original_price = DEVICE_PRICE * device_count
-    total_price = discounted_device_price * device_count
+    # Вычисляем итоговую цену за все устройства (в рублях)
+    total_price_rub = int(price_details.final_amount)
+    original_price_rub_final = int(price_details.original_amount)
+    
+    # Конвертируем цену в валюту выбранного способа оплаты
+    conversion_rate = currency.get_rate(usd_rate, eur_rate, stars_rate)
+    original_price = int(original_price_rub_final * conversion_rate)
+    total_price = int(total_price_rub * conversion_rate)
     has_discount = price_details.discount_percent > 0
 
     # Флаг для условного отображения баланса (показываем только при оплате с баланса)
@@ -2396,13 +2423,26 @@ async def extra_devices_list_getter(
     # Получаем активные покупки дополнительных устройств
     purchases = await extra_device_service.get_active_by_subscription(subscription.id)
     
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    usd_rate = rates.usd_rate
+    eur_rate = rates.eur_rate
+    stars_rate = rates.stars_rate
+    
+    # Получаем валюту по умолчанию
+    default_currency = await settings_service.get_default_currency()
+    conversion_rate = default_currency.get_rate(usd_rate, eur_rate, stars_rate)
+    
     # Форматируем для отображения
     formatted_purchases = []
     for p in purchases:
+        # Конвертируем цену в валюту по умолчанию
+        converted_price = int(p.price * conversion_rate)
         formatted_purchases.append({
             "id": p.id,
             "device_count": p.device_count,
-            "price": p.price,
+            "price": converted_price,
             "auto_renew": p.auto_renew,
             "expires_at": i18n_format_expire_time(p.expires_at),
             "days_remaining": p.days_remaining,
@@ -2415,7 +2455,8 @@ async def extra_devices_list_getter(
     ]
     
     # Общая месячная стоимость дополнительных устройств
-    total_monthly_cost = await extra_device_service.get_total_monthly_cost(subscription.id)
+    total_monthly_cost_rub = await extra_device_service.get_total_monthly_cost(subscription.id)
+    total_monthly_cost = int(total_monthly_cost_rub * conversion_rate)  # Конвертируем в валюту по умолчанию
     total_extra_devices = await extra_device_service.get_total_active_devices(subscription.id)
     
     # Данные профиля
