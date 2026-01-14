@@ -767,10 +767,9 @@ manage_update_bot() {
             
             # Запуск бота
             (sleep 5) &
-            show_spinner "Запуск бота"
             
             echo
-            echo -e "${YELLOW}Ожидание логотипа DFC в логах...${NC}"
+            echo -e "${YELLOW}Запуск бота. Ожидайте.${NC}"
             echo
             
             # Ждем появления логотипа DFC в логах

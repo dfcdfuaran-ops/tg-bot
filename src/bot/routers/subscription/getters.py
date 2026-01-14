@@ -1895,7 +1895,7 @@ async def add_device_select_count_getter(
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Цена (со скидкой)
         "device_price": discounted_device_price,
-        "device_price_original": DEVICE_PRICE,
+        "device_price_original": device_price_rub,
         "has_discount": 1 if has_discount else 0,
     }
 
@@ -2176,8 +2176,7 @@ async def add_device_confirm_getter(
     
     # Конвертируем цену в валюту выбранного способа оплаты
     # Результат convert_currency в целевой валюте (Decimal)
-    # Для RUB не умножаем на 100, т.к. цена уже в копейках
-    # Для остальных валют умножаем на 100 для центов/минимальных единиц
+    # Умножаем на 100 для центов/минимальных единиц (баланс хранится в рублях, а не копейках)
     original_price_decimal = pricing_service.convert_currency(
         Decimal(original_price_rub_amount),
         currency,
@@ -2192,15 +2191,8 @@ async def add_device_confirm_getter(
         eur_rate,
         stars_rate,
     )
-    
-    # Для RUB цена уже в копейках, для остальных умножаем на 100
-    if currency == Currency.RUB:
-        original_price = int(original_price_decimal)
-        total_price = int(total_price_decimal)
-    else:
-        original_price = int(original_price_decimal * 100)
-        total_price = int(total_price_decimal * 100)
-    
+    original_price = int(original_price_decimal * 100)
+    total_price = int(total_price_decimal * 100)
     has_discount = price_details.discount_percent > 0
 
     # Флаг для условного отображения баланса (показываем только при оплате с баланса)
