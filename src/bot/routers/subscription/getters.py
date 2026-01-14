@@ -1963,6 +1963,10 @@ async def add_device_payment_getter(
     payment_methods = []
     
     # Добавляем оплату с баланса ВСЕГДА ПЕРВОЙ (даже если баланса недостаточно)
+    # Сохраняем цены для возвращения в результате (в валюте по умолчанию - RUB)
+    total_price = total_price_rub
+    original_price = original_price_rub
+    
     payment_methods.append({
         "gateway_type": PaymentGatewayType.BALANCE,
         "price": total_price_rub,
