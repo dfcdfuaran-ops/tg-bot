@@ -148,6 +148,11 @@ async def subscription_getter(
     if remna_user.last_connected_node_uuid:
         result = await remnawave.nodes.get_one_node(remna_user.last_connected_node_uuid)
         last_node = result
+    
+    # Вычисляем лимиты устройств
+    extra_devices = subscription.extra_devices or 0
+    device_limit_number = subscription.plan.device_limit if subscription.plan else 0
+    device_limit_bonus = max(0, subscription.device_limit - device_limit_number - extra_devices) if device_limit_number > 0 else 0
 
     return {
         "has_subscription": True,
@@ -159,6 +164,7 @@ async def subscription_getter(
         #
         "subscription_id": str(subscription.user_remna_id),
         "subscription_status": subscription.get_status,
+        "plan_name": subscription.plan.name if subscription.plan else "Unknown",
         "traffic_used": i18n_format_bytes_to_unit(
             remna_user.used_traffic_bytes,
             min_unit=ByteUnitKey.MEGABYTE,
@@ -169,6 +175,9 @@ async def subscription_getter(
             else i18n_format_traffic_limit(-1)
         ),
         "device_limit": i18n_format_device_limit(subscription.device_limit),
+        "device_limit_number": device_limit_number,
+        "device_limit_bonus": device_limit_bonus,
+        "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
         #
         "squads": squads,

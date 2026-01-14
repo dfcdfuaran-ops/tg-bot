@@ -144,7 +144,16 @@ frg-subscription-details =
     • <b>Статус</b>: { subscription-status }
     • <b>Тариф:</b> { $plan_name }
     • <b>Трафик</b>: { $traffic_used } / { $traffic_limit }
-    • <b>Лимит устройств</b>: { $device_limit }
+    • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
+        [0] { $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices })
+        }
+        *[other] +{ $device_limit_bonus }{ $extra_devices ->
+            [0] {""}
+            *[other] {" "}(+{ $extra_devices } доп.)
+        }
+    }
     • <b>Осталось</b>: { $expire_time }
     </blockquote>
 
