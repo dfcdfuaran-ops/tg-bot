@@ -234,10 +234,10 @@ async def subscription_getter(
     if subscription:
         extra_devices = subscription.extra_devices or 0
         
-        # Вычисляем бонус устройств (разница между реальным лимитом из Remnawave и планом)
+        # Вычисляем бонус устройств (разница между реальным лимитом из Remnawave и планом, БЕЗ купленных доп.)
         plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
         actual_device_limit = subscription.device_limit
-        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
         
         result.update({
             "has_subscription": "true",
@@ -355,10 +355,10 @@ async def plans_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
-        # Вычисляем бонус устройств
+        # Вычисляем бонус устройств (БЕЗ купленных доп.)
         plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
         actual_device_limit = subscription.device_limit
-        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
         
         result.update({
             "has_subscription": "true",
@@ -1108,7 +1108,7 @@ async def confirm_balance_getter(
     if subscription:
         extra_devices = subscription.extra_devices or 0
         device_limit_number = subscription.plan.device_limit
-        device_limit_bonus = max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0
+        device_limit_bonus = max(0, subscription.device_limit - device_limit_number - extra_devices) if device_limit_number > 0 else 0
         
         # Получаем месячную стоимость для отображения
         # Но только если включена ежемесячная оплата (is_one_time = False)

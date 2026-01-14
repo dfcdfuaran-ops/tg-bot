@@ -173,10 +173,10 @@ async def menu_getter(
 
         extra_devices = subscription.extra_devices or 0
         
-        # Вычисляем бонус устройств (разница между реальным лимитом из Remnawave и планом)
+        # Вычисляем бонус устройств (разница между реальным лимитом из Remnawave и планом, БЕЗ купленных доп.)
         plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
         actual_device_limit = subscription.device_limit
-        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
         
         base_data.update(
             {
@@ -371,10 +371,10 @@ async def invite_getter(
     
     if subscription:
         extra_devices = subscription.extra_devices or 0
-        # Вычисляем бонус устройств
+        # Вычисляем бонус устройств (БЕЗ купленных доп.)
         plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
         actual_device_limit = subscription.device_limit
-        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
         
         subscription_data = {
             "status": subscription.get_status,
@@ -578,10 +578,10 @@ async def balance_menu_getter(
         return base_data
 
     extra_devices = subscription.extra_devices or 0
-    # Вычисляем бонус устройств
+    # Вычисляем бонус устройств (БЕЗ купленных доп.)
     plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
     actual_device_limit = subscription.device_limit
-    device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+    device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
     
     base_data.update(
         {
@@ -686,10 +686,10 @@ async def balance_gateways_getter(
     subscription = user.current_subscription
     if subscription:
         extra_devices = subscription.extra_devices or 0
-        # Вычисляем бонус устройств
+        # Вычисляем бонус устройств (БЕЗ купленных доп.)
         plan_device_limit = subscription.plan.device_limit if subscription.plan.device_limit > 0 else 0
         actual_device_limit = subscription.device_limit
-        device_limit_bonus = max(0, actual_device_limit - plan_device_limit) if plan_device_limit > 0 else 0
+        device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
         
         result.update({
             "has_subscription": "true",
