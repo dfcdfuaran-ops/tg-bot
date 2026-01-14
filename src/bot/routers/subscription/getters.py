@@ -12,6 +12,7 @@ from src.core.config import AppConfig
 from src.core.enums import Currency, PaymentGatewayType, PurchaseType, ReferralRewardType
 from src.core.utils.adapter import DialogDataAdapter
 from src.core.utils.formatters import (
+    format_price,
     i18n_format_days,
     i18n_format_device_limit,
     i18n_format_expire_time,
@@ -928,9 +929,9 @@ async def confirm_getter(
         "period": i18n.get(key, **kw),
         "payment_method": selected_payment_method,
         "gateway_type": payment_gateway.type,
-        "final_amount": pricing.final_amount,
+        "final_amount": format_price(int(pricing.final_amount), payment_gateway.currency),
         "discount_percent": pricing.discount_percent,
-        "original_amount": base_subscription_price if base_subscription_price > 0 else pricing.original_amount,
+        "original_amount": format_price(int(base_subscription_price) if base_subscription_price > 0 else int(pricing.original_amount), payment_gateway.currency),
         "currency": payment_gateway.currency.symbol,
         "url": result_url,
         "only_single_gateway": len(gateways) == 1,
@@ -963,7 +964,7 @@ async def confirm_getter(
         "extra_devices_monthly_cost": extra_devices_monthly_cost,
         "extra_devices_cost": extra_devices_cost,
         "has_extra_devices_cost": 1 if extra_devices_cost > 0 else 0,
-        "total_payment": pricing.original_amount,
+        "total_payment": format_price(int(pricing.original_amount), payment_gateway.currency),
         # Планируемые дополнительные устройства
         "planned_extra_devices": planned_extra_devices,
         "has_planned_extra_devices": 1 if planned_extra_devices > 0 else 0,
@@ -1969,8 +1970,8 @@ async def add_device_payment_getter(
     
     payment_methods.append({
         "gateway_type": PaymentGatewayType.BALANCE,
-        "price": total_price_rub,
-        "original_price": original_price_rub,
+        "price": format_price(total_price_rub, currency),
+        "original_price": format_price(original_price_rub, currency),
         "currency": currency.symbol,
         "has_discount": 1 if has_discount else 0,
         "discount_percent": price_details.discount_percent,
@@ -2003,8 +2004,8 @@ async def add_device_payment_getter(
         
         payment_methods.append({
             "gateway_type": gateway.type,
-            "price": converted_total_price,
-            "original_price": converted_original_price,
+            "price": format_price(converted_total_price, gateway_currency),
+            "original_price": format_price(converted_original_price, gateway_currency),
             "currency": gateway_currency.symbol,
             "has_discount": 1 if has_discount else 0,
             "discount_percent": price_details.discount_percent,
@@ -2033,8 +2034,8 @@ async def add_device_payment_getter(
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки (со скидкой)
         "device_count": device_count,
-        "total_price": total_price,
-        "original_price": original_price,
+        "total_price": format_price(total_price, currency),
+        "original_price": format_price(original_price, currency),
         "payment_methods": payment_methods,
     }
 
@@ -2195,8 +2196,8 @@ async def add_device_confirm_getter(
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки (со скидкой)
         "device_count": device_count,
-        "total_price": total_price,
-        "original_price": original_price,
+        "total_price": format_price(total_price, currency),
+        "original_price": format_price(original_price, currency),
         "selected_method": selected_method_formatted,
         "currency": currency.symbol,
         "is_balance_payment": is_balance_payment,
@@ -2475,7 +2476,7 @@ async def extra_devices_list_getter(
         formatted_purchases.append({
             "id": p.id,
             "device_count": p.device_count,
-            "price": converted_price,
+            "price": format_price(converted_price, default_currency),
             "auto_renew": p.auto_renew,
             "expires_at": i18n_format_expire_time(p.expires_at),
             "days_remaining": p.days_remaining,
@@ -2545,7 +2546,7 @@ async def extra_devices_list_getter(
         # Список покупок
         "purchases": formatted_purchases,
         "purchases_empty": len(formatted_purchases) == 0,
-        "total_monthly_cost": total_monthly_cost,
+        "total_monthly_cost": format_price(total_monthly_cost, default_currency),
         "total_extra_devices": total_extra_devices,
         # Данные профиля
         "user_id": str(user.telegram_id),

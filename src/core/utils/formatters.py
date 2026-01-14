@@ -15,7 +15,7 @@ from re import Match
 from urllib.parse import quote
 
 from src.core.constants import T_ME
-from src.core.enums import PlanType
+from src.core.enums import Currency, PlanType
 from src.core.i18n.keys import ByteUnitKey, TimeUnitKey, UtilKey
 from src.core.utils.time import datetime_now
 from src.infrastructure.database.models.dto.user import BaseUserDto
@@ -279,6 +279,25 @@ def i18n_format_expire_time(expiry: Union[timedelta, datetime]) -> list[tuple[st
 
     # Default to 1 minute if everything is zero
     return parts or [("unknown", {"value": 0})]
+
+
+def format_price(price: int, currency: Currency) -> str:
+    """Format price with proper decimal places based on currency type.
+    
+    Args:
+        price: Price in cents/kopecks (integer)
+        currency: Currency enum
+        
+    Returns:
+        Formatted price string like "100 ₽" or "0.77 $"
+    """
+    if currency == Currency.RUB:
+        # Rubles are always whole numbers
+        return f"{price} ₽"
+    else:
+        # Convert from cents to decimal (divide by 100)
+        decimal_price = Decimal(price) / Decimal(100)
+        return f"{decimal_price:.2f} {currency.symbol}"
 
 
 def i18n_postprocess_text(text: str, collapse_level: int = 2) -> str:
