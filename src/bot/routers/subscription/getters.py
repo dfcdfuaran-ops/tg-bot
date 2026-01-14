@@ -197,9 +197,6 @@ async def subscription_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
-    
     result = {
         "has_active_subscription": has_active,
         "is_not_unlimited": not is_unlimited,
@@ -216,7 +213,7 @@ async def subscription_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -332,9 +329,6 @@ async def plans_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
-    
     result = {
         "plans": formatted_plans,
         # Данные пользователя для шапки
@@ -344,7 +338,7 @@ async def plans_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -505,9 +499,6 @@ async def duration_getter(
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
-    
     # Базовые данные о плане
     result = {
         "plan": plan.name,
@@ -528,7 +519,7 @@ async def duration_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -764,9 +755,6 @@ async def payment_method_getter(
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны на экране ADD_DEVICE_SELECT_COUNT)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
-    
     return {
         "has_subscription": has_subscription,
         "current_plan_name": current_plan_name,
@@ -795,7 +783,7 @@ async def payment_method_getter(
         # Данные пользователя для шапки
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
@@ -892,8 +880,6 @@ async def confirm_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
     # Получаем стоимость доп. устройств из dialog_data (сохранена при создании платежа)
     extra_devices_cost = dialog_manager.dialog_data.get("extra_devices_cost", 0)
     base_subscription_price = dialog_manager.dialog_data.get("base_subscription_price", 0)
@@ -956,7 +942,7 @@ async def confirm_getter(
         # Данные пользователя для шапки
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "discount_value": discount_value,
@@ -1220,9 +1206,6 @@ async def confirm_yoomoney_getter(
         reward_type=ReferralRewardType.MONEY,
     )
 
-    # Получаем режим отображения баланса
-    is_balance_combined = await settings_service.is_balance_combined()
-
     # Вычисляем скидку пользователя
     from datetime import datetime, timezone
     purchase_disc = user.purchase_discount if user.purchase_discount is not None else 0
@@ -1253,9 +1236,6 @@ async def confirm_yoomoney_getter(
     else:
         discount_value = 0
 
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
-
     return {
         "purchase_type": purchase_type,
         "plan": plan.name,
@@ -1281,7 +1261,7 @@ async def confirm_yoomoney_getter(
         # User profile data
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         # Discount data
@@ -1389,9 +1369,6 @@ async def confirm_yookassa_getter(
     else:
         discount_value = 0
 
-
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
     return {
         "purchase_type": purchase_type,
         "plan": plan.name,
@@ -1417,7 +1394,7 @@ async def confirm_yookassa_getter(
         # User profile data
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         # Discount data
@@ -1560,8 +1537,6 @@ async def getter_connect(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
     return {
         "is_app": config.bot.is_mini_app,
         "url": config.bot.mini_app_url or subscription.url,
@@ -1571,7 +1546,7 @@ async def getter_connect(
         "user_name": user.name,
         "referral_code": user.referral_code or "—",
         "referral_balance": referral_balance,
-        "balance": display_balance,
+        "balance": user.balance,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,
         "discount_value": discount_value,
@@ -1655,8 +1630,6 @@ async def success_payment_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
     # Вычисляем лимиты устройств
     extra_devices = subscription.extra_devices or 0
     # device_limit_number - базовый лимит из тарифа
@@ -1683,7 +1656,7 @@ async def success_payment_getter(
         # Данные профиля пользователя
         "user_id": str(user.telegram_id),
         "user_name": user.name,
-        "balance": display_balance,
+        "balance": user.balance,
         "referral_balance": referral_balance,
         "referral_code": user.referral_code,
         "discount_value": discount_value,
@@ -1732,8 +1705,6 @@ async def referral_success_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
     # Вычисляем скидку пользователя
     from datetime import datetime, timezone
     purchase_disc = fresh_user.purchase_discount if fresh_user.purchase_discount is not None else 0
@@ -1803,8 +1774,7 @@ async def add_device_select_count_getter(
     """Геттер для окна выбора количества дополнительных устройств."""
     from decimal import Decimal
     
-    # Получаем цену дополнительного устройства из настроек (за месяц, в рублях)
-    device_price_rub = await settings_service.get_extra_device_price()
+    DEVICE_PRICE = 100
     
     # Получаем реферальный баланс
     referral_balance = await referral_service.get_pending_rewards_amount(
@@ -1818,7 +1788,7 @@ async def add_device_select_count_getter(
     # Вычисляем цену со скидкой используя PricingService
     price_details = pricing_service.calculate(
         user=user,
-        price=Decimal(device_price_rub),
+        price=Decimal(DEVICE_PRICE),
         currency=Currency.RUB,
         global_discount=global_discount,
         context="extra_devices",
@@ -1895,7 +1865,7 @@ async def add_device_select_count_getter(
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Цена (со скидкой)
         "device_price": discounted_device_price,
-        "device_price_original": device_price_rub,
+        "device_price_original": DEVICE_PRICE,
         "has_discount": 1 if has_discount else 0,
     }
 
@@ -1945,7 +1915,7 @@ async def add_device_payment_getter(
         context="extra_devices",
     )
     
-    # Результат в рублях (prices are stored in rubles, not kopecks)
+    # Результат в рублях (не умножаем на 100, цены хранятся в рублях)
     total_price_rub = int(price_details.final_amount)
     original_price_rub = int(price_details.original_amount)
     has_discount = price_details.discount_percent > 0
@@ -1989,6 +1959,7 @@ async def add_device_payment_getter(
     
     # Вычисляем отображаемый баланс
     display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+    
     # Вычисляем лимиты устройств
     subscription = user.current_subscription
     extra_devices = subscription.extra_devices or 0 if subscription else 0
@@ -2008,6 +1979,7 @@ async def add_device_payment_getter(
         "gateway_type": PaymentGatewayType.BALANCE,
         "price": format_price(total_price_rub, currency),
         "original_price": format_price(original_price_rub, currency),
+        "currency": currency.symbol,
         "has_discount": 1 if has_discount else 0,
         "discount_percent": price_details.discount_percent,
     })
@@ -2022,9 +1994,8 @@ async def add_device_payment_getter(
         gateway_currency = Currency.from_gateway_type(gateway.type)
         
         # Конвертируем цену в валюту способа оплаты
-        # total_price_rub и original_price_rub в рублях (целые числа)
-        # Результат convert_currency в рублях/долларах/евро/звёздах (Decimal)
-        # Для USD/EUR умножаем на 100 чтобы получить центы, для RUB/XTR оставляем как есть
+        # total_price_rub и original_price_rub уже в рублях
+        # Результат convert_currency в целевой валюте (Decimal)
         converted_original_decimal = pricing_service.convert_currency(
             Decimal(original_price_rub),
             gateway_currency,
@@ -2040,18 +2011,20 @@ async def add_device_payment_getter(
             stars_rate,
         )
         
-        # Для RUB и XTR цена в целых единицах, для USD/EUR умножаем на 100 для центов
-        if gateway_currency in (Currency.RUB, Currency.XTR):
-            converted_original_price = int(converted_original_decimal)
-            converted_total_price = int(converted_total_decimal)
-        else:
+        # Для USD/EUR умножаем на 100 (чтобы получить центы для format_price)
+        # Для RUB/XTR оставляем как есть (целые числа)
+        if gateway_currency in (Currency.USD, Currency.EUR):
             converted_original_price = int(converted_original_decimal * 100)
             converted_total_price = int(converted_total_decimal * 100)
+        else:
+            converted_original_price = int(converted_original_decimal)
+            converted_total_price = int(converted_total_decimal)
         
         payment_methods.append({
             "gateway_type": gateway.type,
             "price": format_price(converted_total_price, gateway_currency),
             "original_price": format_price(converted_original_price, gateway_currency),
+            "currency": gateway_currency.symbol,
             "has_discount": 1 if has_discount else 0,
             "discount_percent": price_details.discount_percent,
         })
@@ -2177,7 +2150,6 @@ async def add_device_confirm_getter(
     )
 
     # Вычисляем итоговую цену за все устройства (в рублях)
-    # pricing_service возвращает цену в рублях (не копейках)
     total_price_rub_amount = int(price_details.final_amount)
     original_price_rub_amount = int(price_details.original_amount)
     
@@ -2197,15 +2169,8 @@ async def add_device_confirm_getter(
         eur_rate,
         stars_rate,
     )
-    
-    # Для RUB и XTR цена в целых единицах, для USD/EUR умножаем на 100 для центов
-    if currency in (Currency.RUB, Currency.XTR):
-        original_price = int(original_price_decimal)
-        total_price = int(total_price_decimal)
-    else:
-        original_price = int(original_price_decimal * 100)
-        total_price = int(total_price_decimal * 100)
-    
+    original_price = int(original_price_decimal)
+    total_price = int(total_price_decimal)
     has_discount = price_details.discount_percent > 0
 
     # Флаг для условного отображения баланса (показываем только при оплате с баланса)
@@ -2220,13 +2185,13 @@ async def add_device_confirm_getter(
     
     # Вычисляем отображаемый баланс
     display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+    
     # Вычисляем лимиты устройств
     subscription = user.current_subscription
     extra_devices = subscription.extra_devices or 0 if subscription else 0
     device_limit_number = (subscription.device_limit - extra_devices) if subscription else 0
     
     # Вычисляем баланс после оплаты (если баланс)
-    # Используем display_balance для корректного отображения в режиме COMBINED
     new_balance = display_balance - total_price if selected_method == PaymentGatewayType.BALANCE else display_balance
     
     return {
@@ -2332,9 +2297,6 @@ async def devices_getter(
         reward_type=ReferralRewardType.MONEY,
     )
     
-    # Получаем режим отображения баланса
-    is_balance_combined = await settings_service.is_balance_combined()
-    
     # Вычисляем скидку пользователя
     purchase_disc = user.purchase_discount if user.purchase_discount is not None else 0
     personal_disc = user.personal_discount if user.personal_discount is not None else 0
@@ -2364,9 +2326,6 @@ async def devices_getter(
     else:
         discount_value = 0
 
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
-
     return {
         # Данные устройств
         "current_count": current_count,
@@ -2383,7 +2342,7 @@ async def devices_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "referral_balance": referral_balance,
-        "balance": display_balance,
+        "balance": user.balance,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
         "is_balance_separate": 1 if not await settings_service.is_balance_combined() else 0,
         # Данные подписки
@@ -2459,8 +2418,6 @@ async def add_device_success_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
     # Вычисляем лимиты устройств (получаем обновленные данные)
     subscription = fresh_user.current_subscription
     extra_devices = subscription.extra_devices or 0 if subscription else 0
@@ -2624,7 +2581,7 @@ async def extra_devices_list_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "referral_balance": referral_balance,
-        "balance": display_balance,
+        "balance": user.balance,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
@@ -2669,9 +2626,6 @@ async def extra_device_manage_getter(
         reward_type=ReferralRewardType.MONEY,
     )
     
-    # Получаем режим отображения баланса
-    is_balance_combined = await settings_service.is_balance_combined()
-    
     # Вычисляем скидку пользователя
     purchase_disc = user.purchase_discount if user.purchase_discount is not None else 0
     personal_disc = user.personal_discount if user.personal_discount is not None else 0
@@ -2701,9 +2655,6 @@ async def extra_device_manage_getter(
     else:
         discount_value = 0
     
-    # Вычисляем отображаемый баланс
-    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
-    
     # Данные подписки
     extra_devices = subscription.extra_devices or 0
     device_limit_number = subscription.plan.device_limit if subscription.plan else 0
@@ -2725,7 +2676,7 @@ async def extra_device_manage_getter(
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
         "referral_balance": referral_balance,
-        "balance": display_balance,
+        "balance": user.balance,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
         # Данные подписки
         "is_trial": 1 if subscription.is_trial else 0,

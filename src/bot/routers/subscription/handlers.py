@@ -1341,6 +1341,7 @@ async def on_add_device_confirm(
     extra_device_service: FromDishka[ExtraDeviceService],
     pricing_service: FromDishka[PricingService],
     transaction_service: FromDishka[TransactionService],
+    referral_service: FromDishka[ReferralService],
     i18n: FromDishka[TranslatorRunner],
 ) -> None:
     """Обработка подтверждения покупки устройств."""
