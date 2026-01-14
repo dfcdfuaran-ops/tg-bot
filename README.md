@@ -79,7 +79,7 @@ cd /tmp && git clone -b main --depth 1 https://github.com/dfcdfuaran-ops/tg-bot.
 
 ___
 
-## $${\color{blue}⚙️\ Параметры\ установки}$$
+## $${\color{blue}⚙️\Параметры\ установки}$$
 
 <details>
 <summary>Показать подробности</summary>
