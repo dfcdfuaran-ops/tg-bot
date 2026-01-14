@@ -533,6 +533,10 @@ async def on_invite_message_input(
         await message.answer("⚠️ Сообщение не может быть пустым!")
         return
     
+    # Автоматически добавляем {space} в начало, если его там нет
+    if not new_message.startswith("{space}"):
+        new_message = "{space}" + new_message
+    
     # Сохраняем новое сообщение
     settings = await settings_service.get()
     settings.referral.invite_message = new_message
@@ -578,7 +582,7 @@ async def on_invite_message_reset(
     """Сброс сообщения приглашения на значение по умолчанию."""
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     
-    default_message = "✨ {name} - Ваш приватный интернет!\n\n➡️ Подключиться: {url}"
+    default_message = "{space}Добро пожаловать в защищенный интернет!\n\n➡️ Подключиться: {url}"
     
     settings = await settings_service.get()
     settings.referral.invite_message = default_message

@@ -12,17 +12,24 @@ from dishka.integrations.aiogram_dialog import inject
 from fluentogram import TranslatorRunner
 from loguru import logger
 
-from src.bot.keyboards import CALLBACK_CHANNEL_CONFIRM, CALLBACK_RULES_ACCEPT
+from remnapy.exceptions import NotFoundError as RemnaNotFoundError
+
+from src.bot.keyboards import CALLBACK_CHANNEL_CONFIRM, CALLBACK_RULES_ACCEPT, get_user_keyboard
 from src.bot.states import MainMenu, Subscription
 from src.core.constants import USER_KEY
-from src.core.enums import MediaType, PaymentGatewayType, PurchaseType, SystemNotificationType
+from src.core.enums import MediaType, PaymentGatewayType, PurchaseType, SubscriptionStatus, SystemNotificationType
 from src.core.i18n.translator import get_translated_kwargs
 from src.core.utils.adapter import DialogDataAdapter
-from src.core.utils.formatters import format_user_log as log
+from src.core.utils.formatters import (
+    format_bytes_to_gb,
+    format_user_log as log,
+    i18n_format_days,
+    i18n_format_device_limit,
+    i18n_format_traffic_limit,
+)
 from src.core.utils.message_payload import MessagePayload
-from src.infrastructure.database.models.dto import PlanSnapshotDto, UserDto
+from src.infrastructure.database.models.dto import PlanSnapshotDto, SubscriptionDto, UserDto
 from src.infrastructure.taskiq.tasks.redirects import redirect_to_main_menu_task
-from src.infrastructure.taskiq.tasks.subscriptions import trial_subscription_task
 from src.infrastructure.taskiq.tasks.notifications import send_delayed_transfer_notification_task
 from src.services.balance_transfer import BalanceTransferService
 from src.services.notification import NotificationService
@@ -31,6 +38,7 @@ from src.services.plan import PlanService
 from src.services.referral import ReferralService
 from src.services.remnawave import RemnawaveService
 from src.services.settings import SettingsService
+from src.services.subscription import SubscriptionService
 from src.services.user import UserService
 
 router = Router(name=__name__)
@@ -166,68 +174,232 @@ async def on_get_trial(
     user_service: FromDishka[UserService],
     referral_service: FromDishka[ReferralService],
     notification_service: FromDishka[NotificationService],
+    remnawave_service: FromDishka[RemnawaveService],
+    subscription_service: FromDishka[SubscriptionService],
 ) -> None:
+    """
+    Обработчик получения пробной подписки.
+    Выполняет всё inline для мгновенного отклика (без taskiq очереди).
+    """
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     
-    logger.info(f"🔍 DEBUG on_get_trial: User {user.telegram_id} clicked 'Get trial'")
+    logger.info(f"on_get_trial: User {user.telegram_id} clicked 'Get trial'")
     
     # 1. Очищаем кэш пользователя
     await user_service.clear_user_cache(user.telegram_id)
-    logger.info(f"🔍 DEBUG on_get_trial: Cache cleared for user {user.telegram_id}")
     
     # 2. ПРЯМАЯ ПРОВЕРКА в базе - есть ли реферал для этого пользователя
     referral = await referral_service.get_referral_by_referred(user.telegram_id)
-    logger.info(f"🔍 DEBUG on_get_trial: Direct DB check - referral exists: {bool(referral)}")
-    
-    if referral:
-        logger.info(f"🔍 DEBUG on_get_trial: Referral found - ID: {referral.id}, Referrer: {referral.referrer.telegram_id}")
     
     # 3. Получаем свежего пользователя (после очистки кэша)
     fresh_user = await user_service.get(user.telegram_id)
     if not fresh_user:
-        logger.error(f"❌ ERROR on_get_trial: User {user.telegram_id} not found after cache clear")
+        logger.error(f"on_get_trial: User {user.telegram_id} not found after cache clear")
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-trial-unavailable"),
         )
         raise ValueError("User not found")
     
-    logger.info(f"🔍 DEBUG on_get_trial: Fresh user - is_invited_user: {fresh_user.is_invited_user}")
-    
     # 4. КРИТИЧЕСКАЯ ПРОВЕРКА: если в базе есть реферал, но DTO говорит нет
     if referral and not fresh_user.is_invited_user:
-        logger.error(f"🚨 CRITICAL ERROR: User {user.telegram_id} has referral in DB but is_invited_user is FALSE!")
-        logger.error(f"🚨 This means the SQLAlchemy relationship 'referral' is not loading correctly!")
-        logger.error(f"🚨 Referral ID: {referral.id}, Referrer: {referral.referrer.telegram_id}")
-        
-        # Принудительно исправляем DTO
+        logger.warning(f"on_get_trial: User {user.telegram_id} has referral in DB but is_invited_user is FALSE")
         fresh_user._is_invited_user = True
-        logger.info(f"🔧 DEBUG: Manually set is_invited_user=True for user {user.telegram_id}")
     
     # 5. Получаем соответствующий пробный план
-    # Приглашённые пользователи получают INVITED план, остальные - TRIAL план
     is_invited = bool(referral)
     plan = await plan_service.get_appropriate_trial_plan(fresh_user, is_invited=is_invited)
 
     if not plan:
-        logger.error(f"❌ ERROR on_get_trial: No appropriate trial plan found for user {user.telegram_id}")
+        logger.error(f"on_get_trial: No appropriate trial plan found for user {user.telegram_id}")
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-trial-unavailable"),
         )
         raise ValueError("Trial plan not exist")
     
-    logger.info(f"✅ DEBUG on_get_trial: Selected plan - ID: {plan.id}, Name: '{plan.name}', Availability: {plan.availability}")
-
+    logger.info(f"on_get_trial: Selected plan - ID: {plan.id}, Name: '{plan.name}'")
     trial = PlanSnapshotDto.from_plan(plan, plan.durations[0].days)
     
-    # Показываем сообщение ожидания перед отправкой задачи
-    await notification_service.notify_user(
-        user=fresh_user,
-        payload=MessagePayload(i18n_key="ntf-subscription-processing"),
-    )
-    
-    await trial_subscription_task.kiq(fresh_user, trial)
+    try:
+        # ===== INLINE СОЗДАНИЕ ПОДПИСКИ (без taskiq) =====
+        
+        # Проверяем, существует ли пользователь в Remnawave
+        existing_remna_user = None
+        try:
+            result = await remnawave_service.remnawave.users.get_users_by_telegram_id(
+                telegram_id=str(user.telegram_id)
+            )
+            if result:
+                existing_remna_user = result[0]
+                logger.info(f"on_get_trial: Found existing user in Remnawave: uuid={existing_remna_user.uuid}")
+        except RemnaNotFoundError:
+            logger.debug(f"on_get_trial: No existing user in Remnawave for {user.telegram_id}")
+        except Exception as e:
+            logger.warning(f"on_get_trial: Error checking Remnawave user: {e}")
+        
+        # Если пользователь существует в Remnawave с активной подпиской
+        if existing_remna_user and existing_remna_user.status in [SubscriptionStatus.ACTIVE, "ACTIVE"]:
+            existing_tag = existing_remna_user.tag or "IMPORT"
+            logger.info(f"on_get_trial: User has existing active subscription with tag '{existing_tag}'")
+            
+            # Пытаемся найти план по тегу
+            matching_plan = await plan_service.get_by_tag(existing_tag)
+            
+            if matching_plan:
+                # План найден - создаем подписку на основе существующего пользователя
+                plan_snapshot = PlanSnapshotDto(
+                    id=matching_plan.id,
+                    name=matching_plan.name,
+                    tag=matching_plan.tag,
+                    type=matching_plan.type,
+                    traffic_limit=matching_plan.traffic_limit,
+                    device_limit=matching_plan.device_limit,
+                    duration=matching_plan.duration,
+                    traffic_limit_strategy=matching_plan.traffic_limit_strategy,
+                    internal_squads=matching_plan.internal_squads,
+                    external_squad=matching_plan.external_squad,
+                )
+                
+                imported_subscription = SubscriptionDto(
+                    user_remna_id=existing_remna_user.uuid,
+                    status=existing_remna_user.status,
+                    is_trial=False,
+                    traffic_limit=format_bytes_to_gb(existing_remna_user.traffic_limit_bytes) if existing_remna_user.traffic_limit_bytes else matching_plan.traffic_limit,
+                    device_limit=existing_remna_user.hwid_device_limit or matching_plan.device_limit,
+                    traffic_limit_strategy=existing_remna_user.traffic_limit_strategy or matching_plan.traffic_limit_strategy,
+                    tag=existing_tag,
+                    internal_squads=matching_plan.internal_squads,
+                    external_squad=matching_plan.external_squad,
+                    expire_at=existing_remna_user.expire_at,
+                    url=existing_remna_user.subscription_url,
+                    plan=plan_snapshot,
+                )
+                
+                await subscription_service.create(fresh_user, imported_subscription)
+                logger.info(f"on_get_trial: Imported existing subscription for user '{user.telegram_id}'")
+                
+                await notification_service.notify_user(
+                    user=fresh_user,
+                    payload=MessagePayload(
+                        i18n_key="ntf-existing-subscription-found",
+                        i18n_kwargs={
+                            "plan_name": matching_plan.name,
+                            "tag": existing_tag,
+                        },
+                    ),
+                )
+            else:
+                # План не найден - меняем тег на IMPORT
+                logger.warning(f"on_get_trial: No matching plan for tag '{existing_tag}', changing to IMPORT")
+                
+                try:
+                    from remnapy.models import UpdateUserRequestDto
+                    await remnawave_service.remnawave.users.update_user(
+                        UpdateUserRequestDto(
+                            uuid=existing_remna_user.uuid,
+                            tag="IMPORT",
+                        )
+                    )
+                except Exception as e:
+                    logger.error(f"on_get_trial: Failed to update tag to IMPORT: {e}")
+                
+                imported_subscription = SubscriptionDto(
+                    user_remna_id=existing_remna_user.uuid,
+                    status=existing_remna_user.status,
+                    is_trial=False,
+                    traffic_limit=format_bytes_to_gb(existing_remna_user.traffic_limit_bytes) if existing_remna_user.traffic_limit_bytes else 0,
+                    device_limit=existing_remna_user.hwid_device_limit or 1,
+                    traffic_limit_strategy=existing_remna_user.traffic_limit_strategy,
+                    tag="IMPORT",
+                    internal_squads=[],
+                    external_squad=None,
+                    expire_at=existing_remna_user.expire_at,
+                    url=existing_remna_user.subscription_url,
+                    plan=None,
+                )
+                
+                await subscription_service.create(fresh_user, imported_subscription)
+                
+                await notification_service.notify_user(
+                    user=fresh_user,
+                    payload=MessagePayload(
+                        i18n_key="ntf-existing-subscription-no-plan",
+                        i18n_kwargs={"old_tag": existing_tag},
+                    ),
+                )
+        else:
+            # Пользователя нет в Remnawave или подписка неактивна - создаём пробную
+            created_remna_user = await remnawave_service.create_user(fresh_user, plan=trial, force=True)
+            
+            trial_subscription = SubscriptionDto(
+                user_remna_id=created_remna_user.uuid,
+                status=created_remna_user.status,
+                is_trial=True,
+                traffic_limit=trial.traffic_limit,
+                device_limit=trial.device_limit,
+                traffic_limit_strategy=trial.traffic_limit_strategy,
+                tag=trial.tag,
+                internal_squads=trial.internal_squads,
+                external_squad=trial.external_squad,
+                expire_at=created_remna_user.expire_at,
+                url=created_remna_user.subscription_url,
+                plan=trial,
+            )
+            
+            await subscription_service.create(fresh_user, trial_subscription)
+            logger.info(f"on_get_trial: Created new trial subscription for user '{user.telegram_id}'")
+            
+            # Системное уведомление для админов
+            await notification_service.system_notify(
+                ntf_type=SystemNotificationType.TRIAL_GETTED,
+                payload=MessagePayload.not_deleted(
+                    i18n_key="ntf-event-subscription-trial",
+                    i18n_kwargs={
+                        "user_id": str(user.telegram_id),
+                        "user_name": user.name,
+                        "username": user.username or False,
+                        "plan_name": trial.name,
+                        "plan_type": trial.type,
+                        "plan_traffic_limit": i18n_format_traffic_limit(trial.traffic_limit),
+                        "plan_device_limit": i18n_format_device_limit(trial.device_limit),
+                        "plan_duration": i18n_format_days(trial.duration),
+                    },
+                    reply_markup=get_user_keyboard(user.telegram_id),
+                ),
+            )
+        
+        # ===== МГНОВЕННЫЙ ПЕРЕХОД (вместо taskiq redirect) =====
+        # Очищаем кеш пользователя чтобы getter_connect увидел новую подписку
+        await user_service.clear_user_cache(fresh_user.telegram_id)
+        
+        # Даём время на загрузку данных в кеш
+        import asyncio
+        await asyncio.sleep(0.5)
+        
+        # Дополнительная проверка - загружаем пользователя снова и убеждаемся что подписка есть
+        verify_user = await user_service.get(fresh_user.telegram_id)
+        if not verify_user or not verify_user.current_subscription:
+            logger.error(f"on_get_trial: Subscription not found after creation for user {user.telegram_id}, retrying...")
+            await asyncio.sleep(1)
+            # Попытка 2
+            await user_service.clear_user_cache(fresh_user.telegram_id)
+            verify_user = await user_service.get(fresh_user.telegram_id)
+        
+        await dialog_manager.start(
+            state=Subscription.TRIAL,
+            mode=StartMode.RESET_STACK,
+            show_mode=ShowMode.DELETE_AND_SEND,
+        )
+        logger.info(f"on_get_trial: Successfully completed for user {user.telegram_id}")
+        
+    except Exception as e:
+        logger.exception(f"on_get_trial: Failed for user {user.telegram_id}: {e}")
+        await notification_service.notify_user(
+            user=fresh_user,
+            payload=MessagePayload(i18n_key="ntf-trial-unavailable"),
+        )
+        raise
 
 
 @inject
@@ -647,31 +819,6 @@ async def on_balance_withdraw_click(
         text=i18n.get("ntf-balance-withdraw-in-development"),
         show_alert=True,
     )
-
-
-@inject
-async def on_copy_referral_link(
-    callback: CallbackQuery,
-    widget: Button,
-    dialog_manager: DialogManager,
-    i18n: FromDishka[TranslatorRunner],
-) -> None:
-    """Копирует реферальную ссылку в буфер обмена и отправляет уведомление в чат."""
-    user: UserDto = dialog_manager.middleware_data[USER_KEY]
-    referral_link = dialog_manager.dialog_data.get("referral_link", "")
-    
-    # Отправляем сообщение с ссылкой (это скопирует её в буфер обмена клиента Telegram)
-    # Отправляем уведомление в чат
-    notification_msg = await callback.message.answer(
-        text=i18n.get("ntf-invite-link-copied"),
-    )
-    
-    # Удаляем уведомление через 5 секунд
-    await asyncio.sleep(5)
-    try:
-        await notification_msg.delete()
-    except Exception as e:
-        logger.debug(f"Failed to delete notification message: {e}")
 
 
 async def on_bonus_amount_select(

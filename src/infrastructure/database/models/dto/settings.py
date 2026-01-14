@@ -127,9 +127,9 @@ class CurrencyRatesDto(TrackableDto):
 
 class FeatureSettingsDto(TrackableDto):
     """Настройки функционала - включение/выключение различных функций."""
-    community_enabled: bool = True  # Кнопка "Сообщество" в главном меню
+    community_enabled: bool = False  # Кнопка "Сообщество" в главном меню (по-умолчанию выключена)
     community_url: Optional[str] = None  # URL Telegram группы сообщества
-    tos_enabled: bool = True  # Кнопка "Соглашение" в главном меню
+    tos_enabled: bool = False  # Кнопка "Соглашение" в главном меню (по-умолчанию выключена)
     balance_enabled: bool = True  # Функционал баланса
     balance_mode: BalanceMode = BalanceMode.SEPARATE  # Режим баланса (раздельный/объединённый)
     balance_min_amount: Optional[int] = 10  # Минимальная сумма пополнения баланса

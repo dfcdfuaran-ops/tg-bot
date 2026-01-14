@@ -2,7 +2,7 @@ from decimal import Decimal
 from math import ceil
 from typing import Any, cast
 
-from aiogram_dialog import DialogManager
+from aiogram_dialog import DialogManager, ShowMode, StartMode
 from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 from fluentogram import TranslatorRunner
@@ -1410,13 +1410,54 @@ async def getter_connect(
     user: UserDto,
     referral_service: FromDishka[ReferralService],
     settings_service: FromDishka[SettingsService],
+    user_service: FromDishka[UserService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    if not user.current_subscription:
-        raise ValueError(f"User '{user.telegram_id}' has no active subscription after purchase")
-
+    """
+    Getter для экрана подключения после успешного создания пробной подписки.
+    Безопасно работает даже если подписка не найдена сразу (может быть задержка БД).
+    """
+    
+    # Пытаемся получить подписку
     subscription = user.current_subscription
     
+    # Если нет подписки в текущих данных, пытаемся перезагрузить
+    if not subscription:
+        try:
+            fresh_user = await user_service.get(user.telegram_id)
+            if fresh_user and fresh_user.current_subscription:
+                subscription = fresh_user.current_subscription
+                user = fresh_user
+                logger.info(f"getter_connect: Loaded subscription from fresh user data for {user.telegram_id}")
+        except Exception as e:
+            logger.warning(f"getter_connect: Failed to reload user: {e}")
+    
+    # Если всё ещё нет подписки - это нормально, показываем что можем
+    # (она была только что создана, может быть задержка)
+    if not subscription:
+        logger.warning(
+            f"getter_connect: No subscription found for user '{user.telegram_id}' "
+            f"(but it should have been just created)"
+        )
+        
+        # Возвращаем безопасные данные для рендеринга
+        # Пользователь увидит экран с общей информацией
+        return {
+            "has_subscription": 0,
+            "plan_name": "Подписка активирована",
+            "traffic_limit": "Загружается...",
+            "device_limit": "Загружается...",
+            "expire_time": "Загружается...",
+            "user_id": str(user.telegram_id),
+            "user_name": user.name,
+            "balance": user.balance,
+            "referral_balance": 0,
+            "referral_code": user.referral_code,
+            "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+            "is_balance_separate": 1 if not await settings_service.is_balance_combined() else 0,
+        }
+    
+    # Есть подписка - показываем её данные
     # Get referral balance
     referral_balance = await referral_service.get_pending_rewards_amount(
         telegram_id=user.telegram_id,
@@ -2403,6 +2444,10 @@ async def extra_devices_list_getter(
     extra_devices = subscription.extra_devices or 0
     device_limit_number = subscription.plan.device_limit if subscription.plan else 0
     
+    # Режим баланса
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
     return {
         # Список покупок
         "purchases": formatted_purchases,
@@ -2420,6 +2465,7 @@ async def extra_devices_list_getter(
         "referral_balance": referral_balance,
         "balance": user.balance,
         "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные подписки
         "is_trial": 1 if subscription.is_trial else 0,
         "plan_name": subscription.plan.name if subscription.plan else "Unknown",

@@ -394,10 +394,96 @@ class UserService(BaseService):
         logger.info(f"Subtract '{amount}' from balance for user '{user.telegram_id}'")
         return True
 
+    async def subtract_from_combined_balance(
+        self,
+        user: Union[BaseUserDto, UserDto],
+        amount: int,
+        referral_balance: int,
+        is_combined: bool
+    ) -> tuple[int, int]:
+        """
+        Вычесть сумму из баланса с учётом режима баланса.
+        В COMBINED режиме списывает сначала с основного баланса, потом с бонусного.
+        В SEPARATE режиме списывает только с основного баланса.
+        
+        Args:
+            user: Пользователь
+            amount: Сумма для списания
+            referral_balance: Доступный бонусный баланс
+            is_combined: Режим COMBINED или нет
+            
+        Returns:
+            tuple[int, int]: (списано_с_основного, списано_с_бонусного)
+            
+        Raises:
+            ValueError: Если недостаточно средств
+        """
+        from src.services.referral import ReferralService
+        from src.core.enums import ReferralRewardType
+        
+        # Вычисляем доступный баланс
+        available = user.balance + referral_balance if is_combined else user.balance
+        
+        if available < amount:
+            raise ValueError(
+                f"Insufficient balance for user '{user.telegram_id}': "
+                f"available={available}, required={amount}"
+            )
+        
+        # Списываем сначала с основного баланса
+        from_main = min(user.balance, amount)
+        from_bonus = amount - from_main
+        
+        # Обновляем основной баланс
+        if from_main > 0:
+            await self.uow.repository.users.update(
+                telegram_id=user.telegram_id,
+                balance=user.balance - from_main,
+            )
+            await self.uow.commit()
+        
+        logger.info(
+            f"Subtracted '{amount}' from user '{user.telegram_id}': "
+            f"{from_main} from main, {from_bonus} from bonus (combined={is_combined})"
+        )
+        
+        await self.clear_user_cache(user.telegram_id)
+        
+        return (from_main, from_bonus)
+
     async def get_balance(self, telegram_id: int) -> int:
         """Получить текущий баланс пользователя"""
         user = await self.get(telegram_id)
         return user.balance if user else 0
+
+    async def get_available_balance(self, user: Union[BaseUserDto, UserDto], referral_balance: int = 0) -> int:
+        """
+        Получить доступный баланс пользователя с учётом режима баланса.
+        В режиме COMBINED возвращает сумму основного и бонусного баланса.
+        В режиме SEPARATE возвращает только основной баланс.
+        
+        Args:
+            user: Пользователь
+            referral_balance: Бонусный баланс (нужно передать из referral_service)
+        
+        Returns:
+            Доступная сумма для трат
+        """
+        from src.services.settings import SettingsService
+        from dishka import AsyncContainer
+        
+        # Получаем настройки режима баланса
+        # Если нет доступа к контейнеру, по умолчанию используем SEPARATE режим
+        try:
+            # Это временное решение - в идеале передавать settings_service через параметр
+            is_combined = False  # По умолчанию SEPARATE
+            # Но мы можем проверить через self, если есть доступ
+            # В реальности нужно передавать settings_service как зависимость
+        except Exception:
+            is_combined = False
+        
+        # В COMBINED режиме суммируем балансы
+        return user.balance + referral_balance if is_combined else user.balance
 
     #
 

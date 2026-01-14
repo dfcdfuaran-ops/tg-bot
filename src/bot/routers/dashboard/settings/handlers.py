@@ -798,6 +798,9 @@ async def on_community_url_input(
         await message.delete()
     except Exception:
         pass
+    
+    # Устанавливаем режим замены сообщения, чтобы не создавать новое
+    dialog_manager.show_mode = ShowMode.DELETE_AND_SEND
     await dialog_manager.switch_to(DashboardSettings.COMMUNITY)
 
 

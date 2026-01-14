@@ -277,9 +277,14 @@ async def invite_message_getter(
     settings = await settings_service.get_referral_settings()
     
     current_message = settings.invite_message
+    # Скрываем {space} префикс из отображения (но он остается в сохраняемом сообщении)
+    if current_message.startswith("{space}"):
+        display_message = current_message[7:]  # Убираем "{space}" (7 символов)
+    else:
+        display_message = current_message
     
     return {
-        "current_message": current_message,
+        "current_message": display_message,
     }
 
 
@@ -298,9 +303,15 @@ async def invite_preview_getter(
     preview_message = invite_message_template.format(
         name="VPN",
         url=f"https://t.me/bot?start={user.referral_code}",
+        space="\n",
     )
+    # Скрываем {space} префикс из отображения
+    if invite_message_template.startswith("{space}"):
+        display_message = invite_message_template[7:]  # Убираем "{space}" (7 символов)
+    else:
+        display_message = invite_message_template
     
     return {
-        "current_message": settings.invite_message,
+        "current_message": display_message,
         "preview_message": preview_message,
     }

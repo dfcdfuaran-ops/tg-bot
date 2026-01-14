@@ -23,7 +23,7 @@ def upgrade() -> None:
             "features",
             sa.JSON(),
             nullable=False,
-            server_default='{"community_enabled": true, "tos_enabled": true, "balance_enabled": true}'
+            server_default='{"community_enabled": false, "tos_enabled": false, "balance_enabled": true}'
         ),
     )
 

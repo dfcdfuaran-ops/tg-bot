@@ -58,6 +58,7 @@ from .handlers import (
     on_balance_transfer_amount_manual_input_click,
     on_balance_transfer_amount_manual_value_input,
     on_balance_transfer_amount_preset_select,
+    on_get_trial,
     on_balance_transfer_cancel,
     on_balance_transfer_click,
     on_balance_transfer_message_accept,
@@ -77,7 +78,6 @@ from .handlers import (
     on_bonus_custom_input,
     on_bonus_custom_mode,
     on_cancel_bonus_amount,
-    on_copy_referral_link,
     on_device_delete,
     on_invite,
     on_platform_select,
@@ -90,6 +90,15 @@ from .handlers import (
 menu = Window(
     Banner(BannerName.MENU),
     I18nFormat("msg-main-menu"),
+    # [Попробовать бесплатно]
+    Row(
+        Button(
+            text=I18nFormat("btn-menu-try-free"),
+            id="try_free",
+            on_click=on_get_trial,
+            when=F["trial_available"],
+        ),
+    ),
     # [Баланс]
     Row(
         Button(
@@ -271,10 +280,9 @@ invite = Window(
         ),
     ),
     Row(
-        Button(
+        CopyText(
             text=I18nFormat("btn-menu-invite-copy"),
-            id="copy",
-            on_click=on_copy_referral_link,
+            copy_text=Format("{referral_link}"),
         ),
     ),
     Row(
