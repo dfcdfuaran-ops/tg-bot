@@ -1982,8 +1982,20 @@ async def add_device_payment_getter(
         gateway_currency = Currency.from_gateway_type(gateway.type)
         
         # Конвертируем цену в валюту способа оплаты
-        converted_original_price = int(original_price_rub * gateway_currency.get_rate(usd_rate, eur_rate, stars_rate))
-        converted_total_price = int(total_price_rub * gateway_currency.get_rate(usd_rate, eur_rate, stars_rate))
+        converted_original_price = int(pricing_service.convert_currency(
+            Decimal(original_price_rub),
+            gateway_currency,
+            usd_rate,
+            eur_rate,
+            stars_rate,
+        ))
+        converted_total_price = int(pricing_service.convert_currency(
+            Decimal(total_price_rub),
+            gateway_currency,
+            usd_rate,
+            eur_rate,
+            stars_rate,
+        ))
         
         payment_methods.append({
             "gateway_type": gateway.type,
@@ -2119,9 +2131,20 @@ async def add_device_confirm_getter(
     original_price_rub_final = int(price_details.original_amount)
     
     # Конвертируем цену в валюту выбранного способа оплаты
-    conversion_rate = currency.get_rate(usd_rate, eur_rate, stars_rate)
-    original_price = int(original_price_rub_final * conversion_rate)
-    total_price = int(total_price_rub * conversion_rate)
+    original_price = int(pricing_service.convert_currency(
+        Decimal(original_price_rub_final),
+        currency,
+        usd_rate,
+        eur_rate,
+        stars_rate,
+    ))
+    total_price = int(pricing_service.convert_currency(
+        Decimal(total_price_rub),
+        currency,
+        usd_rate,
+        eur_rate,
+        stars_rate,
+    ))
     has_discount = price_details.discount_percent > 0
 
     # Флаг для условного отображения баланса (показываем только при оплате с баланса)
@@ -2410,6 +2433,7 @@ async def extra_devices_list_getter(
     extra_device_service: FromDishka[ExtraDeviceService],
     referral_service: FromDishka[ReferralService],
     settings_service: FromDishka[SettingsService],
+    pricing_service: FromDishka[PricingService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для списка купленных дополнительных устройств."""
@@ -2432,13 +2456,18 @@ async def extra_devices_list_getter(
     
     # Получаем валюту по умолчанию
     default_currency = await settings_service.get_default_currency()
-    conversion_rate = default_currency.get_rate(usd_rate, eur_rate, stars_rate)
     
     # Форматируем для отображения
     formatted_purchases = []
     for p in purchases:
         # Конвертируем цену в валюту по умолчанию
-        converted_price = int(p.price * conversion_rate)
+        converted_price = int(pricing_service.convert_currency(
+            Decimal(p.price),
+            default_currency,
+            usd_rate,
+            eur_rate,
+            stars_rate,
+        ))
         formatted_purchases.append({
             "id": p.id,
             "device_count": p.device_count,
@@ -2456,7 +2485,13 @@ async def extra_devices_list_getter(
     
     # Общая месячная стоимость дополнительных устройств
     total_monthly_cost_rub = await extra_device_service.get_total_monthly_cost(subscription.id)
-    total_monthly_cost = int(total_monthly_cost_rub * conversion_rate)  # Конвертируем в валюту по умолчанию
+    total_monthly_cost = int(pricing_service.convert_currency(
+        Decimal(total_monthly_cost_rub),
+        default_currency,
+        usd_rate,
+        eur_rate,
+        stars_rate,
+    ))  # Конвертируем в валюту по умолчанию
     total_extra_devices = await extra_device_service.get_total_active_devices(subscription.id)
     
     # Данные профиля
