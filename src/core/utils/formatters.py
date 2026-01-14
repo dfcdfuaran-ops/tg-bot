@@ -291,10 +291,14 @@ def format_price(price: int, currency: Currency) -> str:
         Formatted price string like "100 ₽" or "0.77 $"
     """
     if currency == Currency.RUB:
-        # Rubles are always whole numbers
-        return f"{price} ₽"
+        # Rubles: convert from kopecks to rubles (always whole numbers)
+        rubles = price // 100
+        return f"{rubles} ₽"
+    elif currency == Currency.XTR:
+        # Stars: always whole numbers (price is already in stars)
+        return f"{price} {currency.symbol}"
     else:
-        # Convert from cents to decimal (divide by 100)
+        # USD/EUR: convert from cents to decimal (divide by 100)
         decimal_price = Decimal(price) / Decimal(100)
         return f"{decimal_price:.2f} {currency.symbol}"
 
