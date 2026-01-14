@@ -222,11 +222,11 @@ get_version_from_file() {
     fi
 }
 
-# Функция для получения локальной версии (из assets/update/.version или src/__version__.py)
+# Функция для получения локальной версии (из assets/setup/.version или src/__version__.py)
 get_local_version() {
-    # Сначала пробуем assets/update/.version файл
-    if [ -f "$PROJECT_DIR/assets/update/.version" ]; then
-        cat "$PROJECT_DIR/assets/update/.version" 2>/dev/null | tr -d '\n' || echo ""
+    # Сначала пробуем assets/setup/.version файл
+    if [ -f "$PROJECT_DIR/assets/setup/.version" ]; then
+        cat "$PROJECT_DIR/assets/setup/.version" 2>/dev/null | tr -d '\n' || echo ""
     # Fallback на старый путь .version
     elif [ -f "$PROJECT_DIR/.version" ]; then
         cat "$PROJECT_DIR/.version" 2>/dev/null | tr -d '\n' || echo ""
@@ -722,16 +722,16 @@ manage_update_bot() {
                     fi
                 done
                 
-                # Сохраняем версию в assets/update/.version файл для корректной проверки версий
-                mkdir -p "$PROJECT_DIR/assets/update" 2>/dev/null || true
+                # Сохраняем версию в assets/setup/.version файл для корректной проверки версий
+                mkdir -p "$PROJECT_DIR/assets/setup" 2>/dev/null || true
                 local new_version=$(grep -oP '__version__ = "\K[^"]+' "src/__version__.py" 2>/dev/null || echo "")
                 if [ -n "$new_version" ]; then
-                    echo "$new_version" > "$PROJECT_DIR/assets/update/.version"
+                    echo "$new_version" > "$PROJECT_DIR/assets/setup/.version"
                 fi
                 
-                # Копируем install.sh в папку assets/update
-                cp -f "install.sh" "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
-                chmod +x "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
+                # Копируем install.sh в папку assets/setup
+                cp -f "install.sh" "$PROJECT_DIR/assets/setup/install.sh" 2>/dev/null || true
+                chmod +x "$PROJECT_DIR/assets/setup/install.sh" 2>/dev/null || true
             } &
             show_spinner "Обновление конфигурации"
             
@@ -765,12 +765,11 @@ manage_update_bot() {
                 show_spinner "Применение сохранённых параметров"
             fi
             
-            # Запуск бота
+            # Ожидание запуска бота
             (sleep 5) &
-            show_spinner "Запуск бота"
             
             echo
-            echo -e "${YELLOW}Ожидание логотипа DFC в логах...${NC}"
+            echo -e "${YELLOW}Запуск бота. Пожалуйста ожидайте.${NC}"
             echo
             
             # Ждем появления логотипа DFC в логах
@@ -868,7 +867,7 @@ manage_restart_bot() {
     show_spinner "Перезагрузка бота"
     
     echo
-    echo -e "${YELLOW}Ожидание логотипа DFC в логах...${NC}"
+    echo -e "${YELLOW}Запуск бота. Пожалуйста ожидайте.${NC}"
     echo
     
     # Ждем появления логотипа DFC в логах (строка с "Digital  Freedom   Core")
@@ -1920,9 +1919,9 @@ INSTALL_STARTED=false
 (
     sudo tee /usr/local/bin/tg-sell-bot > /dev/null << 'EOF'
 #!/bin/bash
-# Запускаем install.sh из папки assets/update
-if [ -f "/opt/tg-bot/assets/update/install.sh" ]; then
-    exec /opt/tg-bot/assets/update/install.sh
+# Запускаем install.sh из папки assets/setup
+if [ -f "/opt/tg-bot/assets/setup/install.sh" ]; then
+    exec /opt/tg-bot/assets/setup/install.sh
 else
     # Fallback на старый путь для обратной совместимости
     exec /opt/tg-bot/install.sh

@@ -1455,8 +1455,8 @@ btn-subscription-payment-method =
     [ROBOKASSA] 💳 Robokassa
     *[OTHER] { $gateway_type }
     } | { $has_discount ->
-        [1] { $price } ({ $original_price })
-        *[0] { $price }
+        [1] { $price } { $currency } ({ $original_price } { $currency })
+        *[0] { $price } { $currency }
     }
 btn-subscription-pay = ✅ Подтвердить оплату
 btn-subscription-confirm-balance = ✅ Подтвердить оплату
