@@ -284,18 +284,20 @@ def format_price(price: int, currency: Currency) -> str:
     """Format price with proper decimal places based on currency type.
     
     Args:
-        price: Price in cents/kopecks (integer)
+        price: Price in the currency's main unit (rubles, dollars, euros, stars)
         currency: Currency enum
         
     Returns:
         Formatted price string like "100 ₽" or "0.77 $"
     """
     if currency == Currency.RUB:
-        # Rubles: convert from kopecks to rubles (always whole numbers)
-        rubles = price // 100
-        return f"{rubles} ₽"
+        # Rubles are always whole numbers, no conversion needed
+        return f"{price} ₽"
+    elif currency == Currency.XTR:
+        # Telegram Stars are always whole numbers
+        return f"{price} ⭐"
     else:
-        # USD/EUR/XTR: convert from cents to decimal (divide by 100)
+        # USD/EUR: convert from cents to decimal (divide by 100)
         decimal_price = Decimal(price) / Decimal(100)
         return f"{decimal_price:.2f} {currency.symbol}"
 

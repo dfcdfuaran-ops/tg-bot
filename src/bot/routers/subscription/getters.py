@@ -2170,33 +2170,32 @@ async def add_device_confirm_getter(
         context="extra_devices",
     )
 
-    # Вычисляем итоговую цену за все устройства (в копейках)
-    # pricing_service возвращает цену в рублях, умножаем на 100 для копеек
-    total_price_rub_amount = int(price_details.final_amount * 100)
-    original_price_rub_amount = int(price_details.original_amount * 100)
+    # Вычисляем итоговую цену за все устройства (в рублях)
+    # pricing_service возвращает цену в рублях (не копейках)
+    total_price_rub_amount = int(price_details.final_amount)
+    original_price_rub_amount = int(price_details.original_amount)
     
     # Конвертируем цену в валюту выбранного способа оплаты
     # Результат convert_currency в целевой валюте (Decimal)
-    # Для RUB цена уже в копейках, для других валют нужно умножить на 100
     original_price_decimal = pricing_service.convert_currency(
-        Decimal(original_price_rub_amount / 100),  # Конвертируем обратно в рубли для convert_currency
+        Decimal(original_price_rub_amount),
         currency,
         usd_rate,
         eur_rate,
         stars_rate,
     )
     total_price_decimal = pricing_service.convert_currency(
-        Decimal(total_price_rub_amount / 100),  # Конвертируем обратно в рубли для convert_currency
+        Decimal(total_price_rub_amount),
         currency,
         usd_rate,
         eur_rate,
         stars_rate,
     )
     
-    # Для RUB возвращаем напрямую (уже в копейках), для других умножаем на 100
-    if currency == Currency.RUB:
-        original_price = original_price_rub_amount
-        total_price = total_price_rub_amount
+    # Для RUB и XTR цена в целых единицах, для USD/EUR умножаем на 100 для центов
+    if currency in (Currency.RUB, Currency.XTR):
+        original_price = int(original_price_decimal)
+        total_price = int(total_price_decimal)
     else:
         original_price = int(original_price_decimal * 100)
         total_price = int(total_price_decimal * 100)
@@ -2221,7 +2220,8 @@ async def add_device_confirm_getter(
     device_limit_number = (subscription.device_limit - extra_devices) if subscription else 0
     
     # Вычисляем баланс после оплаты (если баланс)
-    new_balance = user.balance - total_price if selected_method == PaymentGatewayType.BALANCE else user.balance
+    # Используем display_balance для корректного отображения в режиме COMBINED
+    new_balance = display_balance - total_price if selected_method == PaymentGatewayType.BALANCE else display_balance
     
     return {
         # Заголовок
