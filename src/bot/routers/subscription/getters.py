@@ -955,10 +955,6 @@ async def confirm_getter(
         device_limit_bonus = 0
         expire_time = ""
     
-    # Heleket supports fractional USD amounts
-    heleket_minimum_message = 0  # 0 for fluentogram to skip, or message string
-    final_amount_for_display = pricing.final_amount
-    
     return {
         "purchase_type": purchase_type,
         "plan": plan.name,
@@ -981,7 +977,6 @@ async def confirm_getter(
         "is_free": is_free,
         "is_telegram_stars": selected_payment_method == PaymentGatewayType.TELEGRAM_STARS,
         "is_yoomoney": selected_payment_method == PaymentGatewayType.YOOMONEY,
-        "is_heleket": selected_payment_method == PaymentGatewayType.HELEKET,
         # Данные пользователя для шапки
         "user_id": str(user.telegram_id),
         "user_name": user.name,

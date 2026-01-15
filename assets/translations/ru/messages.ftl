@@ -1764,10 +1764,6 @@ msg-subscription-confirm-yoomoney =
         }
         *[OTHER] {""}
     }
-    { $heleket_minimum_message ->
-        [0] { empty }
-        *[HAS] <b>{ $heleket_minimum_message }</b>
-    }
 
     <b>📋 Способ оплаты:</b>
     <blockquote>
@@ -1799,10 +1795,6 @@ msg-subscription-confirm-yookassa =
         }
         *[OTHER] {""}
     }
-    { $heleket_minimum_message ->
-        [0] { empty }
-        *[HAS] <b>{ $heleket_minimum_message }</b>
-    }
 
     <b>📋 Способ оплаты:</b>
     <blockquote>
@@ -1833,10 +1825,6 @@ msg-subscription-confirm =
             *[0] {""}
         }
         *[OTHER] {""}
-    }
-    { $heleket_minimum_message ->
-        [0] { empty }
-        *[HAS] <b>{ $heleket_minimum_message }</b>
     }
 
     <b>📋 Способ оплаты:</b>

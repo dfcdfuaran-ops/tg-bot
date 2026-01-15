@@ -246,13 +246,13 @@ confirm = Window(
             text=I18nFormat("btn-subscription-back-payment-method"),
             id=f"{PURCHASE_PREFIX}back_payment_method",
             state=Subscription.PAYMENT_METHOD,
-            when=~F["only_single_gateway"] & ~F["is_free"] & ~F["is_telegram_stars"] & ~F["is_yoomoney"] & ~F["is_heleket"],
+            when=~F["only_single_gateway"] & ~F["is_free"] & ~F["is_telegram_stars"] & ~F["is_yoomoney"],
         ),
         SwitchTo(
             text=I18nFormat("btn-back"),
             id=f"{PURCHASE_PREFIX}back_to_payment_method_stars",
             state=Subscription.PAYMENT_METHOD,
-            when=(F["is_telegram_stars"] | F["is_yoomoney"] | F["is_heleket"]) & ~F["only_single_gateway"],
+            when=(F["is_telegram_stars"] | F["is_yoomoney"]) & ~F["only_single_gateway"],
         ),
         SwitchTo(
             text=I18nFormat("btn-subscription-back-duration"),

@@ -15,7 +15,7 @@ ENV_FILE="$PROJECT_DIR/.env"
 REPO_DIR="/opt/tg-bot"
 REMNAWAVE_DIR="/opt/remnawave"
 REPO_URL="https://github.com/dfcdfuaran-ops/tg-bot.git"
-REPO_BRANCH="dev"
+REPO_BRANCH="main"
 
 # Статус обновлений
 UPDATE_AVAILABLE=0
@@ -899,7 +899,7 @@ manage_restart_bot() {
     local error_found=false
     
     while [ $attempt -lt $max_attempts ]; do
-        local logs=$(docker compose logs remnashop 2>&1)
+        local logs=$(docker logs remnashop 2>&1 | tail -100)
         
         # Проверяем наличие логотипа DFC
         if echo "$logs" | grep -q "Digital.*Freedom.*Core"; then
@@ -911,6 +911,11 @@ manage_restart_bot() {
         if echo "$logs" | grep -E "^\s*(ERROR|CRITICAL|Traceback)" >/dev/null 2>&1; then
             error_found=true
             break
+        fi
+        
+        # Показываем прогресс каждые 5 секунд
+        if [ $((attempt % 5)) -eq 0 ] && [ $attempt -gt 0 ]; then
+            echo -e "${DARKGRAY}  Ожидание запуска... (${attempt}/${max_attempts}сек)${NC}"
         fi
         
         ((attempt++))
