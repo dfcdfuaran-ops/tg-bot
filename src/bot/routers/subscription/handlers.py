@@ -717,15 +717,20 @@ async def on_confirm_balance_payment(
         
         logger.info(f"{log(user)} Paid subscription from balance: {price.final_amount} {currency.symbol}")
         
-        # Go to success page
-        await dialog_manager.switch_to(state=Subscription.SUCCESS)
-        
     except Exception as e:
-        logger.error(f"{log(user)} Failed to process balance payment: {e}")
+        logger.error(f"{log(user)} Failed to process balance payment: {e}", exc_info=True)
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-subscription-payment-creation-failed"),
         )
+        return
+    
+    # Go to success page (после успешной обработки платежа)
+    try:
+        await dialog_manager.switch_to(state=Subscription.SUCCESS)
+    except Exception as e:
+        logger.error(f"{log(user)} Failed to switch to success state: {e}", exc_info=True)
+        # Даже если switch_to не удался, платеж прошел успешно, не показываем ошибку
 
 
 async def on_referral_code_request(

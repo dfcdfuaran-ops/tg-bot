@@ -558,7 +558,6 @@ async def duration_getter(
         result.update({
             "has_subscription": "true",
             "current_plan_name": subscription.plan.name,
-            "plan_name": subscription.plan.name,
             "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
             "device_limit": i18n_format_device_limit(subscription.device_limit),
             "device_limit_number": subscription.plan.device_limit,
@@ -571,7 +570,6 @@ async def duration_getter(
         result.update({
             "has_subscription": "false",
             "current_plan_name": "",
-            "plan_name": "",
             "traffic_limit": "",
             "device_limit": "",
             "device_limit_number": 0,
