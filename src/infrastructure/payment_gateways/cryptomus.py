@@ -44,6 +44,12 @@ class CryptomusGateway(BasePaymentGateway):
                 f"or {HeleketGatewaySettingsDto.__name__}, got {type(self.data.settings).__name__}"
             )
 
+        # Validate that merchant_id is not None
+        if not self.data.settings.merchant_id:
+            raise ValueError(
+                f"merchant_id is not configured for {self.data.type.value} gateway"
+            )
+
         self._client = self._make_client(
             base_url=self.API_BASE,
             headers={"merchant": self.data.settings.merchant_id},  # type: ignore[dict-item]

@@ -68,6 +68,9 @@ class BasePaymentGateway(ABC):
         headers: Optional[dict[str, str]] = None,
         timeout: float = 30.0,
     ) -> AsyncClient:
+        # Filter out None values from headers to prevent httpx errors
+        if headers:
+            headers = {k: v for k, v in headers.items() if v is not None}
         return AsyncClient(base_url=base_url, auth=auth, headers=headers, timeout=Timeout(timeout))
 
     def _is_test_payment(self, payment_id: str) -> bool:
