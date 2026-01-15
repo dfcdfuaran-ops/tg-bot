@@ -966,9 +966,9 @@ async def confirm_getter(
         "period": i18n.get(key, **kw),
         "payment_method": selected_payment_method,
         "gateway_type": payment_gateway.type,
-        "final_amount": format_price(int(pricing.final_amount), payment_gateway.currency),
+        "final_amount": format_price(pricing.final_amount, payment_gateway.currency),
         "discount_percent": pricing.discount_percent,
-        "original_amount": format_price(int(base_subscription_price) if base_subscription_price > 0 else int(pricing.original_amount), payment_gateway.currency),
+        "original_amount": format_price(base_subscription_price if base_subscription_price > 0 else pricing.original_amount, payment_gateway.currency),
         "currency": payment_gateway.currency.symbol,
         "url": result_url,
         "only_single_gateway": len(gateways) == 1,
@@ -1000,15 +1000,15 @@ async def confirm_getter(
         "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные о стоимости доп. устройств - конвертируем в валюту gateway и форматируем
         "extra_devices_monthly_cost": format_price(
-            int(pricing_service.convert_currency(Decimal(extra_devices_monthly_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate)),
+            pricing_service.convert_currency(Decimal(extra_devices_monthly_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate),
             payment_gateway.currency
         ) if extra_devices_monthly_cost_rub > 0 else "0",
         "extra_devices_cost": format_price(
-            int(pricing_service.convert_currency(Decimal(extra_devices_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate)),
+            pricing_service.convert_currency(Decimal(extra_devices_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate),
             payment_gateway.currency
         ) if extra_devices_cost_rub > 0 else "0",
         "has_extra_devices_cost": 1 if extra_devices_cost_rub > 0 else 0,
-        "total_payment": format_price(int(pricing.original_amount), payment_gateway.currency),
+        "total_payment": format_price(pricing.original_amount, payment_gateway.currency),
         # Планируемые дополнительные устройства
         "planned_extra_devices": planned_extra_devices,
         "has_planned_extra_devices": 1 if planned_extra_devices > 0 else 0,

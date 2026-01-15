@@ -280,26 +280,36 @@ def i18n_format_expire_time(expiry: Union[timedelta, datetime]) -> list[tuple[st
     return parts or [("unknown", {"value": 0})]
 
 
-def format_price(price: int, currency: Currency) -> str:
+def format_price(price: int | Decimal, currency: Currency) -> str:
     """Format price with proper decimal places based on currency type.
     
     Args:
-        price: Price as integer (in base units - rubles for RUB, cents for USD/EUR)
+        price: Price as integer (in base units - rubles for RUB, cents for USD/EUR) 
+               or Decimal (already in target currency units)
         currency: Currency enum
         
     Returns:
         Formatted price string like "100 ₽" or "1.27 $"
     """
     if currency == Currency.RUB:
-        # Rubles: price is already in rubles (not kopecks)
+        # Rubles: price is in rubles (not kopecks)
+        if isinstance(price, Decimal):
+            return f"{int(price)} ₽"
         return f"{price} ₽"
     elif currency == Currency.XTR:
-        # Telegram Stars: already whole numbers
+        # Telegram Stars: whole numbers
+        if isinstance(price, Decimal):
+            return f"{int(price)} {currency.symbol}"
         return f"{price} {currency.symbol}"
     else:
-        # USD/EUR: price is in cents, convert to decimal
-        decimal_price = Decimal(price) / Decimal(100)
-        return f"{decimal_price:.2f} {currency.symbol}"
+        # USD/EUR: handle both cents (int) and decimal amounts (Decimal)
+        if isinstance(price, Decimal):
+            # Already in target currency (dollars/euros)
+            return f"{price:.2f} {currency.symbol}"
+        else:
+            # Price is in cents, convert to decimal
+            decimal_price = Decimal(price) / Decimal(100)
+            return f"{decimal_price:.2f} {currency.symbol}"
 
 
 def i18n_postprocess_text(text: str, collapse_level: int = 2) -> str:

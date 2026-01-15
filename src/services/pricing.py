@@ -156,17 +156,16 @@ class PricingService(BaseService):
         return final_price
 
     def apply_currency_rules(self, amount: Decimal, currency: Currency) -> Decimal:
+        """Apply currency-specific formatting rules without enforcing payment gateway minimums."""
         logger.debug(f"Applying currency rules for amount '{amount}' and currency '{currency}'")
 
         match currency:
             case Currency.XTR | Currency.RUB:
+                # Round down to nearest integer for RUB and Telegram Stars
                 amount = amount.to_integral_value(rounding=ROUND_DOWN)
                 min_amount = Decimal(1)
-            case Currency.USD:
-                # Heleket requires minimum 1 USD
-                amount = amount.quantize(Decimal("0.01"))
-                min_amount = Decimal("1.00")
             case _:
+                # Round to 2 decimal places for other currencies (USD, EUR, etc.)
                 amount = amount.quantize(Decimal("0.01"))
                 min_amount = Decimal("0.01")
 
