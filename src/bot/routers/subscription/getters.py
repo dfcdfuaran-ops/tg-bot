@@ -978,6 +978,7 @@ async def confirm_getter(
         "is_free": is_free,
         "is_telegram_stars": selected_payment_method == PaymentGatewayType.TELEGRAM_STARS,
         "is_yoomoney": selected_payment_method == PaymentGatewayType.YOOMONEY,
+        "is_heleket": selected_payment_method == PaymentGatewayType.HELEKET,
         # Данные пользователя для шапки
         "user_id": str(user.telegram_id),
         "user_name": user.name,

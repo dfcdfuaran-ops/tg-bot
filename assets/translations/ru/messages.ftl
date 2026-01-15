@@ -1727,11 +1727,6 @@ msg-subscription-confirm-balance =
         *[OTHER] {""}
     }
 
-    { $heleket_minimum_message ->
-        [0] { empty }
-        *[HAS] <b>{ $heleket_minimum_message }</b>
-    }
-
     <b>📋 Способ оплаты:</b>
     <blockquote>
     <b>💳 Метод:</b> С баланса
