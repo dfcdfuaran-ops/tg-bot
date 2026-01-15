@@ -868,6 +868,13 @@ async def confirm_getter(
 
     from src.core.enums import PaymentGatewayType, ReferralRewardType
 
+    # Получаем курсы валют для конвертации
+    settings = await settings_service.get()
+    rates = settings.features.currency_rates
+    usd_rate = rates.usd_rate
+    eur_rate = rates.eur_rate
+    stars_rate = rates.stars_rate
+
     referral_balance = await referral_service.get_pending_rewards_amount(
         telegram_id=user.telegram_id,
         reward_type=ReferralRewardType.MONEY,
@@ -993,11 +1000,11 @@ async def confirm_getter(
         "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные о стоимости доп. устройств - конвертируем в валюту gateway и форматируем
         "extra_devices_monthly_cost": format_price(
-            int(pricing_service.convert_currency(Decimal(extra_devices_monthly_cost_rub), payment_gateway.currency, pricing.rates)),
+            int(pricing_service.convert_currency(Decimal(extra_devices_monthly_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate)),
             payment_gateway.currency
         ) if extra_devices_monthly_cost_rub > 0 else "0",
         "extra_devices_cost": format_price(
-            int(pricing_service.convert_currency(Decimal(extra_devices_cost_rub), payment_gateway.currency, pricing.rates)),
+            int(pricing_service.convert_currency(Decimal(extra_devices_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate)),
             payment_gateway.currency
         ) if extra_devices_cost_rub > 0 else "0",
         "has_extra_devices_cost": 1 if extra_devices_cost_rub > 0 else 0,
