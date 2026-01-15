@@ -107,7 +107,7 @@ frg-user-discounts-details =
 
 frg-subscription =
     <blockquote>
-    • <b>Тариф:</b> { $current_plan_name }
+    • <b>Тариф:</b> { $plan_name }
     • <b>Лимит трафика</b>: { $traffic_limit }
     • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
         [0] { $extra_devices ->
