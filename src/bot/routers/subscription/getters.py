@@ -717,8 +717,8 @@ async def payment_method_getter(
         payment_methods.append(
             {
                 "gateway_type": PaymentGatewayType.BALANCE,
-                "price": price.final_amount,
-                "original_price": price.original_amount,
+                "price": format_price(price.final_amount, Currency.RUB),
+                "original_price": format_price(price.original_amount, Currency.RUB),
                 "currency": Currency.RUB.symbol,
                 "user_balance": available_balance,
                 "discount_percent": price.discount_percent,
@@ -753,8 +753,8 @@ async def payment_method_getter(
         payment_methods.append(
             {
                 "gateway_type": gateway.type,
-                "price": gateway_price.final_amount,
-                "original_price": gateway_price.original_amount,
+                "price": format_price(gateway_price.final_amount, gateway.currency),
+                "original_price": format_price(gateway_price.original_amount, gateway.currency),
                 "currency": gateway.currency.symbol,
                 "discount_percent": gateway_price.discount_percent,
                 "has_discount": 1 if gateway_price.discount_percent > 0 else 0,
