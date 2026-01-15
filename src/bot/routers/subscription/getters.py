@@ -955,6 +955,8 @@ async def confirm_getter(
         device_limit_bonus = 0
         expire_time = ""
     
+    final_amount_for_display = pricing.final_amount
+    
     return {
         "purchase_type": purchase_type,
         "plan": plan.name,
@@ -967,7 +969,6 @@ async def confirm_getter(
         "payment_method": selected_payment_method,
         "gateway_type": payment_gateway.type,
         "final_amount": format_price(final_amount_for_display, payment_gateway.currency),
-        "heleket_minimum_message": heleket_minimum_message,
         "discount_percent": pricing.discount_percent,
         "original_amount": format_price(base_subscription_price if base_subscription_price > 0 else pricing.original_amount, payment_gateway.currency),
         "currency": payment_gateway.currency.symbol,
