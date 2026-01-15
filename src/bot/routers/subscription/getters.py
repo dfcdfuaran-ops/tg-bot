@@ -955,6 +955,17 @@ async def confirm_getter(
         device_limit_bonus = 0
         expire_time = ""
     
+    # Check if Heleket payment needs minimum amount adjustment
+    heleket_minimum_message = ""
+    final_amount_for_display = pricing.final_amount
+    
+    if (selected_payment_method == PaymentGatewayType.HELEKET and 
+        payment_gateway.currency == Currency.USD and 
+        pricing.final_amount < Decimal("1.00")):
+        # Show message about minimum and adjust displayed amount
+        heleket_minimum_message = f"⚠️ Минимальная сумма оплаты выбранным способом 1.00 $. Ваша сумма была округлена до 1.00 $"
+        final_amount_for_display = Decimal("1.00")
+    
     return {
         "purchase_type": purchase_type,
         "plan": plan.name,
@@ -966,7 +977,8 @@ async def confirm_getter(
         "period": i18n.get(key, **kw),
         "payment_method": selected_payment_method,
         "gateway_type": payment_gateway.type,
-        "final_amount": format_price(pricing.final_amount, payment_gateway.currency),
+        "final_amount": format_price(final_amount_for_display, payment_gateway.currency),
+        "heleket_minimum_message": heleket_minimum_message,
         "discount_percent": pricing.discount_percent,
         "original_amount": format_price(base_subscription_price if base_subscription_price > 0 else pricing.original_amount, payment_gateway.currency),
         "currency": payment_gateway.currency.symbol,

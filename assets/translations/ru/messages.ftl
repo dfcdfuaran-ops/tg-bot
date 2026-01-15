@@ -1727,6 +1727,11 @@ msg-subscription-confirm-balance =
         *[OTHER] {""}
     }
 
+    { $heleket_minimum_message ->
+        [0] { empty }
+        *[HAS] <b>{ $heleket_minimum_message }</b>
+    }
+
     <b>📋 Способ оплаты:</b>
     <blockquote>
     <b>💳 Метод:</b> С баланса
@@ -1760,6 +1765,11 @@ msg-subscription-confirm-yoomoney =
         *[OTHER] {""}
     }
 
+    { $heleket_minimum_message ->
+        [0] { empty }
+        *[HAS] <b>{ $heleket_minimum_message }</b>
+    }
+
     <b>📋 Способ оплаты:</b>
     <blockquote>
     <b>💳 Метод:</b> Банковская карта
@@ -1791,6 +1801,11 @@ msg-subscription-confirm-yookassa =
         *[OTHER] {""}
     }
 
+    { $heleket_minimum_message ->
+        [0] { empty }
+        *[HAS] <b>{ $heleket_minimum_message }</b>
+    }
+
     <b>📋 Способ оплаты:</b>
     <blockquote>
     <b>💳 Метод:</b> Банковская карта
@@ -1820,6 +1835,11 @@ msg-subscription-confirm =
             *[0] {""}
         }
         *[OTHER] {""}
+    }
+
+    { $heleket_minimum_message ->
+        [0] { empty }
+        *[HAS] <b>{ $heleket_minimum_message }</b>
     }
 
     <b>📋 Способ оплаты:</b>
