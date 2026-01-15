@@ -34,21 +34,22 @@ class CryptomusGateway(BasePaymentGateway):
     NETWORKS = ["91.227.144.54"]
 
     def __init__(self, gateway: PaymentGatewayDto, bot: Bot, config: AppConfig) -> None:
-        super().__init__(gateway, bot, config)
-
+        # Validate settings type and merchant_id BEFORE calling super().__init__()
         if not isinstance(
-            self.data.settings, (CryptomusGatewaySettingsDto, HeleketGatewaySettingsDto)
+            gateway.settings, (CryptomusGatewaySettingsDto, HeleketGatewaySettingsDto)
         ):
             raise TypeError(
                 f"Invalid settings type: expected {CryptomusGatewaySettingsDto.__name__} "
-                f"or {HeleketGatewaySettingsDto.__name__}, got {type(self.data.settings).__name__}"
+                f"or {HeleketGatewaySettingsDto.__name__}, got {type(gateway.settings).__name__}"
             )
 
         # Validate that merchant_id is not None
-        if not self.data.settings.merchant_id:
+        if not gateway.settings.merchant_id:
             raise ValueError(
-                f"merchant_id is not configured for {self.data.type.value} gateway"
+                f"merchant_id is not configured for {gateway.type.value} gateway"
             )
+
+        super().__init__(gateway, bot, config)
 
         self._client = self._make_client(
             base_url=self.API_BASE,
