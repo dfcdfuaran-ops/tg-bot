@@ -1764,7 +1764,6 @@ msg-subscription-confirm-yoomoney =
         }
         *[OTHER] {""}
     }
-
     { $heleket_minimum_message ->
         [0] { empty }
         *[HAS] <b>{ $heleket_minimum_message }</b>
@@ -1800,7 +1799,6 @@ msg-subscription-confirm-yookassa =
         }
         *[OTHER] {""}
     }
-
     { $heleket_minimum_message ->
         [0] { empty }
         *[HAS] <b>{ $heleket_minimum_message }</b>
@@ -1836,7 +1834,6 @@ msg-subscription-confirm =
         }
         *[OTHER] {""}
     }
-
     { $heleket_minimum_message ->
         [0] { empty }
         *[HAS] <b>{ $heleket_minimum_message }</b>
