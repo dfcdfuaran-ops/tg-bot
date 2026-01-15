@@ -750,10 +750,15 @@ async def payment_method_getter(
         # Используем pricing_service для правильного расчёта с учётом всех скидок
         gateway_price = pricing_service.calculate(user, gateway_total_price, gateway.currency, global_discount, context="subscription")
         
+        # Check if Heleket minimum applies (show 1.00$ on button)
+        display_price = gateway_price.final_amount
+        if gateway.type == PaymentGatewayType.HELEKET and gateway.currency == Currency.USD and gateway_price.final_amount < Decimal("1.00"):
+            display_price = Decimal("1.00")
+        
         payment_methods.append(
             {
                 "gateway_type": gateway.type,
-                "price": gateway_price.final_amount,
+                "price": display_price,
                 "original_price": gateway_price.original_amount,
                 "currency": gateway.currency.symbol,
                 "discount_percent": gateway_price.discount_percent,
