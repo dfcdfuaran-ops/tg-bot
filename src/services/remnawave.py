@@ -110,9 +110,6 @@ class RemnawaveService(BaseService):
         Validates squads existence in panel and returns valid ones.
         If squads don't exist, returns default squad from panel.
         
-        NOTE: external_squad_uuid references external_squads table which is separate.
-        Since we can't easily validate it, we skip it to avoid foreign key errors.
-        
         Returns: (valid_internal_squads, valid_external_squad_uuid)
         """
         valid_internal_squads: list[UUID] = []
@@ -148,14 +145,23 @@ class RemnawaveService(BaseService):
                     f"{default_squad.name} ({default_squad.uuid})"
                 )
             
-            # External squad: we skip it to avoid foreign key constraint errors
-            # External squads table is separate and we can't easily validate
+            # Validate external_squad if provided
             if external_squad_uuid:
-                logger.warning(
-                    f"External squad {external_squad_uuid} provided but skipped "
-                    f"to avoid potential foreign key constraint errors"
-                )
-                valid_external_squad_uuid = None
+                try:
+                    external_squads_response = await self.remnawave.external_squads.get_external_squads()
+                    if external_squads_response and external_squads_response.external_squads:
+                        valid_external_uuids = {squad.uuid for squad in external_squads_response.external_squads}
+                        if external_squad_uuid in valid_external_uuids:
+                            valid_external_squad_uuid = external_squad_uuid
+                            logger.debug(f"External squad {external_squad_uuid} validated successfully")
+                        else:
+                            logger.warning(
+                                f"External squad {external_squad_uuid} not found in panel, skipping"
+                            )
+                    else:
+                        logger.warning("No external squads found in panel")
+                except Exception as e:
+                    logger.warning(f"Failed to validate external squad: {e}")
             
         except Exception as e:
             logger.error(f"Failed to validate squads: {e}")

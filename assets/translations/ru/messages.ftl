@@ -374,14 +374,14 @@ msg-add-device-confirm-full =
     💳 <b>Способ оплаты:</b> { $selected_method }
     { $is_balance_payment ->
     [1]
-    📊 <b>Текущий баланс:</b> { $balance } { $currency }
-    📊 <b>Баланс после:</b> { $new_balance } { $currency }
+    📊 <b>Текущий баланс:</b> { $balance }
+    📊 <b>Баланс после:</b> { $new_balance }
     *[0]
     { $has_discount ->
     [1]
-    💰 <b>Сумма к оплате:</b> <s>{ $original_price } { $currency }</s> { $total_price } { $currency }
+    💰 <b>Сумма к оплате:</b> <s>{ $original_price }</s> { $total_price }
     *[0]
-    💰 <b>Сумма к оплате:</b> { $total_price } { $currency }
+    💰 <b>Сумма к оплате:</b> { $total_price }
     }
     }
     </blockquote>
@@ -453,8 +453,8 @@ msg-add-device-confirm-details =
     📋 <b>Итого:</b>
     <blockquote>
     • <b>Способ оплаты:</b> { $selected_method }
-    • <b>Текущий баланс:</b> { $balance } { $currency }
-    • <b>Баланс после:</b> { $new_balance } { $currency }
+    • <b>Текущий баланс:</b> { $balance }
+    • <b>Баланс после:</b> { $new_balance }
     </blockquote>
 
     💳<b>Подтверждение покупки:</b>
@@ -740,7 +740,9 @@ msg-invite-reward = { $value }{ $reward_strategy_type ->
 
 
 # Dashboard
-msg-dashboard-main = <b>🛠 Панель управления</b>
+msg-dashboard-main =
+    <b>🛠 Панель управления</b>
+    • Версия бота: { $bot_version }
 msg-dashboard-features =
     <b>⚙️ Функционал</b>
 

@@ -1289,8 +1289,8 @@ async def on_add_device_payment_select(
         try:
             device_count = dialog_manager.dialog_data.get("device_count", 1)
             
-            # Получаем цену устройства из настроек
-            device_price = await settings_service.get_extra_device_price()
+            # Получаем цену устройства из настроек (в рублях)
+            device_price_rub = await settings_service.get_extra_device_price()
             
             # Получаем глобальную скидку
             global_discount = await settings_service.get_global_discount_settings()
@@ -1304,25 +1304,38 @@ async def on_add_device_payment_select(
                 )
                 return
             
-            # Рассчитываем цену
-            original_price = device_price * device_count
-            pricing = pricing_service.calculate(
+            # Получаем курсы валют
+            settings = await settings_service.get()
+            rates = settings.features.currency_rates
+            
+            # Рассчитываем цену в рублях и применяем скидку
+            original_price_rub = device_price_rub * device_count
+            pricing_rub = pricing_service.calculate(
                 user=user,
-                price=Decimal(original_price),
-                currency=payment_gateway.currency,
+                price=Decimal(original_price_rub),
+                currency=Currency.RUB,
                 global_discount=global_discount,
                 context="extra_devices",
             )
+            
+            # Конвертируем итоговую цену (со скидкой) в валюту шлюза
+            final_amount = int(pricing_service.convert_currency(
+                Decimal(int(pricing_rub.final_amount)),
+                payment_gateway.currency,
+                rates.usd_rate,
+                rates.eur_rate,
+                rates.stars_rate,
+            ))
             
             # Создаём платеж для дополнительных устройств
             payment_result = await payment_gateway_service.create_extra_devices_payment(
                 user=user,
                 device_count=device_count,
-                amount=int(pricing.final_amount),
+                amount=final_amount,
                 gateway_type=selected_payment_method,
             )
             
-            logger.info(f"{log(user)} Created payment '{payment_result.id}' for {device_count} extra devices")
+            logger.info(f"{log(user)} Created payment '{payment_result.id}' for {device_count} extra devices, amount={final_amount} {payment_gateway.currency.symbol}")
             
             # Сохраняем информацию о платеже в диалог
             dialog_manager.dialog_data["payment_id"] = str(payment_result.id)

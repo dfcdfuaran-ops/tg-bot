@@ -700,27 +700,31 @@ async def payment_method_getter(
     eur_rate = rates.eur_rate
     stars_rate = rates.stars_rate
     
-    # Добавляем оплату с баланса ВСЕГДА ПЕРВОЙ (даже если баланса недостаточно)
-    currency = await settings_service.get_default_currency()
-    base_price = duration.get_price(currency, usd_rate, eur_rate, stars_rate)
-    total_price = base_price + extra_devices_cost if extra_devices_cost > 0 else base_price
-    price = pricing_service.calculate(user, total_price, currency, global_discount, context="subscription")
+    # Проверяем, включен ли функционал баланса
+    is_balance_enabled = await settings_service.is_balance_enabled()
     
-    # Вычисляем доступный баланс с учётом режима (COMBINED или SEPARATE)
-    is_balance_combined = await settings_service.is_balance_combined()
-    available_balance = user.balance + referral_balance if is_balance_combined else user.balance
-    
-    payment_methods.append(
-        {
-            "gateway_type": PaymentGatewayType.BALANCE,
-            "price": price.final_amount,
-            "original_price": price.original_amount,
-            "currency": Currency.RUB.symbol,
-            "user_balance": available_balance,
-            "discount_percent": price.discount_percent,
-            "has_discount": 1 if price.discount_percent > 0 else 0,
-        }
-    )
+    # Добавляем оплату с баланса ПЕРВОЙ (если функционал включен, показываем ВСЕГДА даже при нулевом балансе)
+    if is_balance_enabled:
+        currency = await settings_service.get_default_currency()
+        base_price = duration.get_price(currency, usd_rate, eur_rate, stars_rate)
+        total_price = base_price + extra_devices_cost if extra_devices_cost > 0 else base_price
+        price = pricing_service.calculate(user, total_price, currency, global_discount, context="subscription")
+        
+        # Вычисляем доступный баланс с учётом режима (COMBINED или SEPARATE)
+        is_balance_combined = await settings_service.is_balance_combined()
+        available_balance = user.balance + referral_balance if is_balance_combined else user.balance
+        
+        payment_methods.append(
+            {
+                "gateway_type": PaymentGatewayType.BALANCE,
+                "price": price.final_amount,
+                "original_price": price.original_amount,
+                "currency": Currency.RUB.symbol,
+                "user_balance": available_balance,
+                "discount_percent": price.discount_percent,
+                "has_discount": 1 if price.discount_percent > 0 else 0,
+            }
+        )
     
     for gateway in gateways:
         # Пропускаем BALANCE так как он уже добавлен выше
@@ -763,9 +767,6 @@ async def payment_method_getter(
         telegram_id=user.telegram_id,
         reward_type=ReferralRewardType.MONEY,
     )
-
-    # Проверяем, включен ли функционал баланса
-    is_balance_enabled = await settings_service.is_balance_enabled()
     
     # Проверяем режим баланса (раздельный или объединённый)
     is_balance_combined = await settings_service.is_balance_combined()
@@ -2253,8 +2254,8 @@ async def add_device_confirm_getter(
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
         "discount_remaining": discount_remaining,
-        "balance": display_balance,
-        "new_balance": new_balance,
+        "balance": format_price(display_balance, Currency.RUB),
+        "new_balance": format_price(new_balance, Currency.RUB),
         "referral_balance": referral_balance,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,

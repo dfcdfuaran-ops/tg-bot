@@ -4,6 +4,7 @@ from magic_filter import F
 
 from src.bot.keyboards import main_menu_button
 from src.bot.routers.dashboard.handlers import on_save_database
+from src.bot.routers.dashboard.getters import dashboard_main_getter
 from src.bot.states import (
     Dashboard,
     DashboardAccess,
@@ -89,6 +90,7 @@ dashboard = Window(
     ),
     IgnoreUpdate(),
     state=Dashboard.MAIN,
+    getter=dashboard_main_getter,
 )
 
 router = Dialog(dashboard)
