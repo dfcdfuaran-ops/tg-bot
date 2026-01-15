@@ -266,7 +266,7 @@ class PaymentGatewayService(BaseService):
         self,
         user: UserDto,
         device_count: int,
-        amount: int,
+        amount: Decimal,
         gateway_type: PaymentGatewayType,
     ) -> PaymentResult:
         """Create a payment for buying extra devices."""

@@ -50,11 +50,6 @@ class CryptomusGateway(BasePaymentGateway):
         )
 
     async def handle_create_payment(self, amount: Decimal, details: str) -> PaymentResult:
-        # Heleket requires minimum 1.00 USD
-        if self.data.currency == Currency.USD and amount < Decimal("1.00"):
-            logger.debug(f"Adjusting amount from {amount} to 1.00 USD (Heleket minimum)")
-            amount = Decimal("1.00")
-        
         payload = await self._create_payment_payload(str(amount), str(uuid.uuid4()))
         headers = {"sign": self._generate_signature(json.dumps(payload))}
 

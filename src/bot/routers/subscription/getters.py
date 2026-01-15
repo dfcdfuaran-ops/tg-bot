@@ -750,15 +750,10 @@ async def payment_method_getter(
         # Используем pricing_service для правильного расчёта с учётом всех скидок
         gateway_price = pricing_service.calculate(user, gateway_total_price, gateway.currency, global_discount, context="subscription")
         
-        # Check if Heleket minimum applies (show 1.00$ on button)
-        display_price = gateway_price.final_amount
-        if gateway.type == PaymentGatewayType.HELEKET and gateway.currency == Currency.USD and gateway_price.final_amount < Decimal("1.00"):
-            display_price = Decimal("1.00")
-        
         payment_methods.append(
             {
                 "gateway_type": gateway.type,
-                "price": display_price,
+                "price": gateway_price.final_amount,
                 "original_price": gateway_price.original_amount,
                 "currency": gateway.currency.symbol,
                 "discount_percent": gateway_price.discount_percent,
@@ -960,16 +955,9 @@ async def confirm_getter(
         device_limit_bonus = 0
         expire_time = ""
     
-    # Check if Heleket payment needs minimum amount adjustment
+    # Heleket supports fractional USD amounts
     heleket_minimum_message = ""
     final_amount_for_display = pricing.final_amount
-    
-    if (selected_payment_method == PaymentGatewayType.HELEKET and 
-        payment_gateway.currency == Currency.USD and 
-        pricing.final_amount < Decimal("1.00")):
-        # Show message about minimum and adjust displayed amount
-        heleket_minimum_message = f"⚠️ Минимальная сумма оплаты выбранным способом 1.00 $. Ваша сумма была округлена до 1.00 $"
-        final_amount_for_display = Decimal("1.00")
     
     return {
         "purchase_type": purchase_type,
@@ -2238,8 +2226,9 @@ async def add_device_confirm_getter(
         eur_rate,
         stars_rate,
     )
-    original_price = int(original_price_decimal)
-    total_price = int(total_price_decimal)
+    # Keep Decimal for proper fractional display (USD supports cents)
+    original_price = original_price_decimal
+    total_price = total_price_decimal
     has_discount = price_details.discount_percent > 0
 
     # Флаг для условного отображения баланса (показываем только при оплате с баланса)
@@ -2264,8 +2253,11 @@ async def add_device_confirm_getter(
     # device_limit_bonus - добавлено админом (общий лимит - план - купленные)
     device_limit_bonus = max(0, subscription.device_limit - plan_device_limit - extra_devices) if subscription and plan_device_limit > 0 else 0
     
-    # Вычисляем баланс после оплаты (если баланс)
-    new_balance = display_balance - total_price if selected_method == PaymentGatewayType.BALANCE else display_balance
+    # Вычисляем баланс после оплаты (если баланс) - для баланса нужен int
+    if selected_method == PaymentGatewayType.BALANCE:
+        new_balance = display_balance - int(total_price)
+    else:
+        new_balance = display_balance
     
     return {
         # Заголовок

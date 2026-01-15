@@ -1319,13 +1319,13 @@ async def on_add_device_payment_select(
             )
             
             # Конвертируем итоговую цену (со скидкой) в валюту шлюза
-            final_amount = int(pricing_service.convert_currency(
-                Decimal(int(pricing_rub.final_amount)),
+            final_amount = pricing_service.convert_currency(
+                pricing_rub.final_amount,
                 payment_gateway.currency,
                 rates.usd_rate,
                 rates.eur_rate,
                 rates.stars_rate,
-            ))
+            )
             
             # Создаём платеж для дополнительных устройств
             payment_result = await payment_gateway_service.create_extra_devices_payment(
