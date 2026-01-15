@@ -93,7 +93,8 @@ async def send_subscription_expire_notification_task(
         raise ValueError(f"User '{telegram_id}' not found")
 
     if not user.current_subscription:
-        raise ValueError(f"Current subscription for user '{telegram_id}' not found")
+        logger.warning(f"Current subscription for user '{telegram_id}' not found, skipping notification")
+        return
 
     i18n_kwargs_extra.update({"is_trial": user.current_subscription.is_trial})
     keyboard = get_buy_keyboard() if user.current_subscription.is_trial else get_renew_keyboard()
@@ -126,7 +127,8 @@ async def send_subscription_limited_notification_task(
         raise ValueError(f"User '{telegram_id}' not found")
 
     if not user.current_subscription:
-        raise ValueError(f"Current subscription for user '{telegram_id}' not found")
+        logger.warning(f"Current subscription for user '{telegram_id}' not found, skipping notification")
+        return
 
     i18n_kwargs_extra = {
         "is_trial": user.current_subscription.is_trial,

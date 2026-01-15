@@ -989,7 +989,6 @@ async def confirm_getter(
         # Данные о текущей подписке
         "has_subscription": has_subscription,
         "current_plan_name": current_plan_name,
-        "plan_name": current_plan_name,
         "traffic_limit": traffic_limit,
         "device_limit_current": device_limit_current,
         "device_limit_number": device_limit_number,
@@ -1822,10 +1821,20 @@ async def add_device_select_count_getter(
 ) -> dict[str, Any]:
     """Геттер для окна выбора количества дополнительных устройств."""
     from decimal import Decimal
+    from src.core.utils.pricing import calculate_prorated_device_price
     
-    # Получаем цену дополнительного устройства из настроек
-    extra_devices_price = await settings_service.get_extra_device_price()
-    DEVICE_PRICE = int(extra_devices_price) if extra_devices_price else 100
+    # Получаем цену дополнительного устройства из настроек (за месяц)
+    device_price_monthly = await settings_service.get_extra_device_price()
+    
+    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
+    if user.current_subscription:
+        DEVICE_PRICE = calculate_prorated_device_price(
+            monthly_price=device_price_monthly,
+            subscription_expire_at=user.current_subscription.expire_at,
+        )
+    else:
+        # Если нет подписки, используем полную цену
+        DEVICE_PRICE = device_price_monthly
     
     # Получаем реферальный баланс
     referral_balance = await referral_service.get_pending_rewards_amount(
@@ -1937,9 +1946,20 @@ async def add_device_payment_getter(
 ) -> dict[str, Any]:
     """Геттер для окна выбора способа оплаты при добавлении устройств."""
     from decimal import Decimal
+    from src.core.utils.pricing import calculate_prorated_device_price
     
     # Получаем цену дополнительного устройства из настроек (за месяц, в рублях)
-    device_price_rub = await settings_service.get_extra_device_price()
+    device_price_monthly = await settings_service.get_extra_device_price()
+    
+    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
+    if user.current_subscription:
+        device_price_rub = calculate_prorated_device_price(
+            monthly_price=device_price_monthly,
+            subscription_expire_at=user.current_subscription.expire_at,
+        )
+    else:
+        # Если нет подписки, используем полную цену
+        device_price_rub = device_price_monthly
     
     # Получаем количество устройств из dialog_data
     device_count = dialog_manager.dialog_data.get("device_count", 1)
@@ -2118,8 +2138,20 @@ async def add_device_confirm_getter(
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для окна подтверждения покупки устройств."""
+    from src.core.utils.pricing import calculate_prorated_device_price
+    
     # Получаем цену дополнительного устройства из настроек (за месяц, в рублях)
-    device_price_rub = await settings_service.get_extra_device_price()
+    device_price_monthly = await settings_service.get_extra_device_price()
+    
+    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
+    if user.current_subscription:
+        device_price_rub = calculate_prorated_device_price(
+            monthly_price=device_price_monthly,
+            subscription_expire_at=user.current_subscription.expire_at,
+        )
+    else:
+        # Если нет подписки, используем полную цену
+        device_price_rub = device_price_monthly
     
     # Получаем данные из dialog_data
     device_count = dialog_manager.dialog_data.get("device_count", 1)

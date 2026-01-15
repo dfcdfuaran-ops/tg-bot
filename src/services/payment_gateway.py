@@ -575,6 +575,29 @@ class PaymentGatewayService(BaseService):
             
             logger.info(f"Added {device_count} extra devices for user '{transaction.user.telegram_id}'")
             
+            # Получаем детали подписки для уведомления
+            from src.core.utils.formatters import (
+                i18n_format_traffic_limit,
+                i18n_format_traffic_used,
+                i18n_format_expire_time,
+            )
+            
+            # Вычисляем device_limit_number и device_limit_bonus
+            plan_device_limit = (
+                subscription.plan.device_limit 
+                if subscription.plan and subscription.plan.device_limit > 0 
+                else 0
+            )
+            device_limit_number = (
+                plan_device_limit 
+                if plan_device_limit > 0 
+                else subscription.device_limit
+            )
+            device_limit_bonus = max(
+                0, 
+                subscription.device_limit - plan_device_limit - subscription.extra_devices
+            ) if plan_device_limit > 0 else 0
+            
             # Отправляем системное уведомление (Event)
             i18n_kwargs = {
                 "payment_id": str(transaction.payment_id),
@@ -586,7 +609,16 @@ class PaymentGatewayService(BaseService):
                 "user_name": transaction.user.name,
                 "username": transaction.user.username or False,
                 "device_count": device_count,
-                "new_device_limit": subscription.device_limit,
+                # Параметры для frg-subscription-details
+                "subscription_id": str(subscription.user_remna_id),
+                "subscription_status": subscription.status,
+                "plan_name": subscription.plan.name,
+                "traffic_used": i18n_format_traffic_used(0),  # TODO: получить real traffic used
+                "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
+                "device_limit_number": device_limit_number,
+                "device_limit_bonus": device_limit_bonus,
+                "extra_devices": subscription.extra_devices,
+                "expire_time": i18n_format_expire_time(subscription.expire_at),
             }
             
             await self.notification_service.system_notify(

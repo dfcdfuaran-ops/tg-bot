@@ -1372,14 +1372,25 @@ async def on_add_device_confirm(
 ) -> None:
     """Обработка подтверждения покупки устройств."""
     from decimal import Decimal
+    from src.core.utils.pricing import calculate_prorated_device_price
     
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     
     selected_payment_method = dialog_manager.dialog_data.get("selected_payment_method")
     device_count = dialog_manager.dialog_data.get("device_count", 1)
     
-    # Получаем цену устройства из настроек
-    device_price = await settings_service.get_extra_device_price()
+    # Получаем цену устройства из настроек (за месяц)
+    device_price_monthly = await settings_service.get_extra_device_price()
+    
+    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
+    if user.current_subscription:
+        device_price = calculate_prorated_device_price(
+            monthly_price=device_price_monthly,
+            subscription_expire_at=user.current_subscription.expire_at,
+        )
+    else:
+        # Если нет подписки, используем полную цену
+        device_price = device_price_monthly
     
     # Получаем глобальную скидку
     global_discount = await settings_service.get_global_discount_settings()
@@ -1473,6 +1484,29 @@ async def on_add_device_confirm(
         
         logger.info(f"{log(user)} Added {device_count} devices from balance (discount={discount_value}%). New device limit: {subscription.device_limit}")
         
+        # Получаем детали подписки для уведомления
+        from src.core.utils.formatters import (
+            i18n_format_traffic_limit,
+            i18n_format_traffic_used,
+            i18n_format_expire_time,
+        )
+        
+        # Вычисляем device_limit_number и device_limit_bonus
+        plan_device_limit = (
+            subscription.plan.device_limit 
+            if subscription.plan and subscription.plan.device_limit > 0 
+            else 0
+        )
+        device_limit_number = (
+            plan_device_limit 
+            if plan_device_limit > 0 
+            else subscription.device_limit
+        )
+        device_limit_bonus = max(
+            0, 
+            subscription.device_limit - plan_device_limit - subscription.extra_devices
+        ) if plan_device_limit > 0 else 0
+        
         # Уведомляем разработчика о покупке (Event-уведомление)
         from src.core.enums import SystemNotificationType
         from src.bot.keyboards import get_user_keyboard
@@ -1486,7 +1520,16 @@ async def on_add_device_confirm(
                     "device_count": device_count,
                     "price": total_price,
                     "discount_percent": discount_value,
-                    "new_device_limit": subscription.device_limit,
+                    # Параметры для frg-subscription-details
+                    "subscription_id": str(subscription.user_remna_id),
+                    "subscription_status": subscription.status,
+                    "plan_name": subscription.plan.name,
+                    "traffic_used": i18n_format_traffic_used(0),  # TODO: получить real traffic used
+                    "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
+                    "device_limit_number": device_limit_number,
+                    "device_limit_bonus": device_limit_bonus,
+                    "extra_devices": subscription.extra_devices,
+                    "expire_time": i18n_format_expire_time(subscription.expire_at),
                 },
                 reply_markup=get_user_keyboard(fresh_user.telegram_id),
             ),

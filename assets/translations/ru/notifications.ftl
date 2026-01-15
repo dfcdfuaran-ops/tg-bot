@@ -353,8 +353,10 @@ ntf-event-extra-devices =
     • <b>Сумма</b>: { $final_amount } { $currency }
     • <b>Скидка</b>: { $discount_percent }%
     • <b>Устройств</b>: +{ $device_count } шт.
-    • <b>Новый лимит</b>: { $new_device_limit } устройств
     </blockquote>
+
+    { hdr-subscription }
+    { frg-subscription-details }
 
     { hdr-user }
     { frg-user-info }
@@ -368,8 +370,10 @@ ntf-event-extra-devices-balance =
     • <b>Сумма</b>: { $price } ₽
     • <b>Скидка</b>: { $discount_percent }%
     • <b>Устройств</b>: +{ $device_count } шт.
-    • <b>Новый лимит</b>: { $new_device_limit } устройств
     </blockquote>
+
+    { hdr-subscription }
+    { frg-subscription-details }
 
     { hdr-user }
     { frg-user-info }
