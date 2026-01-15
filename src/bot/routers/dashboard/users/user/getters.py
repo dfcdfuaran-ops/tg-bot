@@ -76,7 +76,7 @@ async def user_getter(
     if subscription:
         extra_devices = subscription.extra_devices or 0
         device_limit_number = subscription.plan.device_limit
-        device_limit_bonus = max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0
+        device_limit_bonus = max(0, subscription.device_limit - device_limit_number - extra_devices) if device_limit_number > 0 else 0
         data.update(
             {
                 "status": subscription.get_status,
