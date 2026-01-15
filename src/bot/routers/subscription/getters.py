@@ -2036,9 +2036,8 @@ async def add_device_payment_getter(
     
     payment_methods.append({
         "gateway_type": PaymentGatewayType.BALANCE,
-        "price": total_price_rub,
-        "original_price": original_price_rub,
-        "currency": Currency.RUB.symbol,
+        "price": format_price(total_price_rub, Currency.RUB),
+        "original_price": format_price(original_price_rub, Currency.RUB),
         "has_discount": 1 if has_discount else 0,
         "discount_percent": price_details.discount_percent,
     })
@@ -2074,9 +2073,8 @@ async def add_device_payment_getter(
         # для согласованности с payment_method_getter
         payment_methods.append({
             "gateway_type": gateway.type,
-            "price": converted_total_decimal,
-            "original_price": converted_original_decimal,
-            "currency": gateway_currency.symbol,
+            "price": format_price(converted_total_decimal, gateway_currency),
+            "original_price": format_price(converted_original_decimal, gateway_currency),
             "has_discount": 1 if has_discount else 0,
             "discount_percent": price_details.discount_percent,
         })

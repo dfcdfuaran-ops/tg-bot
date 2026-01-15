@@ -600,7 +600,6 @@ add_device_payment = Window(
                 gateway_type=F["item"]["gateway_type"],
                 price=F["item"]["price"],
                 original_price=F["item"]["original_price"],
-                currency=F["item"]["currency"],
                 discount_percent=F["item"]["discount_percent"],
                 has_discount=F["item"]["has_discount"],
             ),
