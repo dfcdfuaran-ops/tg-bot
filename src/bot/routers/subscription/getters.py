@@ -719,7 +719,6 @@ async def payment_method_getter(
                 "gateway_type": PaymentGatewayType.BALANCE,
                 "price": format_price(price.final_amount, Currency.RUB),
                 "original_price": format_price(price.original_amount, Currency.RUB),
-                "currency": Currency.RUB.symbol,
                 "user_balance": available_balance,
                 "discount_percent": price.discount_percent,
                 "has_discount": 1 if price.discount_percent > 0 else 0,
@@ -755,7 +754,6 @@ async def payment_method_getter(
                 "gateway_type": gateway.type,
                 "price": format_price(gateway_price.final_amount, gateway.currency),
                 "original_price": format_price(gateway_price.original_amount, gateway.currency),
-                "currency": gateway.currency.symbol,
                 "discount_percent": gateway_price.discount_percent,
                 "has_discount": 1 if gateway_price.discount_percent > 0 else 0,
             }
@@ -971,7 +969,6 @@ async def confirm_getter(
         "final_amount": format_price(final_amount_for_display, payment_gateway.currency),
         "discount_percent": pricing.discount_percent,
         "original_amount": format_price(base_subscription_price if base_subscription_price > 0 else pricing.original_amount, payment_gateway.currency),
-        "currency": payment_gateway.currency.symbol,
         "url": result_url,
         "only_single_gateway": len(gateways) == 1,
         "only_single_duration": only_single_duration,
