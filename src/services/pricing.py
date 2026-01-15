@@ -162,6 +162,10 @@ class PricingService(BaseService):
             case Currency.XTR | Currency.RUB:
                 amount = amount.to_integral_value(rounding=ROUND_DOWN)
                 min_amount = Decimal(1)
+            case Currency.USD:
+                # Heleket requires minimum 1 USD
+                amount = amount.quantize(Decimal("0.01"))
+                min_amount = Decimal("1.00")
             case _:
                 amount = amount.quantize(Decimal("0.01"))
                 min_amount = Decimal("0.01")
