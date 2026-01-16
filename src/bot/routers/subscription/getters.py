@@ -444,9 +444,9 @@ async def duration_getter(
         
         # Добавляем стоимость доп. устройств пропорционально периоду
         if extra_devices_monthly_cost > 0:
-            # Рассчитываем стоимость доп. устройств за период
-            months = duration.days / 30
-            extra_devices_cost = int(extra_devices_monthly_cost * months)
+            # Рассчитываем стоимость доп. устройств за период (целые месяцы)
+            months = duration.days // 30  # Используем целочисленное деление
+            extra_devices_cost = extra_devices_monthly_cost * months
             total_price = base_price + extra_devices_cost
         else:
             total_price = base_price
@@ -654,9 +654,9 @@ async def payment_method_getter(
             device_price_monthly = await settings_service.get_extra_device_price()
             extra_devices_monthly_cost = device_price_monthly * active_extra_devices
     
-    # Рассчитываем стоимость доп. устройств за период
-    months = duration.days / 30
-    extra_devices_cost = int(extra_devices_monthly_cost * months) if extra_devices_monthly_cost > 0 else 0
+    # Рассчитываем стоимость доп. устройств за период (целые месяцы)
+    months = duration.days // 30  # Используем целочисленное деление
+    extra_devices_cost = extra_devices_monthly_cost * months if extra_devices_monthly_cost > 0 else 0
 
     # Вычисляем скидку пользователя заранее
     from datetime import datetime, timezone

@@ -111,12 +111,8 @@ async def _create_payment_and_get_data(
         if active_extra_devices > 0:
             device_price_monthly = await settings_service.get_extra_device_price()
             extra_devices_monthly_cost = device_price_monthly * active_extra_devices
-            months = duration.days / 30
-            extra_devices_cost_rub = int(extra_devices_monthly_cost * months)
-            
-            # Конвертируем стоимость доп. устройств в валюту шлюза
-            if extra_devices_cost_rub > 0:
-                extra_devices_cost = pricing_service.convert_currency(
+                months = duration.days // 30  # Используем целочисленное деление
+                extra_devices_cost_rub = extra_devices_monthly_cost * months
                     Decimal(extra_devices_cost_rub),
                     payment_gateway.currency,
                     rates.usd_rate,
@@ -527,8 +523,8 @@ async def on_payment_method_select(
             if active_extra_devices > 0:
                 device_price_monthly = await settings_service.get_extra_device_price()
                 extra_devices_monthly_cost = device_price_monthly * active_extra_devices
-                months = duration.days / 30
-                extra_devices_cost = int(extra_devices_monthly_cost * months)
+                months = duration.days // 30  # Используем целочисленное деление
+                extra_devices_cost = extra_devices_monthly_cost * months
         
         # Итоговая цена = базовая подписка + доп. устройства
         total_price = base_price + Decimal(extra_devices_cost)
@@ -672,12 +668,8 @@ async def on_confirm_balance_payment(
         if active_extra_devices > 0:
             device_price_monthly = await settings_service.get_extra_device_price()
             extra_devices_monthly_cost = device_price_monthly * active_extra_devices
-            months = duration.days / 30
-            extra_devices_cost = int(extra_devices_monthly_cost * months)
-            base_price = base_price + Decimal(extra_devices_cost)
-    
-    price = pricing_service.calculate(user, base_price, currency, global_discount, context="subscription")
-    
+                months = duration.days // 30  # Используем целочисленное деление
+                extra_devices_cost = extra_devices_monthly_cost * months
     # Re-check balance (user might have spent it elsewhere)
     fresh_user = await user_service.get(user.telegram_id)
     
