@@ -222,19 +222,10 @@ get_version_from_file() {
     fi
 }
 
-# Функция для получения локальной версии (из assets/update/.version или src/__version__.py)
+# Функция для получения локальной версии (из src/__version__.py)
 get_local_version() {
-    # Сначала пробуем assets/update/.version файл
-    if [ -f "$PROJECT_DIR/assets/update/.version" ]; then
-        cat "$PROJECT_DIR/assets/update/.version" 2>/dev/null | tr -d '\n' || echo ""
-    # Fallback на старый путь assets/setup/.version (для совместимости)
-    elif [ -f "$PROJECT_DIR/assets/setup/.version" ]; then
-        cat "$PROJECT_DIR/assets/setup/.version" 2>/dev/null | tr -d '\n' || echo ""
-    # Fallback на старый путь .version
-    elif [ -f "$PROJECT_DIR/.version" ]; then
-        cat "$PROJECT_DIR/.version" 2>/dev/null | tr -d '\n' || echo ""
-    # Fallback на src/__version__.py
-    elif [ -f "$PROJECT_DIR/src/__version__.py" ]; then
+    # Сначала пробуем src/__version__.py (основной источник версии)
+    if [ -f "$PROJECT_DIR/src/__version__.py" ]; then
         get_version_from_file "$PROJECT_DIR/src/__version__.py"
     else
         echo ""
@@ -743,13 +734,6 @@ manage_update_bot() {
                         fi
                     fi
                 done
-                
-                # Сохраняем версию в assets/update/.version файл для корректной проверки версий
-                mkdir -p "$PROJECT_DIR/assets/update" 2>/dev/null || true
-                local new_version=$(grep -oP '__version__ = "\K[^"]+' "src/__version__.py" 2>/dev/null || echo "")
-                if [ -n "$new_version" ]; then
-                    echo "$new_version" > "$PROJECT_DIR/assets/update/.version"
-                fi
                 
                 # Копируем install.sh в папку assets/update
                 cp -f "install.sh" "$PROJECT_DIR/assets/update/install.sh" 2>/dev/null || true
