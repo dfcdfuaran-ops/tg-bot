@@ -287,7 +287,6 @@ async def devices_getter(
     **kwargs: Any,
 ) -> dict[str, Any]:
     from src.core.enums import ReferralRewardType
-    from src.bot.helpers import get_display_balance
     
     subscription = user.current_subscription
     
