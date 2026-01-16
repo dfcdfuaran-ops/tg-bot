@@ -961,6 +961,22 @@ async def confirm_getter(
     
     final_amount_for_display = pricing.final_amount
     
+    # Конвертируем base_subscription_price и extra_devices_cost_rub в валюту шлюза
+    if base_subscription_price > 0:
+        base_subscription_price_converted = format_price(
+            pricing_service.convert_currency(Decimal(base_subscription_price), payment_gateway.currency, usd_rate, eur_rate, stars_rate),
+            payment_gateway.currency
+        )
+    else:
+        # Если base_subscription_price не установлена, используем pricing.original_amount минус extra_devices_cost
+        if extra_devices_cost_rub > 0:
+            subscription_only_price = pricing.original_amount - pricing_service.convert_currency(
+                Decimal(extra_devices_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate
+            )
+            base_subscription_price_converted = format_price(subscription_only_price, payment_gateway.currency)
+        else:
+            base_subscription_price_converted = format_price(pricing.original_amount, payment_gateway.currency)
+    
     return {
         "purchase_type": purchase_type,
         "plan": plan.name,
@@ -974,7 +990,7 @@ async def confirm_getter(
         "gateway_type": payment_gateway.type,
         "final_amount": format_price(final_amount_for_display, payment_gateway.currency),
         "discount_percent": pricing.discount_percent,
-        "original_amount": format_price(base_subscription_price if base_subscription_price > 0 else pricing.original_amount, payment_gateway.currency),
+        "original_amount": base_subscription_price_converted,
         "url": result_url,
         "only_single_gateway": len(gateways) == 1,
         "only_single_duration": only_single_duration,
