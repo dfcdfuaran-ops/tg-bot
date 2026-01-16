@@ -1728,7 +1728,10 @@ async def on_delete_extra_device_purchase(
     
     # Обновляем лимит устройств в подписке
     new_extra_devices = max(0, (subscription.extra_devices or 0) - device_count_to_remove)
-    new_device_limit = max(subscription.plan.device_limit, (subscription.device_limit or 0) - device_count_to_remove)
+    # Вычитаем устройства, но не меньше базового лимита плана
+    base_device_limit = (subscription.plan.device_limit if subscription.plan and subscription.plan.device_limit else 0)
+    current_device_limit = subscription.device_limit if subscription.device_limit else 0
+    new_device_limit = max(base_device_limit, current_device_limit - device_count_to_remove)
     
     subscription.extra_devices = new_extra_devices
     subscription.device_limit = new_device_limit

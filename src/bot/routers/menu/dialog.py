@@ -276,7 +276,7 @@ devices = Window(
         ),
     ),
     Row(
-        *main_menu_button,
+        *get_back_and_main_menu_buttons(MainMenu.MAIN),
     ),
     IgnoreUpdate(),
     state=MainMenu.DEVICES,
