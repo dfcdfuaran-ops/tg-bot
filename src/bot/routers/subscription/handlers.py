@@ -1755,8 +1755,18 @@ async def on_delete_extra_device_purchase(
         payload=MessagePayload(i18n_key="ntf-extra-device-deleted"),
     )
     
-    # Обновляем текущий диалог для отображения изменений
+    # Проверяем, остались ли ещё покупки доп. устройств
+    remaining_purchases = await extra_device_service.get_active_by_subscription(subscription.id)
+    
     await callback.answer()
+    
+    # Если больше нет покупок - перенаправляем на меню устройств
+    if len(remaining_purchases) == 0:
+        from src.bot.routers.menu.states import MainMenu
+        await dialog_manager.start(
+            state=MainMenu.DEVICES,
+            mode=StartMode.RESET_STACK,
+        )
 
 
 @inject

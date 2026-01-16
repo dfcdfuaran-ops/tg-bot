@@ -734,11 +734,6 @@ extra_devices_list = Window(
         when=~F["purchases_empty"],
     ),
     Row(
-        Button(
-            text=I18nFormat("btn-back"),
-            id="back_to_devices",
-            on_click=on_back_to_devices,
-        ),
         Start(
             text=I18nFormat("btn-main-menu"),
             id="back_main_menu",

@@ -460,6 +460,9 @@ async def purchase_subscription_task(
         else:
             raise Exception(f"Unknown purchase type '{purchase_type}' for user '{user.telegram_id}'")
 
+        # Очищаем кэш пользователя перед получением свежих данных
+        await user_service.clear_user_cache(user.telegram_id)
+        
         # Получаем свежего пользователя и редиректим на успех
         fresh_user = await user_service.get(telegram_id=user.telegram_id)
         await redirect_to_successed_payment_task.kiq(fresh_user or user, purchase_type)

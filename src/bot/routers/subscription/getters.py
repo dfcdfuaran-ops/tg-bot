@@ -2902,6 +2902,8 @@ async def extra_devices_list_getter(
     # Данные подписки
     extra_devices = subscription.extra_devices or 0
     device_limit_number = subscription.plan.device_limit if subscription.plan else 0
+    # device_limit_bonus - устройства добавленные администратором через панель (не extra_devices)
+    device_limit_bonus = max(0, subscription.device_limit - device_limit_number - extra_devices) if device_limit_number > 0 else 0
     
     # Режим баланса
     is_balance_combined = await settings_service.is_balance_combined()
@@ -2931,7 +2933,7 @@ async def extra_devices_list_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
         "device_limit": i18n_format_device_limit(subscription.device_limit),
         "device_limit_number": device_limit_number,
-        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number) if device_limit_number > 0 else 0,
+        "device_limit_bonus": device_limit_bonus,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
     }
