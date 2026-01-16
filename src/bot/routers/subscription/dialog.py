@@ -33,7 +33,6 @@ from .getters import (
     success_payment_getter,
 )
 from .handlers import (
-    on_add_device,
     on_add_device_select_count,
     on_add_device_duration_select,
     on_add_device_payment_select,
@@ -564,8 +563,8 @@ add_device = Window(
     Row(
         SwitchTo(
             text=I18nFormat("btn-back"),
-            id="back_to_devices",
-            state=Subscription.DEVICES,
+            id="back_to_extra_devices",
+            state=Subscription.EXTRA_DEVICES_LIST,
         ),
         Start(
             text=I18nFormat("btn-main-menu"),
@@ -735,10 +734,10 @@ extra_devices_list = Window(
     ),
     # Кнопка добавления устройств (если доступно)
     Row(
-        Button(
+        SwitchTo(
             text=I18nFormat("btn-menu-add-device"),
             id="add_device",
-            on_click=on_add_device,
+            state=Subscription.ADD_DEVICE_SELECT_COUNT,
             when=F["can_add_device"],
         ),
     ),

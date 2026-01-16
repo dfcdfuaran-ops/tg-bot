@@ -1762,7 +1762,7 @@ async def on_delete_extra_device_purchase(
     
     # Если больше нет покупок - перенаправляем на меню устройств
     if len(remaining_purchases) == 0:
-        from src.bot.routers.menu.states import MainMenu
+        from src.bot.states import MainMenu
         await dialog_manager.start(
             state=MainMenu.DEVICES,
             mode=StartMode.RESET_STACK,
