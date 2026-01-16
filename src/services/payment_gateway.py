@@ -21,6 +21,8 @@ from src.core.utils.formatters import (
     i18n_format_days,
     i18n_format_device_limit,
     i18n_format_traffic_limit,
+    i18n_format_traffic_used,
+    i18n_format_expire_time,
 )
 from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database import UnitOfWork
@@ -579,13 +581,6 @@ class PaymentGatewayService(BaseService):
             await self.user_service.clear_user_cache(fresh_user.telegram_id)
             
             logger.info(f"Added {device_count} extra devices for user '{transaction.user.telegram_id}'")
-            
-            # Получаем детали подписки для уведомления
-            from src.core.utils.formatters import (
-                i18n_format_traffic_limit,
-                i18n_format_traffic_used,
-                i18n_format_expire_time,
-            )
             
             # Вычисляем device_limit_number и device_limit_bonus
             plan_device_limit = (
