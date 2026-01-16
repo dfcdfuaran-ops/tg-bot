@@ -39,6 +39,7 @@ class TransactionService(BaseService):
 
         db_transaction = Transaction(**data, user_telegram_id=user.telegram_id)
         db_created_transaction = await self.uow.repository.transactions.create(db_transaction)
+        await self.uow.commit()
         logger.info(f"Created transaction '{transaction.payment_id}' for user '{user.telegram_id}'")
         return TransactionDto.from_model(db_created_transaction)  # type: ignore[return-value]
 
