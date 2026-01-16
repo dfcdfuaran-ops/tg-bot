@@ -33,6 +33,7 @@ from .getters import (
     success_payment_getter,
 )
 from .handlers import (
+    on_add_device,
     on_add_device_select_count,
     on_add_device_duration_select,
     on_add_device_payment_select,
