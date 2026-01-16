@@ -1693,6 +1693,12 @@ msg-subscription-duration =
         *[0] {""}
     }
     </blockquote>
+    { $has_extra_devices_cost ->
+        [1] {""}
+    
+    ℹ️ <i>Стоимость { $extra_devices } доп. устройств ({ $extra_devices_monthly_cost }₽/мес) будет добавлена к стоимости подписки.</i>
+        *[0] {""}
+    }
 
     <b>⏳ Выбор длительности:</b>
 
