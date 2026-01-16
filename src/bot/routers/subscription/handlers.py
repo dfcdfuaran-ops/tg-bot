@@ -18,7 +18,7 @@ from src.bot.states import Subscription, MainMenu
 from src.core.constants import PURCHASE_PREFIX, USER_KEY
 from src.core.enums import Currency, PaymentGatewayType, PurchaseType, ReferralLevel, ReferralRewardType, TransactionStatus
 from src.core.utils.adapter import DialogDataAdapter
-from src.core.utils.formatters import format_user_log as log
+from src.core.utils.formatters import format_user_log as log, i18n_format_bytes_to_unit, i18n_format_traffic_limit
 from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database.models.dto import PlanDto, PlanSnapshotDto, UserDto, TransactionDto
 from src.services.notification import NotificationService
@@ -1528,7 +1528,7 @@ async def on_add_device_confirm(
                     "subscription_id": str(subscription.user_remna_id),
                     "subscription_status": subscription.status,
                     "plan_name": subscription.plan.name,
-                    "traffic_used": i18n_format_traffic_used(0),  # TODO: получить real traffic used
+                    "traffic_used": i18n_format_bytes_to_unit(0),  # TODO: получить real traffic used
                     "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
                     "device_limit_number": device_limit_number,
                     "device_limit_bonus": device_limit_bonus,

@@ -21,8 +21,8 @@ from src.core.utils.formatters import (
     i18n_format_days,
     i18n_format_device_limit,
     i18n_format_traffic_limit,
-    i18n_format_traffic_used,
     i18n_format_expire_time,
+    i18n_format_bytes_to_unit,
 )
 from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database import UnitOfWork
@@ -613,7 +613,7 @@ class PaymentGatewayService(BaseService):
                 "subscription_id": str(subscription.user_remna_id),
                 "subscription_status": subscription.status,
                 "plan_name": subscription.plan.name,
-                "traffic_used": i18n_format_traffic_used(0),  # TODO: получить real traffic used
+                "traffic_used": i18n_format_bytes_to_unit(0),  # TODO: получить real traffic used
                 "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
                 "device_limit_number": device_limit_number,
                 "device_limit_bonus": device_limit_bonus,
