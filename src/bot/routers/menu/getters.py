@@ -284,6 +284,7 @@ async def devices_getter(
     remnawave_service: FromDishka[RemnawaveService],
     settings_service: FromDishka[SettingsService],
     referral_service: FromDishka[ReferralService],
+    extra_device_service: FromDishka[ExtraDeviceService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     from src.core.enums import ReferralRewardType
@@ -355,6 +356,7 @@ async def devices_getter(
             # Флаги для кнопок
             "can_add_device": False,
             "has_subscription": False,
+            "show_extra_devices_button": False,
             "is_balance_enabled": 1 if is_balance_enabled else 0,
             "is_balance_separate": 1 if is_balance_separate else 0,
             # Данные профиля для frg-user
@@ -389,6 +391,31 @@ async def devices_getter(
     plan_device_limit = subscription.plan.device_limit if subscription.plan and subscription.plan.device_limit > 0 else 0
     actual_device_limit = subscription.device_limit
     device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
+    
+    # Определяем показывать ли кнопку "Управление доп. устройствами"
+    # Условия: есть extra_devices > 0 ИЛИ (подписка не триал и не реферальная)
+    # ИЛИ есть история покупок доп. устройств (даже если подписка истекла)
+    plan_name_lower = subscription.plan.name.lower() if subscription.plan else ""
+    is_trial_subscription = subscription.is_trial or "пробн" in plan_name_lower
+    is_referral_subscription = "реферал" in plan_name_lower
+    
+    # Получаем историю покупок доп. устройств
+    has_extra_device_purchases = False
+    try:
+        purchases = await extra_device_service.get_by_subscription(subscription.id)
+        has_extra_device_purchases = len(purchases) > 0
+    except Exception:
+        pass
+    
+    # Показываем кнопку если:
+    # 1. Есть активные extra_devices
+    # 2. ИЛИ есть история покупок доп. устройств  
+    # 3. ИЛИ подписка активна и это не триал/реферальная подписка
+    show_extra_devices_button = (
+        extra_devices > 0 
+        or has_extra_device_purchases
+        or (subscription.is_active and not is_trial_subscription and not is_referral_subscription)
+    )
 
     return {
         "current_count": len(devices),
@@ -405,6 +432,7 @@ async def devices_getter(
         # Флаги для кнопок
         "can_add_device": subscription.is_active and subscription.has_devices_limit,
         "has_subscription": True,
+        "show_extra_devices_button": show_extra_devices_button,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,
         # Данные профиля для frg-user

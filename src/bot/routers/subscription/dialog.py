@@ -733,7 +733,22 @@ extra_devices_list = Window(
         items="purchases",
         when=~F["purchases_empty"],
     ),
+    # Кнопка добавления устройств (если доступно)
     Row(
+        Button(
+            text=I18nFormat("btn-menu-add-device"),
+            id="add_device",
+            on_click=on_add_device,
+            when=F["can_add_device"],
+        ),
+    ),
+    Row(
+        Start(
+            text=I18nFormat("btn-back"),
+            id="back_to_devices",
+            state=MainMenu.DEVICES,
+            mode=StartMode.RESET_STACK,
+        ),
         Start(
             text=I18nFormat("btn-main-menu"),
             id="back_main_menu",

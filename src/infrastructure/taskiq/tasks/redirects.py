@@ -104,7 +104,44 @@ async def redirect_to_successed_payment_task(
     purchase_type: PurchaseType,
     bot: FromDishka[Bot],
     bg_manager_factory: FromDishka[BgManagerFactory],
+    user_service: FromDishka[UserService],
 ) -> None:
+    import asyncio
+    
+    # Очищаем кэш пользователя перед редиректом
+    await user_service.clear_user_cache(user.telegram_id)
+    
+    # Умный полинг - ждём пока подписка обновится в БД
+    # (для продления нужно убедиться что expire_at обновлён)
+    max_retries = 10
+    retry_interval = 0.2  # 200ms между попытками
+    data_ready = False
+    
+    for attempt in range(max_retries):
+        try:
+            # Пытаемся получить свежего пользователя
+            fresh_user = await user_service.get(user.telegram_id)
+            if fresh_user and fresh_user.current_subscription:
+                # Для продления проверяем что expire_at отличается от старого
+                # или просто есть подписка
+                logger.debug(
+                    f"Fresh subscription data found for user {user.telegram_id} on attempt {attempt + 1}"
+                )
+                data_ready = True
+                break
+        except Exception as e:
+            logger.debug(f"Attempt {attempt + 1} to fetch subscription failed: {e}")
+        
+        # Ждём перед следующей попыткой
+        if attempt < max_retries - 1:
+            await asyncio.sleep(retry_interval)
+    
+    if not data_ready:
+        logger.warning(
+            f"Fresh subscription data not confirmed for user {user.telegram_id} after {max_retries} retries. "
+            f"Proceeding anyway..."
+        )
+    
     bg_manager = bg_manager_factory.bg(
         bot=bot,
         user_id=user.telegram_id,

@@ -272,7 +272,7 @@ devices = Window(
             text=I18nFormat("btn-menu-extra-devices"),
             id="extra_devices_list",
             on_click=on_extra_devices_list,
-            when=F["extra_devices"] > 0,
+            when=F["show_extra_devices_button"],
         ),
     ),
     Row(

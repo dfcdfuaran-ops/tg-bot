@@ -2944,6 +2944,8 @@ async def extra_devices_list_getter(
         "device_limit_bonus": device_limit_bonus,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
+        # Флаги для кнопок
+        "can_add_device": subscription.is_active and subscription.has_devices_limit,
     }
 
 
