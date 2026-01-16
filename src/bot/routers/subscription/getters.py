@@ -919,8 +919,8 @@ async def confirm_getter(
     is_balance_separate = not is_balance_combined
     
     # Получаем стоимость доп. устройств из dialog_data (сохранена при создании платежа)
-    extra_devices_cost_rub = dialog_manager.dialog_data.get("extra_devices_cost", 0)
-    base_subscription_price = dialog_manager.dialog_data.get("base_subscription_price", 0)
+    extra_devices_cost_rub = int(dialog_manager.dialog_data.get("extra_devices_cost", 0))
+    base_subscription_price = int(dialog_manager.dialog_data.get("base_subscription_price", 0))
     
     # Рассчитываем месячную стоимость для отображения
     # Но только если включена ежемесячная оплата (is_one_time = False)

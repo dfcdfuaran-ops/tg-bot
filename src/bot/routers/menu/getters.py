@@ -282,9 +282,19 @@ async def devices_getter(
     dialog_manager: DialogManager,
     user: UserDto,
     remnawave_service: FromDishka[RemnawaveService],
+    settings_service: FromDishka[SettingsService],
+    referral_service: FromDishka[ReferralService],
     **kwargs: Any,
 ) -> dict[str, Any]:
+    from src.core.enums import ReferralRewardType
+    from src.bot.helpers import get_display_balance
+    
     subscription = user.current_subscription
+    
+    # Получаем настройки баланса
+    is_balance_enabled = await settings_service.is_balance_enabled()
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
     
     # Если нет подписки - показываем пустой список устройств с возможностью управления доп. устройствами
     if not subscription:
@@ -303,6 +313,8 @@ async def devices_getter(
             # Флаги для кнопок
             "can_add_device": False,
             "has_subscription": False,
+            "is_balance_enabled": 1 if is_balance_enabled else 0,
+            "is_balance_separate": 1 if is_balance_separate else 0,
         }
 
     devices = await remnawave_service.get_devices_user(user)
@@ -325,6 +337,13 @@ async def devices_getter(
     plan_device_limit = subscription.plan.device_limit if subscription.plan and subscription.plan.device_limit > 0 else 0
     actual_device_limit = subscription.device_limit
     device_limit_bonus = max(0, actual_device_limit - plan_device_limit - extra_devices) if plan_device_limit > 0 else 0
+    
+    # Получаем данные для профиля (нужны для frg-user)
+    referral_balance = await referral_service.get_pending_rewards_amount(
+        telegram_id=user.telegram_id,
+        reward_type=ReferralRewardType.MONEY,
+    )
+    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
 
     return {
         "current_count": len(devices),
@@ -341,6 +360,14 @@ async def devices_getter(
         # Флаги для кнопок
         "can_add_device": subscription.is_active and subscription.has_devices_limit,
         "has_subscription": True,
+        "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
+        # Данные профиля для frg-user
+        "user_id": str(user.telegram_id),
+        "user_name": user.name,
+        "balance": display_balance,
+        "referral_balance": referral_balance,
+        "referral_code": user.referral_code,
     }
 
 
