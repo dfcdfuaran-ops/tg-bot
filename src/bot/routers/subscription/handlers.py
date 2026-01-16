@@ -111,8 +111,12 @@ async def _create_payment_and_get_data(
         if active_extra_devices > 0:
             device_price_monthly = await settings_service.get_extra_device_price()
             extra_devices_monthly_cost = device_price_monthly * active_extra_devices
-                months = duration.days // 30  # Используем целочисленное деление
-                extra_devices_cost_rub = extra_devices_monthly_cost * months
+            months = duration.days // 30  # Используем целочисленное деление
+            extra_devices_cost_rub = extra_devices_monthly_cost * months
+            
+            # Конвертируем стоимость доп. устройств в валюту шлюза
+            if extra_devices_cost_rub > 0:
+                extra_devices_cost = pricing_service.convert_currency(
                     Decimal(extra_devices_cost_rub),
                     payment_gateway.currency,
                     rates.usd_rate,
