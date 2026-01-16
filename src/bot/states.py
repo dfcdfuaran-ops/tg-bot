@@ -35,6 +35,7 @@ class Subscription(StatesGroup):
     DEVICES = State()
     ADD_DEVICE = State()
     ADD_DEVICE_SELECT_COUNT = State()
+    ADD_DEVICE_DURATION = State()  # Выбор типа покупки (до конца подписки / до конца месяца)
     ADD_DEVICE_PAYMENT = State()
     ADD_DEVICE_CONFIRM = State()
     ADD_DEVICE_SUCCESS = State()

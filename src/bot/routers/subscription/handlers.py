@@ -1244,18 +1244,68 @@ async def on_add_device_select_count(
     dialog_manager: DialogManager,
     item_id: str,
 ) -> None:
-    """Обработка выбора количества устройств."""
+    """Обработка выбора количества устройств - переход к выбору типа покупки."""
     try:
         device_count = int(item_id)
         # Сохраняем количество в dialog_data
         dialog_manager.dialog_data["device_count"] = device_count
-        # Переходим к выбору способа оплаты
-        await dialog_manager.switch_to(state=Subscription.ADD_DEVICE_PAYMENT)
+        # Переходим к выбору типа покупки (до конца подписки / до конца месяца)
+        await dialog_manager.switch_to(state=Subscription.ADD_DEVICE_DURATION)
     except (ValueError, TypeError):
         logger.error(f"Invalid device count: {item_id}")
 
 
 @inject
+async def on_add_device_duration_select(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+    settings_service: FromDishka[SettingsService],
+) -> None:
+    """Обработка выбора типа покупки (до конца подписки / до конца месяца)."""
+    from src.core.utils.pricing import (
+        calculate_device_price_until_subscription_end,
+        calculate_device_price_until_month_end,
+        MIN_EXTRA_DEVICE_DAYS,
+    )
+    
+    user: UserDto = dialog_manager.middleware_data[USER_KEY]
+    
+    # Определяем тип покупки по id кнопки
+    duration_type = "full" if widget.widget_id == "duration_full" else "month"
+    
+    device_count = dialog_manager.dialog_data.get("device_count", 1)
+    device_price_monthly = await settings_service.get_extra_device_price()
+    
+    if user.current_subscription:
+        if duration_type == "month":
+            price_per_device, duration_days = calculate_device_price_until_month_end(
+                monthly_price=device_price_monthly,
+                subscription_expire_at=user.current_subscription.expire_at,
+                min_days=MIN_EXTRA_DEVICE_DAYS,
+            )
+        else:
+            price_per_device, duration_days = calculate_device_price_until_subscription_end(
+                monthly_price=device_price_monthly,
+                subscription_expire_at=user.current_subscription.expire_at,
+                min_days=MIN_EXTRA_DEVICE_DAYS,
+            )
+        calculated_price = price_per_device * device_count
+    else:
+        calculated_price = device_price_monthly * device_count
+        duration_days = 30
+    
+    # Сохраняем данные в dialog_data
+    dialog_manager.dialog_data["duration_type"] = duration_type
+    dialog_manager.dialog_data["duration_days"] = duration_days
+    dialog_manager.dialog_data["calculated_price"] = calculated_price
+    
+    logger.info(f"{log(user)} Selected duration type '{duration_type}' for {device_count} devices, {duration_days} days, price={calculated_price}")
+    
+    # Переходим к выбору способа оплаты
+    await dialog_manager.switch_to(state=Subscription.ADD_DEVICE_PAYMENT)
+
+
 @inject
 async def on_add_device_payment_select(
     callback: CallbackQuery,
@@ -1293,8 +1343,18 @@ async def on_add_device_payment_select(
         try:
             device_count = dialog_manager.dialog_data.get("device_count", 1)
             
-            # Получаем цену устройства из настроек (в рублях)
-            device_price_rub = await settings_service.get_extra_device_price()
+            # Получаем уже рассчитанную цену из dialog_data
+            calculated_price = dialog_manager.dialog_data.get("calculated_price")
+            
+            if calculated_price is None:
+                # Если цена не была рассчитана, используем старую логику (fallback)
+                from src.core.utils.pricing import calculate_prorated_device_price
+                device_price_monthly = await settings_service.get_extra_device_price()
+                device_price_rub = calculate_prorated_device_price(
+                    monthly_price=device_price_monthly,
+                    subscription_expire_at=user.current_subscription.expire_at,
+                )
+                calculated_price = device_price_rub * device_count
             
             # Получаем глобальную скидку
             global_discount = await settings_service.get_global_discount_settings()
@@ -1312,11 +1372,10 @@ async def on_add_device_payment_select(
             settings = await settings_service.get()
             rates = settings.features.currency_rates
             
-            # Рассчитываем цену в рублях и применяем скидку
-            original_price_rub = device_price_rub * device_count
+            # Применяем скидку к уже рассчитанной цене
             pricing_rub = pricing_service.calculate(
                 user=user,
-                price=Decimal(original_price_rub),
+                price=Decimal(calculated_price),
                 currency=Currency.RUB,
                 global_discount=global_discount,
                 context="extra_devices",
@@ -1332,14 +1391,16 @@ async def on_add_device_payment_select(
             )
             
             # Создаём платеж для дополнительных устройств
+            duration_days = dialog_manager.dialog_data.get("duration_days", 30)
             payment_result = await payment_gateway_service.create_extra_devices_payment(
                 user=user,
                 device_count=device_count,
                 amount=final_amount,
                 gateway_type=selected_payment_method,
+                duration_days=duration_days,
             )
             
-            logger.info(f"{log(user)} Created payment '{payment_result.id}' for {device_count} extra devices, amount={final_amount} {payment_gateway.currency.symbol}")
+            logger.info(f"{log(user)} Created payment '{payment_result.id}' for {device_count} extra devices, amount={final_amount} {payment_gateway.currency.symbol}, duration={duration_days} days")
             
             # Сохраняем информацию о платеже в диалог
             dialog_manager.dialog_data["payment_id"] = str(payment_result.id)
@@ -1376,34 +1437,37 @@ async def on_add_device_confirm(
 ) -> None:
     """Обработка подтверждения покупки устройств."""
     from decimal import Decimal
-    from src.core.utils.pricing import calculate_prorated_device_price
     
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     
     selected_payment_method = dialog_manager.dialog_data.get("selected_payment_method")
     device_count = dialog_manager.dialog_data.get("device_count", 1)
+    duration_days = dialog_manager.dialog_data.get("duration_days", 30)
+    duration_type = dialog_manager.dialog_data.get("duration_type", "full")
     
-    # Получаем цену устройства из настроек (за месяц)
-    device_price_monthly = await settings_service.get_extra_device_price()
+    # Получаем уже рассчитанную цену из dialog_data
+    calculated_price = dialog_manager.dialog_data.get("calculated_price")
     
-    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
-    if user.current_subscription:
-        device_price = calculate_prorated_device_price(
-            monthly_price=device_price_monthly,
-            subscription_expire_at=user.current_subscription.expire_at,
-        )
-    else:
-        # Если нет подписки, используем полную цену
-        device_price = device_price_monthly
+    if calculated_price is None:
+        # Если цена не была рассчитана, используем старую логику (fallback)
+        from src.core.utils.pricing import calculate_prorated_device_price
+        device_price_monthly = await settings_service.get_extra_device_price()
+        if user.current_subscription:
+            device_price = calculate_prorated_device_price(
+                monthly_price=device_price_monthly,
+                subscription_expire_at=user.current_subscription.expire_at,
+            )
+        else:
+            device_price = device_price_monthly
+        calculated_price = device_price * device_count
     
     # Получаем глобальную скидку
     global_discount = await settings_service.get_global_discount_settings()
     
     # Вычисляем цену со скидкой используя PricingService (учитывает все скидки)
-    original_price = device_price * device_count
     price_details = pricing_service.calculate(
         user=user,
-        price=Decimal(original_price),
+        price=Decimal(calculated_price),
         currency=Currency.RUB,
         global_discount=global_discount,
         context="extra_devices",
@@ -1412,7 +1476,7 @@ async def on_add_device_confirm(
     total_price = int(price_details.final_amount)
     discount_value = price_details.discount_percent
     
-    logger.info(f"{log(user)} Confirmed adding {device_count} devices with payment method '{selected_payment_method}', discount={discount_value}%, price={total_price}")
+    logger.info(f"{log(user)} Confirmed adding {device_count} devices with payment method '{selected_payment_method}', discount={discount_value}%, price={total_price}, duration={duration_days} days, type={duration_type}")
     
     if not user.current_subscription:
         logger.error(f"{log(user)} No active subscription for adding device")
@@ -1467,13 +1531,13 @@ async def on_add_device_confirm(
         # Обновляем в БД
         await subscription_service.update(subscription)
         
-        # Создаём запись о покупке дополнительных устройств (срок 30 дней)
+        # Создаём запись о покупке дополнительных устройств с выбранной длительностью
         await extra_device_service.create_purchase(
             user=fresh_user,
             subscription=subscription,
             device_count=device_count,
             price=total_price,  # Сохраняем цену со скидкой
-            duration_days=30,
+            duration_days=duration_days,
         )
         
         # Обновляем в RemnaWave

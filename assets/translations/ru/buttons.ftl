@@ -1473,6 +1473,10 @@ btn-subscription-duration = { $final_amount ->
         }
     }
 
+# Extra device duration buttons
+btn-add-device-duration-full = 📅 До конца подписки ({ $days } дн.) — { $price }₽
+btn-add-device-duration-month = 📅 До конца текущего месяца ({ $days } дн.) — { $price }₽
+
 
 # Promocodes
 btn-promocode-code = 🏷️ Код

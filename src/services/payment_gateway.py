@@ -272,6 +272,7 @@ class PaymentGatewayService(BaseService):
         device_count: int,
         amount: Decimal,
         gateway_type: PaymentGatewayType,
+        duration_days: int = 30,
     ) -> PaymentResult:
         """Create a payment for buying extra devices."""
         gateway_instance = await self._get_gateway_instance(gateway_type)
@@ -282,7 +283,7 @@ class PaymentGatewayService(BaseService):
         pricing = PriceDetailsDto(original_amount=amount)
         plan = PlanSnapshotDto.test()  # Используем test plan как заглушку
         plan.name = f"Дополнительные устройства (x{device_count})"
-        plan.duration = 30
+        plan.duration = duration_days
 
         transaction_data = {
             "status": TransactionStatus.PENDING,

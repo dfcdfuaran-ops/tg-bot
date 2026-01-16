@@ -1819,20 +1819,10 @@ async def add_device_select_count_getter(
 ) -> dict[str, Any]:
     """Геттер для окна выбора количества дополнительных устройств."""
     from decimal import Decimal
-    from src.core.utils.pricing import calculate_prorated_device_price
     
     # Получаем цену дополнительного устройства из настроек (за месяц)
+    # Показываем МЕСЯЧНУЮ цену из настроек, не пропорциональную
     device_price_monthly = await settings_service.get_extra_device_price()
-    
-    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
-    if user.current_subscription:
-        DEVICE_PRICE = calculate_prorated_device_price(
-            monthly_price=device_price_monthly,
-            subscription_expire_at=user.current_subscription.expire_at,
-        )
-    else:
-        # Если нет подписки, используем полную цену
-        DEVICE_PRICE = device_price_monthly
     
     # Получаем реферальный баланс
     referral_balance = await referral_service.get_pending_rewards_amount(
@@ -1843,10 +1833,10 @@ async def add_device_select_count_getter(
     # Получаем глобальную скидку
     global_discount = await settings_service.get_global_discount_settings()
     
-    # Вычисляем цену со скидкой используя PricingService
+    # Вычисляем цену со скидкой используя PricingService (для месячной цены)
     price_details = pricing_service.calculate(
         user=user,
-        price=Decimal(DEVICE_PRICE),
+        price=Decimal(device_price_monthly),
         currency=Currency.RUB,
         global_discount=global_discount,
         context="extra_devices",
@@ -1925,10 +1915,175 @@ async def add_device_select_count_getter(
         "device_limit_bonus": device_limit_bonus,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
-        # Цена (со скидкой)
+        # Цена за МЕСЯЦ (из настроек, со скидкой)
         "device_price": discounted_device_price,
-        "device_price_original": DEVICE_PRICE,
+        "device_price_original": device_price_monthly,
         "has_discount": 1 if has_discount else 0,
+    }
+
+
+@inject
+async def add_device_duration_getter(
+    dialog_manager: DialogManager,
+    user: UserDto,
+    referral_service: FromDishka[ReferralService],
+    settings_service: FromDishka[SettingsService],
+    pricing_service: FromDishka[PricingService],
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Геттер для окна выбора типа покупки дополнительных устройств."""
+    from decimal import Decimal
+    from src.core.utils.pricing import (
+        calculate_device_price_until_subscription_end,
+        calculate_device_price_until_month_end,
+        MIN_EXTRA_DEVICE_DAYS,
+    )
+    
+    # Получаем количество устройств из dialog_data
+    device_count = dialog_manager.dialog_data.get("device_count", 1)
+    
+    # Получаем цену дополнительного устройства из настроек (за месяц)
+    device_price_monthly = await settings_service.get_extra_device_price()
+    
+    # Получаем реферальный баланс
+    referral_balance = await referral_service.get_pending_rewards_amount(
+        telegram_id=user.telegram_id,
+        reward_type=ReferralRewardType.MONEY,
+    )
+
+    # Получаем глобальную скидку
+    global_discount = await settings_service.get_global_discount_settings()
+    
+    subscription = user.current_subscription
+    
+    # Рассчитываем стоимость для обоих вариантов
+    if subscription:
+        # Вариант 1: До конца подписки
+        price_full, days_full = calculate_device_price_until_subscription_end(
+            monthly_price=device_price_monthly,
+            subscription_expire_at=subscription.expire_at,
+            min_days=MIN_EXTRA_DEVICE_DAYS,
+        )
+        
+        # Вариант 2: До конца месяца подписки
+        price_month, days_month = calculate_device_price_until_month_end(
+            monthly_price=device_price_monthly,
+            subscription_expire_at=subscription.expire_at,
+            min_days=MIN_EXTRA_DEVICE_DAYS,
+        )
+    else:
+        # Если нет подписки, используем полную цену
+        price_full = device_price_monthly
+        days_full = 30
+        price_month = device_price_monthly
+        days_month = 30
+    
+    # Умножаем на количество устройств
+    total_price_full = price_full * device_count
+    total_price_month = price_month * device_count
+    
+    # Применяем скидки через PricingService
+    price_details_full = pricing_service.calculate(
+        user=user,
+        price=Decimal(total_price_full),
+        currency=Currency.RUB,
+        global_discount=global_discount,
+        context="extra_devices",
+    )
+    
+    price_details_month = pricing_service.calculate(
+        user=user,
+        price=Decimal(total_price_month),
+        currency=Currency.RUB,
+        global_discount=global_discount,
+        context="extra_devices",
+    )
+    
+    discounted_price_full = int(price_details_full.final_amount)
+    discounted_price_month = int(price_details_month.final_amount)
+    has_discount = price_details_full.discount_percent > 0
+    
+    # Вычисляем информацию о скидке для отображения
+    from datetime import datetime, timezone
+    purchase_disc = user.purchase_discount if user.purchase_discount is not None else 0
+    personal_disc = user.personal_discount if user.personal_discount is not None else 0
+    discount_remaining = 0
+    is_temporary_discount = False
+    is_permanent_discount = False
+
+    if purchase_disc > 0 and user.purchase_discount_expires_at is not None:
+        now = datetime.now(timezone.utc)
+        if user.purchase_discount_expires_at <= now:
+            purchase_disc = 0
+        else:
+            remaining = user.purchase_discount_expires_at - now
+            discount_remaining = remaining.days + (1 if remaining.seconds > 0 else 0)
+            is_temporary_discount = True
+
+    if purchase_disc > 0 or personal_disc > 0:
+        if purchase_disc > personal_disc:
+            discount_value = purchase_disc
+        elif personal_disc > 0:
+            discount_value = personal_disc
+            is_temporary_discount = False
+            is_permanent_discount = True
+            discount_remaining = 0
+        else:
+            discount_value = purchase_disc
+    else:
+        discount_value = 0
+
+    # Проверяем, включен ли функционал баланса
+    is_balance_enabled = await settings_service.is_balance_enabled()
+    
+    # Проверяем режим баланса (раздельный или объединённый)
+    is_balance_combined = await settings_service.is_balance_combined()
+    is_balance_separate = not is_balance_combined
+    
+    # Вычисляем отображаемый баланс
+    display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+    
+    # Вычисляем лимиты устройств
+    extra_devices = subscription.extra_devices or 0 if subscription else 0
+    plan_device_limit = subscription.plan.device_limit if subscription and subscription.plan and subscription.plan.device_limit > 0 else 0
+    device_limit_number = plan_device_limit if plan_device_limit > 0 else (subscription.device_limit if subscription else 0)
+    device_limit_bonus = max(0, subscription.device_limit - plan_device_limit - extra_devices) if subscription and plan_device_limit > 0 else 0
+    
+    return {
+        # Данные пользователя
+        "user_id": str(user.telegram_id),
+        "user_name": user.name,
+        "referral_code": user.referral_code,
+        "discount_value": discount_value,
+        "discount_is_temporary": 1 if is_temporary_discount else 0,
+        "discount_is_permanent": 1 if is_permanent_discount else 0,
+        "discount_remaining": discount_remaining,
+        "balance": display_balance,
+        "referral_balance": referral_balance,
+        "is_balance_enabled": 1 if is_balance_enabled else 0,
+        "is_balance_separate": 1 if is_balance_separate else 0,
+        # Данные подписки
+        "plan_name": subscription.plan.name if subscription else "",
+        "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
+        "device_limit": i18n_format_device_limit(subscription.device_limit) if subscription else "",
+        "device_limit_number": device_limit_number,
+        "device_limit_bonus": device_limit_bonus,
+        "extra_devices": extra_devices,
+        "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
+        # Данные о покупке
+        "device_count": device_count,
+        # Вариант 1: До конца подписки
+        "price_full": discounted_price_full,
+        "price_full_original": total_price_full,
+        "days_full": days_full,
+        # Вариант 2: До конца месяца
+        "price_month": discounted_price_month,
+        "price_month_original": total_price_month,
+        "days_month": days_month,
+        # Общие данные о скидке
+        "has_discount": 1 if has_discount else 0,
+        # Месячная цена для информации
+        "device_price_monthly": device_price_monthly,
     }
 
 
@@ -1944,23 +2099,41 @@ async def add_device_payment_getter(
 ) -> dict[str, Any]:
     """Геттер для окна выбора способа оплаты при добавлении устройств."""
     from decimal import Decimal
-    from src.core.utils.pricing import calculate_prorated_device_price
     
-    # Получаем цену дополнительного устройства из настроек (за месяц, в рублях)
-    device_price_monthly = await settings_service.get_extra_device_price()
-    
-    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
-    if user.current_subscription:
-        device_price_rub = calculate_prorated_device_price(
-            monthly_price=device_price_monthly,
-            subscription_expire_at=user.current_subscription.expire_at,
-        )
-    else:
-        # Если нет подписки, используем полную цену
-        device_price_rub = device_price_monthly
-    
-    # Получаем количество устройств из dialog_data
+    # Получаем количество устройств и тип покупки из dialog_data
     device_count = dialog_manager.dialog_data.get("device_count", 1)
+    duration_type = dialog_manager.dialog_data.get("duration_type", "full")  # "full" или "month"
+    
+    # Получаем уже рассчитанную цену из dialog_data (установлена на шаге выбора типа)
+    # Если не установлена - рассчитываем заново
+    device_price_rub = dialog_manager.dialog_data.get("calculated_price")
+    duration_days = dialog_manager.dialog_data.get("duration_days", 30)
+    
+    if device_price_rub is None:
+        from src.core.utils.pricing import (
+            calculate_device_price_until_subscription_end,
+            calculate_device_price_until_month_end,
+            MIN_EXTRA_DEVICE_DAYS,
+        )
+        
+        device_price_monthly = await settings_service.get_extra_device_price()
+        
+        if user.current_subscription:
+            if duration_type == "month":
+                price_per_device, duration_days = calculate_device_price_until_month_end(
+                    monthly_price=device_price_monthly,
+                    subscription_expire_at=user.current_subscription.expire_at,
+                    min_days=MIN_EXTRA_DEVICE_DAYS,
+                )
+            else:
+                price_per_device, duration_days = calculate_device_price_until_subscription_end(
+                    monthly_price=device_price_monthly,
+                    subscription_expire_at=user.current_subscription.expire_at,
+                    min_days=MIN_EXTRA_DEVICE_DAYS,
+                )
+            device_price_rub = price_per_device * device_count
+        else:
+            device_price_rub = device_price_monthly * device_count
     
     # Получаем реферальный баланс
     referral_balance = await referral_service.get_pending_rewards_amount(
@@ -1979,7 +2152,7 @@ async def add_device_payment_getter(
     stars_rate = rates.stars_rate
     
     # Вычисляем цену со скидкой используя PricingService
-    original_price = device_price_rub * device_count
+    original_price = device_price_rub
     price_details = pricing_service.calculate(
         user=user,
         price=Decimal(original_price),
@@ -2097,6 +2270,9 @@ async def add_device_payment_getter(
             "discount_percent": price_details.discount_percent,
         })
     
+    # Формируем текст типа покупки
+    duration_type_text = "до конца месяца подписки" if duration_type == "month" else "до конца подписки"
+    
     return {
         # Данные пользователя
         "user_id": str(user.telegram_id),
@@ -2120,6 +2296,9 @@ async def add_device_payment_getter(
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки (со скидкой)
         "device_count": device_count,
+        "duration_days": duration_days,
+        "duration_type": duration_type,
+        "duration_type_text": duration_type_text,
         "total_price": format_price(total_price, currency),
         "original_price": format_price(original_price, currency),
         "payment_methods": payment_methods,
@@ -2136,24 +2315,42 @@ async def add_device_confirm_getter(
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для окна подтверждения покупки устройств."""
-    from src.core.utils.pricing import calculate_prorated_device_price
-    
-    # Получаем цену дополнительного устройства из настроек (за месяц, в рублях)
-    device_price_monthly = await settings_service.get_extra_device_price()
-    
-    # Вычисляем пропорциональную стоимость на основе оставшихся дней подписки
-    if user.current_subscription:
-        device_price_rub = calculate_prorated_device_price(
-            monthly_price=device_price_monthly,
-            subscription_expire_at=user.current_subscription.expire_at,
-        )
-    else:
-        # Если нет подписки, используем полную цену
-        device_price_rub = device_price_monthly
+    from decimal import Decimal
     
     # Получаем данные из dialog_data
     device_count = dialog_manager.dialog_data.get("device_count", 1)
     selected_method = dialog_manager.dialog_data.get("selected_payment_method")
+    duration_type = dialog_manager.dialog_data.get("duration_type", "full")
+    duration_days = dialog_manager.dialog_data.get("duration_days", 30)
+    
+    # Получаем уже рассчитанную цену из dialog_data
+    device_price_rub = dialog_manager.dialog_data.get("calculated_price")
+    
+    if device_price_rub is None:
+        from src.core.utils.pricing import (
+            calculate_device_price_until_subscription_end,
+            calculate_device_price_until_month_end,
+            MIN_EXTRA_DEVICE_DAYS,
+        )
+        
+        device_price_monthly = await settings_service.get_extra_device_price()
+        
+        if user.current_subscription:
+            if duration_type == "month":
+                price_per_device, duration_days = calculate_device_price_until_month_end(
+                    monthly_price=device_price_monthly,
+                    subscription_expire_at=user.current_subscription.expire_at,
+                    min_days=MIN_EXTRA_DEVICE_DAYS,
+                )
+            else:
+                price_per_device, duration_days = calculate_device_price_until_subscription_end(
+                    monthly_price=device_price_monthly,
+                    subscription_expire_at=user.current_subscription.expire_at,
+                    min_days=MIN_EXTRA_DEVICE_DAYS,
+                )
+            device_price_rub = price_per_device * device_count
+        else:
+            device_price_rub = device_price_monthly * device_count
     
     # Определяем валюту в зависимости от выбранного метода оплаты
     if selected_method:
@@ -2220,7 +2417,7 @@ async def add_device_confirm_getter(
         discount_value = 0
 
     # Используем PricingService для расчета цены с учетом глобальной скидки
-    original_price_rub = device_price_rub * device_count
+    original_price_rub = device_price_rub
     price_details = pricing_service.calculate(
         user=user,
         price=Decimal(original_price_rub),
@@ -2282,6 +2479,9 @@ async def add_device_confirm_getter(
     else:
         new_balance = display_balance
     
+    # Формируем текст типа покупки
+    duration_type_text = "до конца месяца подписки" if duration_type == "month" else "до конца подписки"
+    
     return {
         # Заголовок
         "title": "🛒 Подтверждение покупки",
@@ -2308,6 +2508,9 @@ async def add_device_confirm_getter(
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки (со скидкой)
         "device_count": device_count,
+        "duration_days": duration_days,
+        "duration_type": duration_type,
+        "duration_type_text": duration_type_text,
         "total_price": format_price(total_price, currency),
         "original_price": format_price(original_price, currency),
         "selected_method": selected_method_formatted,

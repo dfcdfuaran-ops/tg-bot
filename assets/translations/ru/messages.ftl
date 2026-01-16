@@ -335,6 +335,20 @@ msg-add-device-full =
 
     📱 <b>Выберите количество устройств:</b>
 
+msg-add-device-duration =
+    { hdr-user-profile }
+    { frg-user }
+
+    { hdr-subscription }
+    { frg-subscription }
+
+    📱 <b>Покупка:</b>
+    <blockquote>
+    • <b>Дополнительные устройства:</b> { $device_count }
+    </blockquote>
+
+    📅 <b>Выберите срок действия:</b>
+
 msg-add-device-payment =
     📱 <b>Покупка:</b>
     <blockquote>

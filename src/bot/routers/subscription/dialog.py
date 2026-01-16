@@ -13,6 +13,7 @@ from src.core.enums import BannerName, PaymentGatewayType, PurchaseType
 
 from .getters import (
     add_device_select_count_getter,
+    add_device_duration_getter,
     add_device_payment_getter,
     add_device_confirm_getter,
     add_device_success_getter,
@@ -34,6 +35,7 @@ from .getters import (
 from .handlers import (
     on_add_device,
     on_add_device_select_count,
+    on_add_device_duration_select,
     on_add_device_payment_select,
     on_add_device_confirm,
     on_back_to_devices,
@@ -586,6 +588,53 @@ add_device = Window(
     getter=add_device_select_count_getter,
 )
 
+# Окно выбора длительности покупки доп.устройств
+add_device_duration = Window(
+    Banner(BannerName.SUBSCRIPTION),
+    I18nFormat(
+        "msg-add-device-duration",
+        device_count=F["device_count"],
+    ),
+    Row(
+        Button(
+            text=I18nFormat(
+                "btn-add-device-duration-full",
+                days=F["days_full"],
+                price=F["price_full"],
+            ),
+            id="duration_full",
+            on_click=on_add_device_duration_select,
+        ),
+    ),
+    Row(
+        Button(
+            text=I18nFormat(
+                "btn-add-device-duration-month",
+                days=F["days_month"],
+                price=F["price_month"],
+            ),
+            id="duration_month",
+            on_click=on_add_device_duration_select,
+        ),
+    ),
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-back"),
+            id="back_to_count",
+            state=Subscription.ADD_DEVICE_SELECT_COUNT,
+        ),
+        Start(
+            text=I18nFormat("btn-main-menu"),
+            id="back_main_menu",
+            state=MainMenu.MAIN,
+            mode=StartMode.RESET_STACK,
+        ),
+    ),
+    IgnoreUpdate(),
+    state=Subscription.ADD_DEVICE_DURATION,
+    getter=add_device_duration_getter,
+)
+
 # Окно выбора способа оплаты для добавления устройств
 add_device_payment = Window(
     Banner(BannerName.SUBSCRIPTION),
@@ -613,8 +662,8 @@ add_device_payment = Window(
     Row(
         SwitchTo(
             text=I18nFormat("btn-back"),
-            id="back_to_count",
-            state=Subscription.ADD_DEVICE_SELECT_COUNT,
+            id="back_to_duration",
+            state=Subscription.ADD_DEVICE_DURATION,
         ),
         Start(
             text=I18nFormat("btn-main-menu"),
@@ -715,6 +764,7 @@ router = Dialog(
     subscription,
     devices,
     add_device,
+    add_device_duration,
     add_device_payment,
     add_device_confirm,
     add_device_success,
