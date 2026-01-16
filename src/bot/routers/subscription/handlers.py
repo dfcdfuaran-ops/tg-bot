@@ -619,7 +619,6 @@ async def on_get_subscription(
 
 
 @inject
-@inject
 async def on_confirm_balance_payment(
     callback: CallbackQuery,
     widget: Button,
