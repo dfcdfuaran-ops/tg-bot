@@ -250,6 +250,7 @@ class PaymentGatewayService(BaseService):
             "pricing": pricing,
             "currency": gateway_instance.data.currency,
             "plan": plan,
+            "user": user,
         }
 
         payment: PaymentResult = await gateway_instance.handle_create_payment(
@@ -288,6 +289,7 @@ class PaymentGatewayService(BaseService):
             "pricing": pricing,
             "currency": gateway_instance.data.currency,
             "plan": plan,
+            "user": user,
         }
 
         payment: PaymentResult = await gateway_instance.handle_create_payment(
@@ -327,6 +329,7 @@ class PaymentGatewayService(BaseService):
             "pricing": pricing,
             "currency": gateway_instance.data.currency,
             "plan": plan,
+            "user": user,
         }
 
         if pricing.is_free:
@@ -370,6 +373,7 @@ class PaymentGatewayService(BaseService):
             "pricing": pricing,
             "currency": currency,
             "plan": plan,
+            "user": user,
         }
         
         transaction = TransactionDto(payment_id=payment_id, **transaction_data)
@@ -403,6 +407,7 @@ class PaymentGatewayService(BaseService):
             pricing=test_pricing,
             currency=gateway_instance.data.currency,
             plan=test_plan,
+            user=user,
         )
         await self.transaction_service.create(user, test_transaction)
 
