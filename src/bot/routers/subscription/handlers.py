@@ -1555,8 +1555,8 @@ async def on_add_device_confirm(
         # Получаем детали подписки для уведомления
         from src.core.utils.formatters import (
             i18n_format_traffic_limit,
-            i18n_format_traffic_used,
             i18n_format_expire_time,
+            i18n_format_bytes_to_unit,
         )
         
         # Вычисляем device_limit_number и device_limit_bonus
