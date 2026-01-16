@@ -79,6 +79,8 @@ from .handlers import (
     on_bonus_custom_mode,
     on_cancel_bonus_amount,
     on_device_delete,
+    on_extra_devices_list,
+    on_add_device,
     on_invite,
     on_platform_select,
     on_promocode,
@@ -147,6 +149,15 @@ menu = Window(
             when=~F["is_referral_enable"],
         ),
         when=F["has_subscription"],
+    ),
+    # [Мои устройства] - доступно если есть или были доп. устройства
+    Row(
+        SwitchTo(
+            text=I18nFormat("btn-menu-devices"),
+            id="devices",
+            state=MainMenu.DEVICES,
+        ),
+        when=F["show_devices_button"],
     ),
     # [Сообщество][Помощь]
     Row(
@@ -245,6 +256,24 @@ devices = Window(
         id="devices_list",
         item_id_getter=lambda item: item["short_hwid"],
         items="devices",
+    ),
+    # Кнопка добавления устройств (если доступно)
+    Row(
+        Button(
+            text=I18nFormat("btn-menu-add-device"),
+            id="add_device",
+            on_click=on_add_device,
+            when=F["can_add_device"],
+        ),
+    ),
+    # Кнопка списка купленных дополнительных устройств
+    Row(
+        Button(
+            text=I18nFormat("btn-menu-extra-devices"),
+            id="extra_devices_list",
+            on_click=on_extra_devices_list,
+            when=F["extra_devices"] > 0,
+        ),
     ),
     Row(
         *main_menu_button,

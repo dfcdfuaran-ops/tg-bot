@@ -117,15 +117,6 @@ subscription = Window(
             when=F["is_topup_mode"],
         ),
     ),
-    # Кнопка "Мои устройства" (если есть лимит устройств)
-    Row(
-        SwitchTo(
-            text=I18nFormat("btn-menu-devices"),
-            id="devices",
-            state=Subscription.DEVICES,
-            when=F["has_device_limit"],
-        ),
-    ),
     Row(
         *main_menu_button,
     ),

@@ -642,15 +642,17 @@ async def payment_method_getter(
     if not duration:
         raise ValueError(f"Duration '{selected_duration}' not found in plan '{plan.name}'")
 
-    # Получаем стоимость дополнительных устройств для RENEW
-    # Но только если включена ежемесячная оплата (is_one_time = False)
+    # Получаем стоимость дополнительных устройств
+    # Используем цену из настроек * количество активных устройств
     extra_devices_monthly_cost = 0
     is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
     
-    if purchase_type == PurchaseType.RENEW and subscription:
-        # Если ежемесячная оплата - добавляем стоимость устройств при продлении
-        if not is_extra_devices_one_time:
-            extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(subscription.id)
+    if subscription and not is_extra_devices_one_time:
+        # Получаем количество активных доп. устройств и цену из настроек
+        active_extra_devices = await extra_device_service.get_total_active_devices(subscription.id)
+        if active_extra_devices > 0:
+            device_price_monthly = await settings_service.get_extra_device_price()
+            extra_devices_monthly_cost = device_price_monthly * active_extra_devices
     
     # Рассчитываем стоимость доп. устройств за период
     months = duration.days / 30
@@ -926,9 +928,12 @@ async def confirm_getter(
     extra_devices_monthly_cost_rub = 0
     is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
     
-    if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
-        if not is_extra_devices_one_time:
-            extra_devices_monthly_cost_rub = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
+    if user.current_subscription and not is_extra_devices_one_time:
+        # Получаем количество активных доп. устройств и цену из настроек
+        active_extra_devices = await extra_device_service.get_total_active_devices(user.current_subscription.id)
+        if active_extra_devices > 0:
+            device_price_monthly = await settings_service.get_extra_device_price()
+            extra_devices_monthly_cost_rub = device_price_monthly * active_extra_devices
     
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)
@@ -1146,12 +1151,15 @@ async def confirm_balance_getter(
         device_limit_bonus = max(0, subscription.device_limit - device_limit_number - extra_devices) if device_limit_number > 0 else 0
         
         # Получаем месячную стоимость для отображения
-        # Но только если включена ежемесячная оплата (is_one_time = False)
+        # Используем цену из настроек * количество активных устройств
         extra_devices_monthly_cost = 0
         is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
         
-        if purchase_type == PurchaseType.RENEW and not is_extra_devices_one_time:
-            extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(subscription.id)
+        if not is_extra_devices_one_time:
+            active_extra_devices = await extra_device_service.get_total_active_devices(subscription.id)
+            if active_extra_devices > 0:
+                device_price_monthly = await settings_service.get_extra_device_price()
+                extra_devices_monthly_cost = device_price_monthly * active_extra_devices
         
         # total_payment = pricing.original_amount (уже включает доп. устройства)
         total_payment = pricing.original_amount
@@ -1237,14 +1245,16 @@ async def confirm_yoomoney_getter(
     saved_extra_devices_cost = dialog_manager.dialog_data.get("extra_devices_cost", 0)
     
     # Получаем месячную стоимость для отображения
-    # Но только если включена ежемесячная оплата (is_one_time = False)
+    # Используем цену из настроек * количество активных устройств
     from src.core.enums import PurchaseType
     extra_devices_monthly_cost = 0
     is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
     
-    if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
-        if not is_extra_devices_one_time:
-            extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
+    if user.current_subscription and not is_extra_devices_one_time:
+        active_extra_devices_yoomoney = await extra_device_service.get_total_active_devices(user.current_subscription.id)
+        if active_extra_devices_yoomoney > 0:
+            device_price_monthly = await settings_service.get_extra_device_price()
+            extra_devices_monthly_cost = device_price_monthly * active_extra_devices_yoomoney
 
     # Получаем реферальный баланс
     from src.core.enums import ReferralRewardType
@@ -1371,14 +1381,16 @@ async def confirm_yookassa_getter(
     saved_extra_devices_cost = dialog_manager.dialog_data.get("extra_devices_cost", 0)
     
     # Получаем месячную стоимость для отображения
-    # Но только если включена ежемесячная оплата (is_one_time = False)
+    # Используем цену из настроек * количество активных устройств
     from src.core.enums import PurchaseType
     extra_devices_monthly_cost = 0
     is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
     
-    if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
-        if not is_extra_devices_one_time:
-            extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
+    if user.current_subscription and not is_extra_devices_one_time:
+        active_extra_devices_yookassa = await extra_device_service.get_total_active_devices(user.current_subscription.id)
+        if active_extra_devices_yookassa > 0:
+            device_price_monthly = await settings_service.get_extra_device_price()
+            extra_devices_monthly_cost = device_price_monthly * active_extra_devices_yookassa
 
     # Получаем реферальный баланс
     from src.core.enums import ReferralRewardType
@@ -2824,7 +2836,10 @@ async def extra_devices_list_getter(
     ]
     
     # Общая месячная стоимость дополнительных устройств
-    total_monthly_cost_rub = await extra_device_service.get_total_monthly_cost(subscription.id)
+    # Используем цену из настроек * количество активных устройств
+    total_extra_devices = await extra_device_service.get_total_active_devices(subscription.id)
+    device_price_monthly = await settings_service.get_extra_device_price()
+    total_monthly_cost_rub = device_price_monthly * total_extra_devices
     total_monthly_cost = int(pricing_service.convert_currency(
         Decimal(total_monthly_cost_rub),
         default_currency,
@@ -2832,7 +2847,6 @@ async def extra_devices_list_getter(
         eur_rate,
         stars_rate,
     ))  # Конвертируем в валюту по умолчанию
-    total_extra_devices = await extra_device_service.get_total_active_devices(subscription.id)
     
     # Данные профиля
     referral_balance = await referral_service.get_pending_rewards_amount(

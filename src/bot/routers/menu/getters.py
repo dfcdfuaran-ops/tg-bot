@@ -35,7 +35,7 @@ def get_display_balance(user_balance: int, referral_balance: int, is_combined: b
     return user_balance + referral_balance if is_combined else user_balance
 
 
-
+from src.services.extra_device import ExtraDeviceService
 
 
 @inject
@@ -48,6 +48,7 @@ async def menu_getter(
     subscription_service: FromDishka[SubscriptionService],
     settings_service: FromDishka[SettingsService],
     referral_service: FromDishka[ReferralService],
+    extra_device_service: FromDishka[ExtraDeviceService],
     **kwargs: Any,
 ) -> dict[str, Any]:
     from src.core.enums import ReferralRewardType
@@ -131,6 +132,14 @@ async def menu_getter(
         # Проверяем режим баланса
         is_balance_combined = await settings_service.is_balance_combined()
         display_balance = get_display_balance(user.balance, referral_balance, is_balance_combined)
+        
+        # Проверяем наличие дополнительных устройств для показа кнопки "Мои устройства"
+        has_extra_devices_purchases = False
+        subscription = user.current_subscription
+        if subscription:
+            # Проверяем есть ли покупки доп. устройств (включая неактивные)
+            purchases = await extra_device_service.get_by_subscription(subscription.id)
+            has_extra_devices_purchases = len(purchases) > 0
 
         base_data = {
             "user_id": str(user.telegram_id),
@@ -154,9 +163,9 @@ async def menu_getter(
             "tos_url": (await settings_service.get()).rules_link.get_secret_value() or "https://telegra.ph/",
             "is_balance_enabled": 1 if await settings_service.is_balance_enabled() else 0,
             "is_balance_separate": 1 if not is_balance_combined else 0,
+            # Показывать кнопку "Мои устройства" если есть подписка с лимитом устройств или купленные доп. устройства
+            "show_devices_button": has_extra_devices_purchases or (subscription and subscription.has_devices_limit),
         }
-
-        subscription = user.current_subscription
 
         if not subscription:
             base_data.update(
@@ -167,6 +176,7 @@ async def menu_getter(
                     "has_device_limit": False,
                     "connectable": False,
                     "device_limit_bonus": 0,
+                    "show_devices_button": False,
                 }
             )
             return base_data
@@ -274,8 +284,26 @@ async def devices_getter(
     remnawave_service: FromDishka[RemnawaveService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    if not user.current_subscription:
-        raise ValueError(f"Current subscription for user '{user.telegram_id}' not found")
+    subscription = user.current_subscription
+    
+    # Если нет подписки - показываем пустой список устройств с возможностью управления доп. устройствами
+    if not subscription:
+        return {
+            "current_count": 0,
+            "max_count": "0",
+            "devices": [],
+            "devices_empty": True,
+            # Данные подписки
+            "plan_name": "—",
+            "traffic_limit": "—",
+            "device_limit_number": 0,
+            "device_limit_bonus": 0,
+            "extra_devices": 0,
+            "expire_time": "—",
+            # Флаги для кнопок
+            "can_add_device": False,
+            "has_subscription": False,
+        }
 
     devices = await remnawave_service.get_devices_user(user)
 
@@ -293,7 +321,6 @@ async def devices_getter(
     dialog_manager.dialog_data["hwid_map"] = formatted_devices
     
     # Добавляем данные подписки для отображения в frg-subscription-devices
-    subscription = user.current_subscription
     extra_devices = subscription.extra_devices or 0
     plan_device_limit = subscription.plan.device_limit if subscription.plan and subscription.plan.device_limit > 0 else 0
     actual_device_limit = subscription.device_limit
@@ -311,6 +338,9 @@ async def devices_getter(
         "device_limit_bonus": device_limit_bonus,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at),
+        # Флаги для кнопок
+        "can_add_device": subscription.is_active and subscription.has_devices_limit,
+        "has_subscription": True,
     }
 
 

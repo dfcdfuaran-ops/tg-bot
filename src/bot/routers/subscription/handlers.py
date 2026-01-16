@@ -100,17 +100,19 @@ async def _create_payment_and_get_data(
     # Получаем настройки глобальной скидки
     global_discount = await settings_service.get_global_discount_settings()
     
-    # Добавляем стоимость доп. устройств для RENEW и CHANGE
-    # Но только если включена ежемесячная оплата (is_one_time = False)
+    # Добавляем стоимость доп. устройств
+    # Используем цену из настроек * количество активных устройств
     extra_devices_cost = 0
     extra_devices_cost_rub = 0  # Для хранения стоимости в рублях
     is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
     
-    if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
-        if not is_extra_devices_one_time:
-            extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
+    if user.current_subscription and not is_extra_devices_one_time:
+        active_extra_devices = await extra_device_service.get_total_active_devices(user.current_subscription.id)
+        if active_extra_devices > 0:
+            device_price_monthly = await settings_service.get_extra_device_price()
+            extra_devices_monthly_cost = device_price_monthly * active_extra_devices
             months = duration.days / 30
-            extra_devices_cost_rub = int(extra_devices_monthly_cost * months) if extra_devices_monthly_cost > 0 else 0
+            extra_devices_cost_rub = int(extra_devices_monthly_cost * months)
             
             # Конвертируем стоимость доп. устройств в валюту шлюза
             if extra_devices_cost_rub > 0:
@@ -515,13 +517,18 @@ async def on_payment_method_select(
         base_price = duration.get_price(currency, rates.usd_rate, rates.eur_rate, rates.stars_rate)
         base_subscription_price = int(base_price)  # Сохраняем цену подписки БЕЗ доп. устройств
         
-        # Добавляем стоимость доп. устройств для RENEW и CHANGE
+        # Добавляем стоимость доп. устройств
+        # Используем цену из настроек * количество активных устройств
         purchase_type: PurchaseType = dialog_manager.dialog_data["purchase_type"]
         extra_devices_cost = 0
-        if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
-            extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
-            months = duration.days / 30
-            extra_devices_cost = int(extra_devices_monthly_cost * months) if extra_devices_monthly_cost > 0 else 0
+        is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
+        if user.current_subscription and not is_extra_devices_one_time:
+            active_extra_devices = await extra_device_service.get_total_active_devices(user.current_subscription.id)
+            if active_extra_devices > 0:
+                device_price_monthly = await settings_service.get_extra_device_price()
+                extra_devices_monthly_cost = device_price_monthly * active_extra_devices
+                months = duration.days / 30
+                extra_devices_cost = int(extra_devices_monthly_cost * months)
         
         # Итоговая цена = базовая подписка + доп. устройства
         total_price = base_price + Decimal(extra_devices_cost)
@@ -656,13 +663,18 @@ async def on_confirm_balance_payment(
     
     base_price = duration.get_price(currency, rates.usd_rate, rates.eur_rate, rates.stars_rate)
     
-    # Добавляем стоимость доп. устройств для RENEW и CHANGE
+    # Добавляем стоимость доп. устройств
+    # Используем цену из настроек * количество активных устройств
     purchase_type: PurchaseType = dialog_manager.dialog_data["purchase_type"]
-    if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
-        extra_devices_monthly_cost = await extra_device_service.get_total_monthly_cost(user.current_subscription.id)
-        months = duration.days / 30
-        extra_devices_cost = int(extra_devices_monthly_cost * months) if extra_devices_monthly_cost > 0 else 0
-        base_price = base_price + Decimal(extra_devices_cost)
+    is_extra_devices_one_time = await settings_service.is_extra_devices_one_time()
+    if user.current_subscription and not is_extra_devices_one_time:
+        active_extra_devices = await extra_device_service.get_total_active_devices(user.current_subscription.id)
+        if active_extra_devices > 0:
+            device_price_monthly = await settings_service.get_extra_device_price()
+            extra_devices_monthly_cost = device_price_monthly * active_extra_devices
+            months = duration.days / 30
+            extra_devices_cost = int(extra_devices_monthly_cost * months)
+            base_price = base_price + Decimal(extra_devices_cost)
     
     price = pricing_service.calculate(user, base_price, currency, global_discount, context="subscription")
     

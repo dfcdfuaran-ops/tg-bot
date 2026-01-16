@@ -1622,3 +1622,25 @@ async def on_balance_transfer_cancel(
     dialog_manager.dialog_data.pop("transfer_data", None)
     
     await dialog_manager.switch_to(MainMenu.BALANCE)
+
+
+@inject
+async def on_extra_devices_list(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к списку купленных дополнительных устройств."""
+    from src.bot.states import Subscription
+    await dialog_manager.start(Subscription.EXTRA_DEVICES_LIST, mode=StartMode.RESET_STACK)
+
+
+@inject
+async def on_add_device(
+    callback: CallbackQuery,
+    widget: Button,
+    dialog_manager: DialogManager,
+) -> None:
+    """Переход к добавлению дополнительных устройств."""
+    from src.bot.states import Subscription
+    await dialog_manager.start(Subscription.ADD_DEVICE_SELECT_COUNT, mode=StartMode.RESET_STACK)
