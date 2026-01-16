@@ -18,6 +18,7 @@ from src.bot.states import (
     DashboardUsers,
     DashboardDB,
     DashboardSettings,
+    RemnashopPlans,
 )
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
 from src.core.constants import IS_SUPER_DEV_KEY, MIDDLEWARE_DATA_KEY, USER_KEY
@@ -38,6 +39,14 @@ dashboard = Window(
             text=I18nFormat("btn-dashboard-users"),
             id="users",
             state=DashboardUsers.MAIN,
+            mode=StartMode.RESET_STACK,
+        ),
+    ),
+    Row(
+        Start(
+            text=I18nFormat("btn-dashboard-plans"),
+            id="plans",
+            state=RemnashopPlans.MAIN,
             mode=StartMode.RESET_STACK,
         ),
     ),

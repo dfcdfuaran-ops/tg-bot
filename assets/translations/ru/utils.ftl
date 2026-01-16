@@ -112,7 +112,7 @@ frg-subscription =
     • <b>Лимит устройств</b>: { $device_limit_number }{ $device_limit_bonus ->
         [0] { $extra_devices ->
             [0] {""}
-            *[other] {" "}(+{ $extra_devices })
+            *[other] {" "}(+{ $extra_devices } доп.)
         }
         *[other] +{ $device_limit_bonus }{ $extra_devices ->
             [0] {""}

@@ -773,14 +773,9 @@ async def payment_method_getter(
     is_balance_combined = await settings_service.is_balance_combined()
     is_balance_separate = not is_balance_combined
     
-    # Получаем информацию о текущих дополнительных устройствах пользователя
-    # Это будет показано в скобках если они есть
-    # Но это не для NEW подписки, только для RENEW когда у пользователя уже есть подписка
-    extra_devices_info = ""
-    if purchase_type == PurchaseType.RENEW and subscription and extra_devices > 0:
-        extra_devices_info = f" (+{extra_devices})"
-    
-    device_limit_display = f"{plan.device_limit}{extra_devices_info}"
+    # Лимит устройств для покупаемой подписки
+    # Не показываем (+X) так как дополнительные устройства выводятся отдельной строкой
+    device_limit_display = str(plan.device_limit)
     
     # Получаем информацию о планируемых дополнительных устройствах (если выбраны на экране ADD_DEVICE_SELECT_COUNT)
     planned_extra_devices = dialog_manager.dialog_data.get("device_count", 0)

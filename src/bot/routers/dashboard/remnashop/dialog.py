@@ -47,23 +47,10 @@ remnashop = Window(
         ),
     ),
     Row(
-        Start(
-            text=I18nFormat("btn-remnashop-referral"),
-            id="referral",
-            state=RemnashopReferral.MAIN,
-        ),
         Button(
             text=I18nFormat("btn-remnashop-advertising"),
             id="advertising",
             on_click=show_dev_popup,
-        ),
-    ),
-    Row(
-        Start(
-            text=I18nFormat("btn-remnashop-plans"),
-            id="plans",
-            state=RemnashopPlans.MAIN,
-            mode=StartMode.RESET_STACK,
         ),
     ),
     Row(

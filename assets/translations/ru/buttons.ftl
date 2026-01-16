@@ -2,6 +2,7 @@
 btn-dashboard-broadcast = 📢 Рассылка
 btn-dashboard-statistics = 📊 Статистика
 btn-dashboard-users = 👥 Пользователи
+btn-dashboard-plans = 📦 Тарифные планы
 btn-dashboard-promocodes = 🎟 Промокоды
 btn-dashboard-remnawave = 🌊 Панель
 btn-dashboard-remnashop = 🛍 Телеграм

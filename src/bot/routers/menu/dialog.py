@@ -110,7 +110,7 @@ menu = Window(
         ),
         when=F["is_balance_enabled"],
     ),
-    # [Подписка][Промокод] - для всех пользователей
+    # [Подписка][Мои устройства] - для всех пользователей
     Row(
         Start(
             text=I18nFormat("btn-menu-subscription"),
@@ -118,10 +118,11 @@ menu = Window(
             state=Subscription.MAIN,
             mode=StartMode.RESET_STACK,
         ),
-        Button(
-            text=I18nFormat("btn-menu-promocode"),
-            id="promocode",
-            on_click=on_promocode,
+        SwitchTo(
+            text=I18nFormat("btn-menu-devices"),
+            id="devices",
+            state=MainMenu.DEVICES,
+            when=F["show_devices_button"],
         ),
     ),
     # [Подключиться][Пригласить] (если есть подписка)
@@ -150,14 +151,13 @@ menu = Window(
         ),
         when=F["has_subscription"],
     ),
-    # [Мои устройства] - доступно если есть или были доп. устройства
+    # [Промокод] - для всех пользователей
     Row(
-        SwitchTo(
-            text=I18nFormat("btn-menu-devices"),
-            id="devices",
-            state=MainMenu.DEVICES,
+        Button(
+            text=I18nFormat("btn-menu-promocode"),
+            id="promocode",
+            on_click=on_promocode,
         ),
-        when=F["show_devices_button"],
     ),
     # [Сообщество][Помощь]
     Row(
@@ -257,15 +257,6 @@ devices = Window(
         item_id_getter=lambda item: item["short_hwid"],
         items="devices",
     ),
-    # Кнопка добавления устройств (если доступно)
-    Row(
-        Button(
-            text=I18nFormat("btn-menu-add-device"),
-            id="add_device",
-            on_click=on_add_device,
-            when=F["can_add_device"],
-        ),
-    ),
     # Кнопка списка купленных дополнительных устройств
     Row(
         Button(
@@ -276,7 +267,7 @@ devices = Window(
         ),
     ),
     Row(
-        *get_back_and_main_menu_buttons(MainMenu.MAIN),
+        *main_menu_button,
     ),
     IgnoreUpdate(),
     state=MainMenu.DEVICES,
