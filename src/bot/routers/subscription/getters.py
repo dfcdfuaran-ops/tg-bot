@@ -420,11 +420,12 @@ async def duration_getter(
     eur_rate = rates.eur_rate
     stars_rate = rates.stars_rate
     
-    # Получаем стоимость дополнительных устройств для RENEW и CHANGE
+    # Получаем стоимость дополнительных устройств для всех типов покупок
     purchase_type = dialog_manager.dialog_data.get("purchase_type")
     extra_devices_monthly_cost = 0
     
-    if purchase_type in (PurchaseType.RENEW, PurchaseType.CHANGE) and user.current_subscription:
+    # Для NEW, RENEW и CHANGE проверяем наличие активных доп. устройств
+    if user.current_subscription:
         # Получаем количество активных дополнительных устройств
         active_extra_devices = await extra_device_service.get_total_active_devices(
             user.current_subscription.id
@@ -441,7 +442,7 @@ async def duration_getter(
         key, kw = i18n_format_days(duration.days)
         base_price = duration.get_price(currency, usd_rate, eur_rate, stars_rate)
         
-        # Для продления/смены добавляем стоимость доп. устройств пропорционально периоду
+        # Добавляем стоимость доп. устройств пропорционально периоду
         if extra_devices_monthly_cost > 0:
             # Рассчитываем стоимость доп. устройств за период
             months = duration.days / 30
