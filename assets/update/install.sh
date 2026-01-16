@@ -14,7 +14,7 @@ PROJECT_DIR="/opt/tg-sell-bot"
 ENV_FILE="$PROJECT_DIR/.env"
 REPO_DIR="/opt/tg-bot"
 REMNAWAVE_DIR="/opt/remnawave"
-REPO_URL="https://github.com/dfcdfuaran-ops/tg-bot.git"
+REPO_URL="https://github.com/DanteFuaran/dfc-shop-bot.git"
 REPO_BRANCH="dev"
 
 # Статус обновлений

@@ -59,9 +59,14 @@ ___
 <details>
 <summary>Показать подробности</summary>
 
-### ▶️ Полная установка в один шаг
+### ▶️ Полная установка в один шаг (ветка dev)
 ```bash
-cd /tmp && git clone -b dev --depth 1 https://github.com/dfcdfuaran-ops/tg-bot.git tg-sell-bot > /dev/null 2>&1 && cd tg-sell-bot && ./install.sh; cd /opt && rm -rf /tmp/tg-sell-bot
+cd /tmp && git clone -b dev --depth 1 https://github.com/DanteFuaran/dfc-shop-bot.git tg-sell-bot > /dev/null 2>&1 && cd tg-sell-bot && ./install.sh; cd /opt && rm -rf /tmp/tg-sell-bot
+```
+
+### ▶️ Полная установка в один шаг (ветка main)
+```bash
+cd /tmp && git clone -b main --depth 1 https://github.com/DanteFuaran/dfc-shop-bot.git tg-sell-bot > /dev/null 2>&1 && cd tg-sell-bot && ./install.sh; cd /opt && rm -rf /tmp/tg-sell-bot
 ```
 
 ### 📦 Что делает скрипт установки
