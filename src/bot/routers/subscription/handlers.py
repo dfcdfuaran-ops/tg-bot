@@ -672,8 +672,12 @@ async def on_confirm_balance_payment(
         if active_extra_devices > 0:
             device_price_monthly = await settings_service.get_extra_device_price()
             extra_devices_monthly_cost = device_price_monthly * active_extra_devices
-                months = duration.days // 30  # Используем целочисленное деление
-                extra_devices_cost = extra_devices_monthly_cost * months
+            months = duration.days // 30  # Используем целочисленное деление
+            extra_devices_cost = extra_devices_monthly_cost * months
+            base_price = base_price + Decimal(extra_devices_cost)
+    
+    price = pricing_service.calculate(user, base_price, currency, global_discount, context="subscription")
+    
     # Re-check balance (user might have spent it elsewhere)
     fresh_user = await user_service.get(user.telegram_id)
     
