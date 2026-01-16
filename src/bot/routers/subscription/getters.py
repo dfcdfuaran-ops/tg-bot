@@ -1646,6 +1646,7 @@ async def success_payment_getter(
     dialog_manager: DialogManager,
     config: AppConfig,
     user: UserDto,
+    user_service: FromDishka[UserService],
     referral_service: FromDishka[ReferralService],
     settings_service: FromDishka[SettingsService],
     **kwargs: Any,
@@ -1659,31 +1660,37 @@ async def success_payment_getter(
         else:
             purchase_type = PurchaseType.NEW
     
-    subscription = user.current_subscription
+    # Очищаем кэш и получаем свежие данные пользователя
+    await user_service.clear_user_cache(user.telegram_id)
+    fresh_user = await user_service.get(user.telegram_id)
+    if not fresh_user:
+        fresh_user = user
+    
+    subscription = fresh_user.current_subscription
 
     if not subscription:
-        raise ValueError(f"User '{user.telegram_id}' has no active subscription after purchase")
+        raise ValueError(f"User '{fresh_user.telegram_id}' has no active subscription after purchase")
 
     # Получаем реферальный баланс
     referral_balance = await referral_service.get_pending_rewards_amount(
-        telegram_id=user.telegram_id,
+        telegram_id=fresh_user.telegram_id,
         reward_type=ReferralRewardType.MONEY,
     )
 
     # Вычисляем скидку пользователя
     from datetime import datetime, timezone
-    purchase_disc = user.purchase_discount if user.purchase_discount is not None else 0
-    personal_disc = user.personal_discount if user.personal_discount is not None else 0
+    purchase_disc = fresh_user.purchase_discount if fresh_user.purchase_discount is not None else 0
+    personal_disc = fresh_user.personal_discount if fresh_user.personal_discount is not None else 0
     discount_remaining = 0
     is_temporary_discount = False
     is_permanent_discount = False
 
-    if purchase_disc > 0 and user.purchase_discount_expires_at is not None:
+    if purchase_disc > 0 and fresh_user.purchase_discount_expires_at is not None:
         now = datetime.now(timezone.utc)
-        if user.purchase_discount_expires_at <= now:
+        if fresh_user.purchase_discount_expires_at <= now:
             purchase_disc = 0
         else:
-            remaining = user.purchase_discount_expires_at - now
+            remaining = fresh_user.purchase_discount_expires_at - now
             discount_remaining = remaining.days + (1 if remaining.seconds > 0 else 0)
             is_temporary_discount = True
 
@@ -1731,11 +1738,11 @@ async def success_payment_getter(
         "url": config.bot.mini_app_url or subscription.url,
         "connectable": True,
         # Данные профиля пользователя
-        "user_id": str(user.telegram_id),
-        "user_name": user.name,
-        "balance": user.balance,
+        "user_id": str(fresh_user.telegram_id),
+        "user_name": fresh_user.name,
+        "balance": fresh_user.balance,
         "referral_balance": referral_balance,
-        "referral_code": user.referral_code,
+        "referral_code": fresh_user.referral_code,
         "discount_value": discount_value,
         "discount_is_temporary": 1 if is_temporary_discount else 0,
         "discount_is_permanent": 1 if is_permanent_discount else 0,
@@ -2699,7 +2706,8 @@ async def add_device_success_getter(
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Геттер для окна успешного добавления устройств."""
-    # Получаем свежие данные пользователя из БД
+    # Очищаем кэш и получаем свежие данные пользователя из БД
+    await user_service.clear_user_cache(user.telegram_id)
     fresh_user = await user_service.get(user.telegram_id)
     if not fresh_user:
         fresh_user = user
@@ -2785,7 +2793,7 @@ async def add_device_success_getter(
         "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit) if subscription else "",
         "device_limit": i18n_format_device_limit(subscription.device_limit) if subscription else "",
         "device_limit_number": device_limit_number,
-        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number) if subscription and device_limit_number > 0 else 0,
+        "device_limit_bonus": max(0, subscription.device_limit - device_limit_number - extra_devices) if subscription and device_limit_number > 0 else 0,
         "extra_devices": extra_devices,
         "expire_time": i18n_format_expire_time(subscription.expire_at) if subscription else "",
         # Данные покупки
