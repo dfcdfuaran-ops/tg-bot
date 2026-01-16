@@ -141,8 +141,8 @@ async def _create_payment_and_get_data(
             payment_id=str(result.id),
             payment_url=result.url,
             final_pricing=pricing.model_dump_json(),
-            base_subscription_price=int(base_price),
-            extra_devices_cost=extra_devices_cost,
+            base_subscription_price=float(base_price),  # В валюте шлюза
+            extra_devices_cost=float(extra_devices_cost),  # В валюте шлюза
         )
 
     except Exception as exception:
@@ -515,7 +515,7 @@ async def on_payment_method_select(
         rates = settings.features.currency_rates
         
         base_price = duration.get_price(currency, rates.usd_rate, rates.eur_rate, rates.stars_rate)
-        base_subscription_price = int(base_price)  # Сохраняем цену подписки БЕЗ доп. устройств
+        base_subscription_price = float(base_price)  # Сохраняем цену подписки БЕЗ доп. устройств (в рублях)
         
         # Добавляем стоимость доп. устройств
         # Используем цену из настроек * количество активных устройств

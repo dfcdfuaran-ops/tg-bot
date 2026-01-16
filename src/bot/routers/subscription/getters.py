@@ -961,18 +961,16 @@ async def confirm_getter(
     
     final_amount_for_display = pricing.final_amount
     
-    # Конвертируем base_subscription_price и extra_devices_cost_rub в валюту шлюза
+    # base_subscription_price и extra_devices_cost_rub уже в валюте шлюза (не нужно конвертировать)
     if base_subscription_price > 0:
         base_subscription_price_converted = format_price(
-            pricing_service.convert_currency(Decimal(base_subscription_price), payment_gateway.currency, usd_rate, eur_rate, stars_rate),
+            Decimal(str(base_subscription_price)),
             payment_gateway.currency
         )
     else:
-        # Если base_subscription_price не установлена, используем pricing.original_amount минус extra_devices_cost
+        # Если base_subscription_price не установлена, вычисляем из общей суммы
         if extra_devices_cost_rub > 0:
-            subscription_only_price = pricing.original_amount - pricing_service.convert_currency(
-                Decimal(extra_devices_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate
-            )
+            subscription_only_price = pricing.original_amount - Decimal(str(extra_devices_cost_rub))
             base_subscription_price_converted = format_price(subscription_only_price, payment_gateway.currency)
         else:
             base_subscription_price_converted = format_price(pricing.original_amount, payment_gateway.currency)
@@ -1019,13 +1017,15 @@ async def confirm_getter(
         "expire_time": expire_time,
         "is_balance_enabled": 1 if is_balance_enabled else 0,
         "is_balance_separate": 1 if is_balance_separate else 0,
-        # Данные о стоимости доп. устройств - конвертируем в валюту gateway и форматируем
+        # Данные о стоимости доп. устройств
+        # extra_devices_monthly_cost_rub - рассчитано в рублях, конвертируем
+        # extra_devices_cost_rub - уже в валюте шлюза (не конвертируем)
         "extra_devices_monthly_cost": format_price(
             pricing_service.convert_currency(Decimal(extra_devices_monthly_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate),
             payment_gateway.currency
         ) if extra_devices_monthly_cost_rub > 0 else "0",
         "extra_devices_cost": format_price(
-            pricing_service.convert_currency(Decimal(extra_devices_cost_rub), payment_gateway.currency, usd_rate, eur_rate, stars_rate),
+            Decimal(str(extra_devices_cost_rub)),
             payment_gateway.currency
         ) if extra_devices_cost_rub > 0 else "0",
         "has_extra_devices_cost": 1 if extra_devices_cost_rub > 0 else 0,
